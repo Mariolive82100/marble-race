@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0f1220">
-<title>Murble Race v1.9</title>
+<title>Murble Race v2.0</title>
 <style>
 :root{--bg:#0f1220;--card:#181c30;--line:#2a3050;--txt:#eef0fa;--mut:#8f96b8;--acc:#ff9f1c;--ok:#2ec27e;--err:#ff5d6c}
 *{box-sizing:border-box}
@@ -60,6 +60,8 @@ button:disabled{opacity:.5;cursor:default}
 .menu{position:absolute;right:0;top:100%;margin-top:6px;background:var(--card);border:1px solid var(--line);border-radius:10px;min-width:170px;z-index:5;padding:4px;box-shadow:0 8px 24px rgba(0,0,0,.4)}
 .menu button{display:block;width:100%;text-align:left;background:transparent;color:var(--txt);border:0;padding:10px 12px;font-size:15px;font-weight:500}
 .menu button:hover{background:rgba(255,255,255,.06)}
+.yt{position:relative;padding-top:56.25%;margin-top:10px;border-radius:10px;overflow:hidden;background:#000}
+.yt iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 .res-won{color:var(--ok);font-weight:600}
 .res-lost{color:var(--err);font-weight:600}
 </style>
@@ -69,7 +71,7 @@ button:disabled{opacity:.5;cursor:default}
 
   <!-- AUTENTICAZIONE -->
   <div id="viewAuth" class="view on">
-    <h1>Murble <span>Race</span> <small class="ver">v1.9</small></h1>
+    <h1>Murble <span>Race</span> <small class="ver">v2.0</small></h1>
     <p class="sub">Scommesse sulle gare di biglie</p>
     <div class="card">
       <div class="tabs">
@@ -100,7 +102,7 @@ button:disabled{opacity:.5;cursor:default}
   <!-- HOME GIOCATORE -->
   <div id="viewHome" class="view">
     <div class="row">
-      <h1>Murble <span>Race</span> <small class="ver">v1.9</small></h1>
+      <h1>Murble <span>Race</span> <small class="ver">v2.0</small></h1>
       <div class="uactions" style="margin-top:0;flex-wrap:nowrap">
         <label id="wrapAdminQuick" class="sw" style="display:none">Admin<input id="swAdminHome" type="checkbox"><i></i></label>
         <button id="btnLogout" class="sec small" type="button">Esci</button>
@@ -176,6 +178,8 @@ button:disabled{opacity:.5;cursor:default}
         <input id="raceName" maxlength="60" required>
         <label for="raceRunners">Biglie in gara (una per riga, da 2 a 12)</label>
         <textarea id="raceRunners" rows="4" required></textarea>
+        <label for="raceYt">Link YouTube (facoltativo, live o registrato)</label>
+        <input id="raceYt" inputmode="url" autocapitalize="none" placeholder="https://www.youtube.com/watch?v=...">
         <button class="full" type="submit">Crea gara (puntate aperte)</button>
       </form>
     </div>
@@ -195,6 +199,16 @@ button:disabled{opacity:.5;cursor:default}
     <div id="adminOpts" style="display:none">
       <div class="card">
         <div class="row"><b>Impostazioni</b><button class="sec small" type="button" data-sec="main">← Pannello</button></div>
+        <form id="formCfg" style="margin-top:12px">
+          <label for="sFee">Fee sulle gare (%)</label>
+          <input id="sFee" type="number" step="1" min="0" max="100" inputmode="numeric" required>
+          <label for="sMin">Puntata minima (crediti)</label>
+          <input id="sMin" type="number" step="1" min="1" inputmode="numeric" required>
+          <div class="mut" style="margin-top:6px">Valide solo per le gare create dopo il salvataggio.</div>
+          <button class="full" type="submit">Salva impostazioni</button>
+          <div id="cfgMsg" class="mut" style="margin-top:8px;color:var(--ok)"></div>
+        </form>
+        <div style="margin-top:18px"><b>Reset</b></div>
         <div class="mut" style="margin-top:4px">Reset per la fase di test. Le operazioni sono definitive.</div>
         <div class="urow">
           <b>Reset users</b>
@@ -255,6 +269,19 @@ const MAX_BETS_SETTLE = 150;
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+function ytId(u){
+  if (!u) return null;
+  let x;
+  try { x = new URL(String(u).trim()); } catch (e) { return null; }
+  const h = x.hostname.replace(/^www\.|^m\./, "");
+  let id = null;
+  if (h === "youtu.be") id = x.pathname.slice(1).split("/")[0];
+  else if (h === "youtube.com" || h === "youtube-nocookie.com") {
+    if (x.pathname === "/watch") id = x.searchParams.get("v");
+    else { const m = x.pathname.match(/^\/(live|embed|shorts|v)\/([^/?#]+)/); if (m) id = m[2]; }
+  }
+  return id && /^[A-Za-z0-9_-]{11}$/.test(id) ? id : null;
+}
 const normName = s => s.trim().toLowerCase();
 const validName = n => /^[a-z0-9._-]{3,20}$/.test(n) && !RESERVED.includes(n);
 const toEmail = n => n + DOMAIN;
@@ -371,20 +398,17 @@ $("btnLogout").onclick = () => signOut(auth);
 const STATUS_LABEL = { open: "puntate aperte", closed: "puntate chiuse", settled: "conclusa", cancelled: "annullata" };
 const STATUS_CLASS = { open: "ok", closed: "wait", settled: "off", cancelled: "off" };
 
-function netPool(r){
-  const total = r.pool || 0;
-  return total - Math.floor(total * (r.feePercent || 0) / 100);
-}
-
-function raceCard(r){
+function raceParts(r){
   const b = myBets[r.id];
   const pools = r.pools || {};
-  const net = netPool(r);
+  const total = r.pool || 0;
+  const fee = r.feePercent || 0;
   const canBet = r.status === "open" && !b && meDoc && meDoc.active;
   const d = draft[r.id] || {};
   const runners = (r.runners || []).map((n, i) => {
     const p = pools[String(i)] || 0;
-    const quota = p > 0 ? "x" + (net / p).toFixed(2) : "—";
+    const netI = total - Math.floor((total - p) * fee / 100); // fee solo sul surplus: quota minima x1.00
+    const quota = p > 0 ? "x" + (netI / p).toFixed(2) : "—";
     const isWin = r.status === "settled" && r.winner === i;
     const mine = b && b.runner === i ? " ★" : "";
     const radio = canBet
@@ -413,13 +437,9 @@ function raceCard(r){
   const isActive = r.status === "open" || r.status === "closed";
   const isOpen = !isActive || !!expanded[r.id];
   const arrow = isActive ? (isOpen ? " ▲" : " ▼") : "";
-  return `<div class="card race" data-id="${esc(r.id)}">
-    <div class="rhead ${isActive ? "" : "static"}" ${isActive ? "data-toggle" : ""}>
-      <div class="row"><b>${esc(r.name)}</b><span class="badge ${STATUS_CLASS[r.status] || "off"}">${STATUS_LABEL[r.status] || esc(r.status)}</span></div>
-      <div class="row mut" style="margin-top:4px"><span>Montepremi: ${esc(r.pool || 0)} crediti · Fee ${esc(r.feePercent || 0)}%</span><span>${b ? "✓ Hai puntato" : ""}${arrow}</span></div>
-    </div>
-    ${isOpen ? runners + foot : ""}
-  </div>`;
+  const head = `<div class="row"><b>${esc(r.name)}</b><span class="badge ${STATUS_CLASS[r.status] || "off"}">${STATUS_LABEL[r.status] || esc(r.status)}</span></div>
+      <div class="row mut" style="margin-top:4px"><span>Montepremi: ${esc(total)} crediti · Fee ${esc(fee)}% sul surplus</span><span>${b ? "✓ Hai puntato" : ""}${arrow}</span></div>`;
+  return { head, body: isOpen ? runners + foot : "", yt: isOpen ? ytId(r.youtubeUrl) : null, isActive };
 }
 
 function renderRaces(){
@@ -428,7 +448,30 @@ function renderRaces(){
   const isHist = r => r.status === "settled" || r.status === "cancelled";
   const list = races.filter(r => raceTab === "history" ? isHist(r) : !isHist(r));
   if (!list.length) { box.innerHTML = '<div class="card mut">' + (raceTab === "history" ? "Nessuna gara conclusa." : "Nessuna gara attiva al momento.") + '</div>'; return; }
-  box.innerHTML = list.map(raceCard).join("");
+  list.forEach((r, i) => {
+    const parts = raceParts(r);
+    let el = null;
+    for (const c of box.children) if (c.dataset && c.dataset.id === r.id) { el = c; break; }
+    if (!el) {
+      el = document.createElement("div");
+      el.className = "card race";
+      el.dataset.id = r.id;
+      el.innerHTML = '<div class="rhead"></div><div class="yt-slot"></div><div class="rbody"></div>';
+    }
+    const [head, slot, body] = el.children;
+    head.className = "rhead" + (parts.isActive ? "" : " static");
+    if (parts.isActive) head.setAttribute("data-toggle", ""); else head.removeAttribute("data-toggle");
+    if (el._head !== parts.head) { head.innerHTML = parts.head; el._head = parts.head; }
+    if (el._body !== parts.body) { body.innerHTML = parts.body; el._body = parts.body; }
+    if (parts.yt) {
+      if (slot.dataset.id !== parts.yt) {
+        slot.innerHTML = '<div class="yt"><iframe src="https://www.youtube-nocookie.com/embed/' + parts.yt + '?rel=0&playsinline=1" title="Video gara" loading="lazy" allow="accelerometer; autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe></div>';
+        slot.dataset.id = parts.yt;
+      }
+    } else if (slot.dataset.id) { slot.innerHTML = ""; delete slot.dataset.id; }
+    if (box.children[i] !== el) box.insertBefore(el, box.children[i] || null);
+  });
+  while (box.children.length > list.length) box.lastChild.remove();
 }
 
 function setRaceTab(t){
@@ -578,6 +621,7 @@ function showAdminSec(n){
   $("adminMain").style.display = n === "main" ? "" : "none";
   $("adminOpts").style.display = n === "opts" ? "" : "none";
   $("optMsg").textContent = "";
+  $("cfgMsg").textContent = "";
   $("adminErr").textContent = "";
 }
 $("btnMenu").onclick = ev => { ev.stopPropagation(); const m = $("adminMenu"); m.style.display = m.style.display === "none" ? "block" : "none"; };
@@ -585,6 +629,20 @@ document.addEventListener("click", () => { $("adminMenu").style.display = "none"
 document.addEventListener("click", ev => {
   const b = ev.target.closest("button[data-sec]");
   if (b) showAdminSec(b.dataset.sec);
+});
+
+$("formCfg").addEventListener("submit", async ev => {
+  ev.preventDefault();
+  $("adminErr").textContent = ""; $("cfgMsg").textContent = "";
+  const fee = Number($("sFee").value), min = Number($("sMin").value);
+  if (!Number.isInteger(fee) || fee < 0 || fee > 100) { $("adminErr").textContent = "La fee deve essere un intero da 0 a 100."; return; }
+  if (!Number.isInteger(min) || min < 1) { $("adminErr").textContent = "La puntata minima deve essere un intero da 1 in su."; return; }
+  await busy(ev.submitter, async () => {
+    try {
+      await setDoc(doc(adminDb, "config", "app"), { feePercent: fee, minBet: min }, { merge: true });
+      $("cfgMsg").textContent = "Impostazioni salvate (valide per le nuove gare).";
+    } catch (e) { $("adminErr").textContent = msg(e); }
+  });
 });
 
 async function wipeCollection(name){
@@ -627,7 +685,7 @@ $("adminOpts").addEventListener("click", async ev => {
   });
 });
 
-let users = [], reqs = [], adminRaces = [], adminExp = {};
+let users = [], reqs = [], adminRaces = [], adminExp = {}, adminBets = {};
 
 // Crea config/app e treasury/main con valori predefiniti solo se mancano (mai sovrascrive)
 async function ensureInit(){
@@ -649,9 +707,22 @@ async function loadTreasury(){
   $("tBal").textContent = t.exists() ? t.data().balance : 0;
 }
 
+async function loadRaceBets(id){
+  const qs = await getDocs(query(collection(adminDb, "bets"), where("raceId", "==", id)));
+  adminBets[id] = qs.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (a.username || "").localeCompare(b.username || ""));
+}
+
+async function loadConfig(){
+  const c = await getDoc(doc(adminDb, "config", "app"));
+  const d = c.exists() ? c.data() : {};
+  $("sFee").value = Number.isInteger(d.feePercent) ? d.feePercent : 10;
+  $("sMin").value = Number.isInteger(d.minBet) ? d.minBet : 1;
+}
+
 async function loadRaces(){
   const rs = await getDocs(query(collection(adminDb, "races"), orderBy("createdAt", "desc"), limit(30)));
   adminRaces = rs.docs.map(d => ({ id: d.id, ...d.data() }));
+  await Promise.all(adminRaces.filter(r => adminExp[r.id] && (r.status === "open" || r.status === "closed")).map(r => loadRaceBets(r.id)));
   renderAdminRaces();
 }
 
@@ -661,6 +732,7 @@ async function loadAdmin(){
   try {
     await ensureInit();
     await loadTreasury();
+    await loadConfig();
     await loadRaces();
     const rs = await getDocs(query(collection(adminDb, "topupRequests"), where("status", "==", "pending")));
     reqs = rs.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -682,6 +754,8 @@ $("formRace").addEventListener("submit", async ev => {
   if (!name) { $("adminErr").textContent = "Inserisci il nome della gara."; return; }
   if (runners.length < 2 || runners.length > 12) { $("adminErr").textContent = "Servono da 2 a 12 biglie."; return; }
   if (new Set(runners.map(r => r.toLowerCase())).size !== runners.length) { $("adminErr").textContent = "I nomi delle biglie devono essere diversi."; return; }
+  const yt = $("raceYt").value.trim();
+  if (yt && !ytId(yt)) { $("adminErr").textContent = "Link YouTube non valido."; return; }
   await busy(ev.submitter, async () => {
     try {
       const cfg = await getDoc(doc(adminDb, "config", "app"));
@@ -689,12 +763,12 @@ $("formRace").addEventListener("submit", async ev => {
       const pools = {};
       runners.forEach((_, i) => { pools[String(i)] = 0; });
       await setDoc(doc(collection(adminDb, "races")), {
-        name, runners, status: "open", pool: 0, pools, winner: null,
+        name, runners, status: "open", pool: 0, pools, winner: null, youtubeUrl: yt,
         feePercent: Number.isInteger(c.feePercent) ? c.feePercent : 10,
         minBet: Number.isInteger(c.minBet) && c.minBet > 0 ? c.minBet : 1,
         createdAt: serverTimestamp()
       });
-      $("raceName").value = ""; $("raceRunners").value = "";
+      $("raceName").value = ""; $("raceRunners").value = ""; $("raceYt").value = "";
       await loadRaces();
     } catch (e) { $("adminErr").textContent = msg(e); }
   });
@@ -720,19 +794,38 @@ function renderAdminRaces(){
       actions = `<span class="mut">Annullata, puntate rimborsate.</span>`;
     }
     const open = !!adminExp[r.id];
+    let betsHtml = "";
+    if (r.status === "open" || r.status === "closed") {
+      const bl = adminBets[r.id];
+      if (!bl) betsHtml = '<div class="mut">Caricamento puntate…</div>';
+      else if (!bl.length) betsHtml = '<div class="mut">Nessuna puntata.</div>';
+      else betsHtml = bl.map(b => {
+        const nm = (users.find(x => x.id === b.uid) || {}).username || b.username;
+        return `<div class="row" style="margin-top:6px"><span class="mut"><b style="color:var(--txt)">${esc(nm)}</b> · ${esc((r.runners || [])[b.runner] ?? "?")} · ${esc(b.amount)}${b.status !== "pending" ? " · " + esc(b.status) : ""}</span>${b.status === "pending" ? `<button class="small danger" data-act="refund" data-bet="${esc(b.id)}">Rimborsa</button>` : ""}</div>`;
+      }).join("");
+    }
     return `<div class="urow" data-id="${esc(r.id)}">
       <div class="rhead" data-tgl>
         <div class="row"><b>${esc(r.name)}</b><span><span class="badge ${STATUS_CLASS[r.status] || "off"}">${STATUS_LABEL[r.status] || esc(r.status)}</span> <span class="mut">${open ? "▲" : "▼"}</span></span></div>
         <div class="mut">Montepremi: ${esc(r.pool || 0)} · Fee ${esc(r.feePercent || 0)}%</div>
       </div>
-      ${open ? `<div class="mut" style="margin-top:6px">${list}</div><div class="uactions">${actions}</div>` : ""}
+      ${open ? `<div class="mut" style="margin-top:6px">${list}</div>${betsHtml ? `<div style="margin-top:8px"><b style="font-size:14px">Puntate</b>${betsHtml}</div>` : ""}<div class="uactions">${actions}</div>` : ""}
     </div>`;
   }).join("");
 }
 
 $("raceAdminList").addEventListener("click", async ev => {
   const h = ev.target.closest("[data-tgl]");
-  if (h) { const hid = h.closest(".urow").dataset.id; adminExp[hid] = !adminExp[hid]; renderAdminRaces(); return; }
+  if (h) {
+    const hid = h.closest(".urow").dataset.id;
+    adminExp[hid] = !adminExp[hid];
+    renderAdminRaces();
+    const rc = adminRaces.find(x => x.id === hid);
+    if (adminExp[hid] && rc && (rc.status === "open" || rc.status === "closed")) {
+      try { await loadRaceBets(hid); renderAdminRaces(); } catch (e) { $("adminErr").textContent = msg(e); }
+    }
+    return;
+  }
   const btn = ev.target.closest("button[data-act]");
   if (!btn) return;
   const row = btn.closest(".urow");
@@ -749,6 +842,10 @@ $("raceAdminList").addEventListener("click", async ev => {
         const w = Number(row.querySelector("[data-win]").value);
         if (!confirm("Assegnare la vittoria a \"" + r.runners[w] + "\"? L'operazione è definitiva e paga i vincitori.")) return;
         await finalizeRace(id, "settle", w);
+      } else if (act === "refund") {
+        if (!confirm("Rimborsare questa puntata? Il giocatore viene riaccreditato e il montepremi scalato.")) return;
+        await refundBet(id, btn.dataset.bet);
+        await loadRaceBets(id);
       } else if (act === "cancel") {
         if (!confirm("Annullare la gara e rimborsare tutte le puntate?")) return;
         if (r.status === "open") await updateDoc(rr, { status: "closed" });
@@ -759,6 +856,28 @@ $("raceAdminList").addEventListener("click", async ev => {
     } catch (e) { $("adminErr").textContent = msg(e); await loadRaces().catch(() => {}); }
   });
 });
+
+// Rimborso di una singola puntata (atomico): saldo giocatore, ledger, montepremi e pool biglia
+async function refundBet(raceId, betId){
+  const rr = doc(adminDb, "races", raceId);
+  const br = doc(adminDb, "bets", betId);
+  await runTransaction(adminDb, async tx => {
+    const [rs, bs] = await Promise.all([tx.get(rr), tx.get(br)]);
+    if (!rs.exists() || !["open", "closed"].includes(rs.data().status)) throw new Error("La gara non è più modificabile.");
+    if (!bs.exists() || bs.data().status !== "pending") throw new Error("Puntata già gestita.");
+    const b = bs.data(), race = rs.data();
+    const ur = doc(adminDb, "users", b.uid);
+    const us = await tx.get(ur);
+    const nb = us.data().balance + b.amount;
+    const key = String(b.runner);
+    const pools = { ...(race.pools || {}) };
+    pools[key] = Math.max(0, (pools[key] || 0) - b.amount);
+    tx.update(ur, { balance: nb });
+    tx.set(doc(collection(adminDb, "ledger")), { uid: b.uid, type: "refund", amount: b.amount, balanceAfter: nb, raceId, betId, createdAt: serverTimestamp() });
+    tx.update(br, { status: "refunded", payout: b.amount });
+    tx.update(rr, { pool: Math.max(0, (race.pool || 0) - b.amount), pools });
+  });
+}
 
 // Chiusura gara atomica: pagamenti, rimborsi, fee in Tesoreria e stato gara in un'unica transazione
 async function finalizeRace(raceId, mode, winner){
@@ -777,7 +896,7 @@ async function finalizeRace(raceId, mode, winner){
     const total = bets.reduce((a, b) => a + b.amount, 0);
     const winPool = mode === "settle" ? bets.filter(b => b.runner === winner).reduce((a, b) => a + b.amount, 0) : 0;
     const refund = mode === "cancel" || winPool === 0;
-    const fee = refund ? 0 : Math.floor(total * (race.feePercent || 0) / 100);
+    const fee = refund ? 0 : Math.floor((total - winPool) * (race.feePercent || 0) / 100); // fee solo sul surplus: il vincitore recupera almeno la puntata
     const net = total - fee;
 
     const pay = {};
