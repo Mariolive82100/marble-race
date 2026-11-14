@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#090b10">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -11,11 +14,11 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Murble Race">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Murble Race v3.33</title>
+<title>Murble Race v3.35</title>
 <style>
 :root{--bg:#090b10;--card:#121622;--line:#232b40;--txt:#eef0fa;--mut:#8f96b8;--acc:#ffb300;--ok:#00e676;--err:#ff3b5c}
 *{box-sizing:border-box}
-body{margin:0;background-color:var(--bg);background-image:linear-gradient(45deg,rgba(255,255,255,.025) 25%,transparent 25%,transparent 75%,rgba(255,255,255,.025) 75%),linear-gradient(45deg,rgba(255,255,255,.025) 25%,transparent 25%,transparent 75%,rgba(255,255,255,.025) 75%),linear-gradient(rgba(255,179,0,.035) 1px,transparent 1px);background-size:8px 8px,8px 8px,100% 64px;background-position:0 0,4px 4px,0 0;background-attachment:fixed;font-variant-numeric:tabular-nums;color:var(--txt);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;min-height:100vh}
+body{margin:0;background-color:var(--bg);background-image:linear-gradient(45deg,rgba(255,255,255,.025) 25%,transparent 25%,transparent 75%,rgba(255,255,255,.025) 75%),linear-gradient(45deg,rgba(255,255,255,.025) 25%,transparent 25%,transparent 75%,rgba(255,255,255,.025) 75%),linear-gradient(rgba(255,179,0,.035) 1px,transparent 1px);background-size:8px 8px,8px 8px,100% 64px;background-position:0 0,4px 4px,0 0;background-attachment:fixed;font-variant-numeric:tabular-nums;color:var(--txt);font:16px/1.4 "Google Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;min-height:100vh}
 .wrap{max-width:460px;margin:0 auto;padding:max(28px,env(safe-area-inset-top)) 16px max(56px,env(safe-area-inset-bottom))}
 h1{margin:0;font-size:30px;letter-spacing:.5px}
 h1 span{color:var(--acc)}
@@ -25,6 +28,7 @@ h1 .ver{font-size:12px;font-weight:600;color:var(--mut);letter-spacing:0;vertica
 .view{display:none}.view.on{display:block}
 label{display:block;font-size:13px;color:var(--mut);margin:12px 0 4px}
 input,select,textarea{width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:#0b0e17;color:var(--txt);font-size:16px;font-family:inherit}
+button,h1,h2,h3,h4,.ttl,b{font-family:inherit}
 input:focus,select:focus,textarea:focus{outline:2px solid var(--acc);border-color:transparent}
 button{cursor:pointer;border:0;border-radius:10px;padding:12px 16px;font-size:16px;font-weight:700;background:var(--acc);color:#1b1300;letter-spacing:.2px}
 button.sec{background:transparent;color:var(--txt);border:1px solid var(--line)}
@@ -50,9 +54,12 @@ button:disabled{opacity:.5;cursor:default}
 .uactions{display:flex;gap:8px;margin-top:8px;align-items:center;flex-wrap:wrap}
 .uactions input{width:90px;padding:8px}
 .uactions select{width:auto;flex:1;min-width:120px;padding:8px}
-.rn{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;margin-top:8px;cursor:pointer;font-size:16px;color:var(--txt);margin-bottom:0}
+.rn{display:flex;align-items:center;gap:10px;padding:12px 14px;background:rgba(255,255,255,.035);border:1.5px solid var(--line);border-radius:12px;margin-top:8px;cursor:pointer;font-size:16px;color:var(--txt);margin-bottom:0;transition:border-color .15s,background .15s,box-shadow .15s}
 .rn input{width:auto;margin:0}
-.rn .nm{flex:1}
+.rn .nm{flex:1;display:flex;align-items:center;gap:10px;min-width:0}
+.rn:has(input:checked){border-color:var(--ok);background:rgba(0,230,118,.12);box-shadow:0 0 12px rgba(0,230,118,.18)}
+.rn:has(input:checked) .nm{font-weight:700}
+.lockb{display:inline-block;padding:3px 9px;border-radius:99px;background:rgba(255,59,92,.12);border:1px solid rgba(255,59,92,.45);color:var(--err);font-size:12px;font-weight:700;white-space:nowrap}
 .rn.win{border-color:var(--ok)}
 .dur{display:inline-block;margin-left:8px;padding:2px 10px;border-radius:999px;background:var(--acc);color:#0b0d14;font-weight:700;font-size:14px;white-space:nowrap;vertical-align:middle}
 .tag{display:inline-block;margin-left:6px;padding:2px 9px;border-radius:999px;border:1px solid var(--acc);color:var(--acc);font-size:13px;white-space:nowrap;vertical-align:middle}
@@ -201,7 +208,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
 
   <!-- AUTENTICAZIONE -->
   <div id="viewAuth" class="view on">
-    <h1>Murble <span>Race</span> <small class="ver">v3.33</small></h1>
+    <h1>Murble <span>Race</span> <small class="ver">v3.35</small></h1>
     <p class="sub">Pronostici a punti sulle gare di biglie</p>
     <div class="card">
       <div class="tabs">
@@ -235,7 +242,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
     <div class="topbar">
       <div class="tleft">
         <button id="btnDrawer" class="ibtn" type="button" aria-label="Menu">☰</button>
-        <div class="ttl">Murble <span>Race</span> <small class="ver">v3.33</small></div>
+        <div class="ttl">Murble <span>Race</span> <small class="ver">v3.35</small></div>
       </div>
       <button id="balPill" class="pill" type="button" aria-label="Punti totali: apri la classifica"><span id="hPts">0</span> <small>PT</small></button>
     </div>
@@ -681,6 +688,98 @@ function marbleSvg(cfg, size){
   const px = size || 28;
   return `<svg width="${px}" height="${px}" viewBox="0 0 100 100" aria-hidden="true" style="flex:none;vertical-align:middle"><defs><clipPath id="${id}c"><circle cx="50" cy="50" r="48"/></clipPath><radialGradient id="${id}s" cx=".5" cy=".5" r=".5"><stop offset=".55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".6"/></radialGradient><radialGradient id="${id}h" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fff" stop-opacity=".95"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient></defs><g clip-path="url(#${id}c)"><rect width="100" height="100" fill="${c.color1}"/>${pat}<rect width="100" height="100" fill="url(#${id}s)"/></g><ellipse cx="34" cy="27" rx="17" ry="10" fill="url(#${id}h)" transform="rotate(-28 34 27)"/><circle cx="50" cy="50" r="48" fill="none" stroke="rgba(0,0,0,.35)" stroke-width="1.5"/></svg>`;
 }
+// ---------- Biglie con i colori della nazione ----------
+const FLAG = (() => {
+  const W = "#fff", R = "#d52b1e", B = "#0b3d91", G = "#009246", Y = "#fcd116", K = "#111";
+  const v = (...c) => ({ t: "v", c }), h = (...c) => ({ t: "h", c });
+  const dot = (bg, d, r, x, y) => ({ t: "dot", bg, d, r: r || 20, x: x || 50, y: y || 50 });
+  const cross = (bg, c1, c2, nordic) => ({ t: "cross", bg, c1, c2, n: nordic });
+  const f = {
+    italy: v(G, W, "#ce2b37"), france: v("#0055a4", W, "#ef4135"), ireland: v("#169b62", W, "#ff883e"), belgium: v(K, Y, "#ed2939"),
+    "ivory coast": v("#f77f00", W, "#009e60"), nigeria: v("#008751", W, "#008751"), peru: v("#d91023", W, "#d91023"), romania: v("#002b7f", Y, "#ce1126"),
+    mexico: v("#006847", W, "#ce1126"), cameroon: v("#007a5e", "#ce1126", "#fcd116"), senegal: v("#00853f", "#fdef42", "#e31b23"),
+    guatemala: v("#4997d0", W, "#4997d0"), algeria: dot(W, "#d21034", 18), pakistan: v(W, "#01411c", "#01411c", "#01411c"), qatar: v(W, "#8a1538", "#8a1538", "#8a1538"),
+    germany: h(K, "#dd0000", "#ffce00"), netherlands: h("#ae1c28", W, "#21468b"), spain: h("#aa151b", "#f1bf00", "#f1bf00", "#aa151b"),
+    argentina: h("#74acdf", W, "#74acdf"), austria: h("#ed2939", W, "#ed2939"), hungary: h("#ce2939", W, "#477050"), ukraine: h("#0057b7", "#ffd700"),
+    poland: h(W, "#dc143c"), indonesia: h("#ce1126", W), colombia: h("#fcd116", "#fcd116", "#003893", "#ce1126"), venezuela: h("#fcd116", "#00247d", "#cf142b"),
+    ecuador: h("#ffdd00", "#ffdd00", "#034ea2", "#ed1c24"), india: { t: "dotH", c: ["#ff9933", W, "#138808"], d: "#000080" }, russia: h(W, "#0039a6", "#d52b1e"),
+    bolivia: h("#d52b1e", "#f9e300", "#007934"), honduras: h("#0073cf", W, "#0073cf"), iraq: h("#ce1126", W, K), egypt: h("#ce1126", W, K),
+    uzbekistan: h("#1eb53a", W, "#0099b5", "#0099b5", W, "#1eb53a"), croatia: h("#ff0000", W, "#171796"), serbia: h("#c6363c", "#0c4076", W), slovakia: h(W, "#0b4ea2", "#ee1c25"),
+    ghana: h("#ce1126", "#fcd116", "#006b3f"), kenya: h(K, "#bb0000", "#006600"), angola: h("#cc092f", K), thailand: h("#a51931", W, "#2d2a4a", "#2d2a4a", W, "#a51931"),
+    singapore: { t: "sg" }, chile: { t: "chile" }, uruguay: h(W, "#0038a8", W, "#0038a8", W, "#0038a8"),
+    albania: dot("#e41e20", K, 20), japan: dot(W, "#bc002d", 26), bangladesh: dot("#006a4e", "#f42a41", 24, 45), china: dot("#de2910", "#ffde00", 16, 28, 30), vietnam: dot("#da251d", "#ffff00", 22),
+    morocco: dot("#c1272d", "#006233", 20), tunisia: dot("#e70013", W, 22), lebanon: { t: "lebanon" }, "hong kong": dot("#de2910", W, 18),
+    taiwan: { t: "taiwan" }, nepal: dot("#dc143c", W, 14), wales: { t: "wales" }, england: cross(W, "#ce1124"), scotland: { t: "scot" },
+    sweden: cross("#006aa7", "#fecc00", null, 1), finland: cross(W, "#003580", null, 1), norway: cross("#ba0c2f", W, "#00205b", 1), denmark: cross("#c8102e", W, null, 1),
+    iceland: cross("#02529c", W, "#dc1e35", 1), switzerland: cross("#da291c", W), greece: { t: "greece" }, brazil: { t: "brazil" }, usa: { t: "usa" }, uk: { t: "uk" },
+    turkey: { t: "turkey" }, "south korea": { t: "kr" }, canada: { t: "canada" }, portugal: { t: "pt" }, "saudi arabia": { t: "sa" }, "south africa": { t: "za" },
+    czechia: { t: "cz" }, "dr congo": { t: "drc" }, bosnia: { t: "bih" }, jamaica: { t: "jam" }, uae: { t: "uae" }, australia: { t: "aus" }, "new zealand": { t: "nz" },
+    malaysia: { t: "my" }, philippines: { t: "ph" }, israel: { t: "il" }, jordan: { t: "jo" }
+  };
+  const alias = { "united states": "usa", "united states of america": "usa", america: "usa", "united kingdom": "uk", "great britain": "uk", britain: "uk", turkiye: "turkey", korea: "south korea", "korea republic": "south korea",
+    "czech republic": "czechia", "cote d'ivoire": "ivory coast", "cote divoire": "ivory coast", "dr. congo": "dr congo", "democratic republic of the congo": "dr congo", "bosnia and herzegovina": "bosnia", "bosnia & herzegovina": "bosnia",
+    "unit arab emir": "uae", "united arab emirates": "uae", "u a e": "uae", hongkong: "hong kong", "hong-kong": "hong kong", holland: "netherlands", "russian federation": "russia", "viet nam": "vietnam" };
+  return { f, alias };
+})();
+function flagInner(k){
+  const s = FLAG.f[k]; if (!s) return null;
+  const rects = (c, vert) => c.map((col, i) => vert ? `<rect x="${i * 100 / c.length}" y="0" width="${100 / c.length + .5}" height="100" fill="${col}"/>` : `<rect x="0" y="${i * 100 / c.length}" width="100" height="${100 / c.length + .5}" fill="${col}"/>`).join("");
+  switch (s.t) {
+    case "v": return rects(s.c, true);
+    case "h": return rects(s.c, false);
+    case "dot": return `<rect width="100" height="100" fill="${s.bg}"/><circle cx="${s.x}" cy="${s.y}" r="${s.r}" fill="${s.d}"/>`;
+    case "dotH": return rects(s.c, false) + `<circle cx="50" cy="50" r="13" fill="none" stroke="${s.d}" stroke-width="4"/>`;
+    case "cross": { const cx = s.n ? 36 : 50;
+      const bar = (col, w) => `<rect x="${cx - w / 2}" y="0" width="${w}" height="100" fill="${col}"/><rect x="0" y="${50 - w / 2}" width="100" height="${w}" fill="${col}"/>`;
+      return `<rect width="100" height="100" fill="${s.bg}"/>` + (s.c2 ? bar(s.c2, 30) : "") + bar(s.c1, s.c2 ? 16 : 22); }
+    case "scot": return `<rect width="100" height="100" fill="#0065bd"/><path d="M0 0L100 100M100 0L0 100" stroke="#fff" stroke-width="18"/>`;
+    case "wales": return `<rect width="100" height="50" fill="#fff"/><rect y="50" width="100" height="50" fill="#00b140"/><circle cx="50" cy="50" r="22" fill="#d30731"/>`;
+    case "greece": { let o = ""; for (let i = 0; i < 9; i++) o += `<rect y="${i * 11.2}" width="100" height="12" fill="${i % 2 ? "#fff" : "#0d5eaf"}"/>`; return o + `<rect width="45" height="56" fill="#0d5eaf"/><rect x="18" width="9" height="56" fill="#fff"/><rect y="23.5" width="45" height="9" fill="#fff"/>`; }
+    case "brazil": return `<rect width="100" height="100" fill="#009b3a"/><polygon points="50,12 90,50 50,88 10,50" fill="#ffdf00"/><circle cx="50" cy="50" r="20" fill="#002776"/>`;
+    case "usa": { let o = ""; for (let i = 0; i < 7; i++) o += `<rect y="${i * 14.3}" width="100" height="14.4" fill="${i % 2 ? "#fff" : "#b22234"}"/>`; return o + `<rect width="46" height="57" fill="#3c3b6e"/>`; }
+    case "uk": return `<rect width="100" height="100" fill="#012169"/><path d="M0 0L100 100M100 0L0 100" stroke="#fff" stroke-width="18"/><path d="M0 0L100 100M100 0L0 100" stroke="#c8102e" stroke-width="7"/><rect x="38" width="24" height="100" fill="#fff"/><rect y="38" width="100" height="24" fill="#fff"/><rect x="43" width="14" height="100" fill="#c8102e"/><rect y="43" width="100" height="14" fill="#c8102e"/>`;
+    case "turkey": return `<rect width="100" height="100" fill="#e30a17"/><circle cx="40" cy="50" r="24" fill="#fff"/><circle cx="47" cy="50" r="19" fill="#e30a17"/><circle cx="68" cy="50" r="6" fill="#fff"/>`;
+    case "kr": return `<rect width="100" height="100" fill="#fff"/><path d="M26 50a24 24 0 0 1 48 0z" fill="#cd2e3a"/><path d="M26 50a24 24 0 0 0 48 0z" fill="#0047a0"/><path d="M8 14h16M8 22h16M76 78h16M76 86h16" stroke="#111" stroke-width="5"/>`;
+    case "canada": return `<rect width="100" height="100" fill="#fff"/><rect width="25" height="100" fill="#d52b1e"/><rect x="75" width="25" height="100" fill="#d52b1e"/><path d="M50 22l7 14 12-4-4 16 10 2-16 14 2 12-11-4-11 4 2-12-16-14 10-2-4-16 12 4z" fill="#d52b1e"/>`;
+    case "pt": return `<rect width="100" height="100" fill="#ff0000"/><rect width="40" height="100" fill="#006600"/><circle cx="40" cy="50" r="14" fill="#ffe000"/>`;
+    case "sa": return `<rect width="100" height="100" fill="#006c35"/><rect x="22" y="58" width="56" height="6" fill="#fff"/><rect x="26" y="34" width="48" height="8" fill="#fff" opacity=".9"/>`;
+    case "za": return `<rect width="100" height="50" fill="#de3831"/><rect y="50" width="100" height="50" fill="#002395"/><polygon points="0,0 8,0 50,40 100,40 100,60 50,60 8,100 0,100" fill="#fff"/><polygon points="0,6 6,6 44,43 100,43 100,57 44,57 6,94 0,94" fill="#007a4d"/><polygon points="0,18 34,50 0,82" fill="#000"/>`;
+    case "cz": return `<rect width="100" height="50" fill="#fff"/><rect y="50" width="100" height="50" fill="#d7141a"/><polygon points="0,0 50,50 0,100" fill="#11457e"/>`;
+    case "drc": return `<rect width="100" height="100" fill="#007fff"/><polygon points="0,88 88,0 100,0 100,12 12,100 0,100" fill="#f7d618"/><polygon points="0,93 93,0 100,0 100,7 7,100 0,100" fill="#ce1021"/>`;
+    case "bih": return `<rect width="100" height="100" fill="#002395"/><polygon points="30,0 100,0 100,70" fill="#fecb00"/>`;
+    case "jam": return `<rect width="100" height="100" fill="#009b3a"/><polygon points="0,0 50,50 0,100" fill="#000"/><polygon points="100,0 50,50 100,100" fill="#000"/><path d="M0 0L100 100M100 0L0 100" stroke="#fed100" stroke-width="10"/>`;
+    case "uae": return `<rect width="100" height="100" fill="#fff"/><rect x="26" width="74" height="33.4" fill="#00732f"/><rect x="26" y="66.6" width="74" height="33.4" fill="#000"/><rect width="28" height="100" fill="#ff0000"/>`;
+    case "aus": return `<rect width="100" height="100" fill="#012169"/><circle cx="26" cy="74" r="9" fill="#fff"/><circle cx="72" cy="22" r="5" fill="#fff"/><circle cx="82" cy="50" r="5" fill="#fff"/><circle cx="72" cy="78" r="5" fill="#fff"/><circle cx="60" cy="52" r="5" fill="#fff"/><rect width="46" height="46" fill="#c8102e"/><rect x="19" width="8" height="46" fill="#fff"/><rect y="19" width="46" height="8" fill="#fff"/>`;
+    case "nz": return `<rect width="100" height="100" fill="#00247d"/><circle cx="74" cy="30" r="6" fill="#cc142b" stroke="#fff" stroke-width="2"/><circle cx="84" cy="52" r="6" fill="#cc142b" stroke="#fff" stroke-width="2"/><circle cx="64" cy="58" r="6" fill="#cc142b" stroke="#fff" stroke-width="2"/><circle cx="74" cy="78" r="6" fill="#cc142b" stroke="#fff" stroke-width="2"/><rect width="46" height="46" fill="#c8102e"/><rect x="19" width="8" height="46" fill="#fff"/><rect y="19" width="46" height="8" fill="#fff"/>`;
+    case "my": { let o = ""; for (let i = 0; i < 7; i++) o += `<rect y="${i * 14.3}" width="100" height="14.4" fill="${i % 2 ? "#fff" : "#cc0001"}"/>`; return o + `<rect width="50" height="57" fill="#010066"/><circle cx="24" cy="28" r="13" fill="#fc0"/>`; }
+    case "ph": return `<rect width="100" height="50" fill="#0038a8"/><rect y="50" width="100" height="50" fill="#ce1126"/><polygon points="0,0 52,50 0,100" fill="#fff"/><circle cx="14" cy="50" r="7" fill="#fcd116"/>`;
+    case "il": return `<rect width="100" height="100" fill="#fff"/><rect y="14" width="100" height="13" fill="#0038b8"/><rect y="73" width="100" height="13" fill="#0038b8"/><circle cx="50" cy="50" r="13" fill="none" stroke="#0038b8" stroke-width="4"/>`;
+    case "jo": return `<rect width="100" height="34" fill="#000"/><rect y="34" width="100" height="33" fill="#fff"/><rect y="67" width="100" height="33" fill="#007a3d"/><polygon points="0,0 45,50 0,100" fill="#ce1126"/>`;
+    case "taiwan": return `<rect width="100" height="100" fill="#fe0000"/><rect width="50" height="50" fill="#000095"/><circle cx="25" cy="25" r="10" fill="#fff"/>`;
+    case "lebanon": return `<rect width="100" height="100" fill="#ed1c24"/><rect y="25" width="100" height="50" fill="#fff"/><circle cx="50" cy="50" r="14" fill="#00a651"/>`;
+    case "sg": return `<rect width="100" height="50" fill="#ed2939"/><rect y="50" width="100" height="50" fill="#fff"/><circle cx="25" cy="25" r="12" fill="#fff"/><circle cx="31" cy="25" r="11" fill="#ed2939"/>`;
+    case "chile": return `<rect width="100" height="50" fill="#fff"/><rect y="50" width="100" height="50" fill="#d52b1e"/><rect width="40" height="50" fill="#0039a6"/><circle cx="20" cy="25" r="7" fill="#fff"/>`;
+  }
+  return null;
+}
+function normNation(n){
+  let x = String(n || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/\./g, "").replace(/\s+/g, " ").trim();
+  if (x === "unit arab emir" || x === "unit arab emirates") x = "uae";
+  return FLAG.alias[x] || x;
+}
+function hashStr(s){ let h = 2166136261; for (const ch of String(s)) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+// Sfera lucida 3D con i colori della bandiera della nazione; per nomi sconosciuti colori deterministici dall'hash del nome
+function runnerMarbleSvg(name, size){
+  const px = size || 26, id = "rm" + (++marbleN);
+  let inner = flagInner(normNation(name));
+  if (!inner) {
+    const hs = hashStr(name), a = hs % 360, b = (a + 40 + (hs >> 8) % 160) % 360, st = (hs >> 4) % 3;
+    const c1 = `hsl(${a} 70% 52%)`, c2 = `hsl(${b} 75% 55%)`;
+    inner = `<rect width="100" height="100" fill="${c1}"/>` + (st === 0 ? `<rect x="-10" y="38" width="120" height="24" fill="${c2}" transform="rotate(-24 50 50)"/>` : st === 1 ? `<circle cx="50" cy="50" r="23" fill="${c2}"/>` : `<path d="M-5 58C18 22 42 88 62 50S96 30 105 44L105 105L-5 105Z" fill="${c2}"/>`);
+  }
+  return `<svg width="${px}" height="${px}" viewBox="0 0 100 100" aria-hidden="true" style="flex:none;vertical-align:middle"><defs><clipPath id="${id}c"><circle cx="50" cy="50" r="48"/></clipPath><radialGradient id="${id}s" cx=".5" cy=".5" r=".5"><stop offset=".55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".6"/></radialGradient><radialGradient id="${id}h" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fff" stop-opacity=".95"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient></defs><g clip-path="url(#${id}c)">${inner}<rect width="100" height="100" fill="url(#${id}s)"/></g><ellipse cx="34" cy="27" rx="17" ry="10" fill="url(#${id}h)" transform="rotate(-28 34 27)"/><circle cx="50" cy="50" r="48" fill="none" stroke="rgba(0,0,0,.35)" stroke-width="1.5"/></svg>`;
+}
+
 // Selettore biglia (anteprima grande + 8 colori + 4 stili) montato in un contenitore
 function mountPicker(boxId, st){
   const box = $(boxId);
@@ -804,7 +903,7 @@ onAuthStateChanged(auth, async user => {
       s => {
         races = s.docs.map(d => ({ id: d.id, ...d.data() }));
         // quando una gara viene avviata o chiusa, la scheda si apre da sola per tutti (pronostico / video)
-        races.forEach(r => { const p = prevStatus[r.id]; if (p && ((p === "ready" && r.status === "open") || (p === "open" && r.status === "closed"))) { expanded[r.id] = true; if (p === "open" && r.status === "closed" && raceTab === "open" && myBets[r.id]) raceTab = "closed"; } prevStatus[r.id] = r.status; });
+        races.forEach(r => { const p = prevStatus[r.id]; if (p && ((p === "ready" && r.status === "open") || (p === "open" && r.status === "closed"))) { if (p === "open" && r.status === "closed" && raceTab === "open" && myBets[r.id]) raceTab = "closed"; } prevStatus[r.id] = r.status; });
         renderRaces();
       },
       e => { $("homeErr").textContent = msg(e); });
@@ -949,9 +1048,9 @@ function raceParts(r){
     const lock = tk !== undefined && !myPick;
     const place = r.status === "settled" && Array.isArray(r.podium) ? r.podium.indexOf(i) : -1;
     const control = canBet ? `<input type="${ppp > 1 ? "checkbox" : "radio"}" name="rn_${esc(r.id)}" value="${i}" ${lock ? "disabled" : ""} ${sel.includes(String(i)) && !lock ? "checked" : ""}>` : "";
-    let cnt = "";
-    const info = [cnt, place >= 0 ? "+" + pp[place] + " PT" : "", tk !== undefined ? "🔒 " + (typeof tk === "object" ? tk.n : tk) : ""].filter(Boolean).join(" · ");
-    return `<label class="rn ${place === 0 ? "win" : ""}"${lock ? ' style="opacity:.55"' : ""}>${control}<span class="nm">${esc(n)}${myPick ? " ★" : ""}${place >= 0 ? " " + MEDALS[place] : ""}</span><span class="mut">${esc(info)}</span></label>`;
+    const ptx = place >= 0 ? `<span class="mut">+${esc(pp[place])} PT</span>` : "";
+    const lk = tk !== undefined ? `<span class="lockb">🔒 ${esc(typeof tk === "object" ? tk.n : tk)}</span>` : "";
+    return `<label class="rn ${place === 0 ? "win" : ""}"${lock ? ' style="opacity:.6"' : ""}>${control}<span class="nm">${runnerMarbleSvg(n, 28)}<span>${esc(n)}${myPick ? " ★" : ""}${place >= 0 ? " " + MEDALS[place] : ""}</span></span>${ptx}${lk}</label>`;
   }).join("");
   const needTeam = `<div class="betbox"><div class="mut" style="margin-bottom:8px">Per le Sfide a Squadre devi far parte di una Squadra.</div><button class="full" data-act="goteam" type="button">Crea o unisciti a una Squadra</button></div>`;
 
@@ -994,7 +1093,7 @@ function raceParts(r){
       <div class="row mut" style="margin-top:4px"><span>Podio: 🥇${esc(pp[0])} · 🥈${esc(pp[1])} · 🥉${esc(pp[2])} PT</span><span>${b ? marbleSvg(meDoc && meDoc.marble, 16) + " ✓ Pronostico fatto" : ""}${arrow}</span></div>${r.expectedPlayers ? `<div class="row mut" style="margin-top:4px"><span>Giocatori: <b style="color:var(--txt)">${esc(r.betsCount || 0)} / ${esc(r.expectedPlayers)}</b>${teamsPart}</span></div>` : ""}`;
   if (!isActive) {
     const wi = Array.isArray(r.podium) && r.podium.length ? r.podium[0] : r.winner;
-    const wn = r.status === "cancelled" ? "Annullata" : "🥇 " + esc((r.runners || [])[wi] ?? "?");
+    const wn = r.status === "cancelled" ? "Annullata" : runnerMarbleSvg((r.runners || [])[wi], 22) + " 🥇 " + esc((r.runners || [])[wi] ?? "?");
     const pt = b ? (b.status === "won" && b.points > 0 ? `<span class="badge ok">+${esc(b.points)} PT vinti</span>` : (b.status === "won" || b.status === "lost") ? `<span class="badge off">0 PT</span>` : "") : "";
     head = head.split('</div>')[0] + `</div><div class="row" style="margin-top:6px"><span><b>${wn}</b></span><span>${pt} <span class="mut">${arrow}</span></span></div>`;
   }
@@ -1004,7 +1103,7 @@ function raceParts(r){
   let resHtml = "";
   const podSet = presetPod[r.id];
   const pr = (r.status === "closed" && b && Array.isArray(r.proposedPodium) && r.proposedPodium.length === 3) ? r.proposedPodium : null;
-  const podList = arr => arr.map((i, p) => `<div class="row" style="margin-top:6px"><span>${MEDALS[p]} <b>${p + 1}° Posto:</b> ${esc((r.runners || [])[i] ?? "?")}</span><span class="res-won">+${esc(pp[p])} PT</span></div>`).join("");
+  const podList = arr => arr.map((i, p) => `<div class="row" style="margin-top:6px"><span style="display:flex;align-items:center;gap:8px">${MEDALS[p]} ${runnerMarbleSvg((r.runners || [])[i], 22)} <b>${p + 1}° Posto:</b> ${esc((r.runners || [])[i] ?? "?")}</span><span class="res-won">+${esc(pp[p])} PT</span></div>`).join("");
   const bar = (l, c, rr) => `<div style="display:flex;gap:8px;align-items:center;margin-top:12px">${l}${c}${rr}</div>`;
   const bL = (act, t) => `<button class="full" data-act="${act}" type="button" style="flex:1;margin-top:0">${t}</button>`;
   const bR = (act, t) => `<button class="full sec" data-act="${act}" type="button" style="flex:1;margin-top:0">${t}</button>`;
@@ -1388,7 +1487,6 @@ async function playRandom(mode, k){
     catch (e) { if (!e.skip) throw e; }
   }
   if (!newId) { await loadCatalog(); throw new Error("Nessuna gara disponibile" + (cat ? " in \"" + cat + "\"" : "") + ": sono tutte già giocate o in corso. Chiedi all'Admin di aggiungerne o di azzerare il catalogo."); }
-  expanded[newId] = true;
   catAt = 0;
   setRaceTab("open");
 }
