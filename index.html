@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Murble Race">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Murble Race v3.18</title>
+<title>Murble Race v3.19</title>
 <style>
 :root{--bg:#0f1220;--card:#181c30;--line:#2a3050;--txt:#eef0fa;--mut:#8f96b8;--acc:#ff9f1c;--ok:#2ec27e;--err:#ff5d6c}
 *{box-sizing:border-box}
@@ -183,7 +183,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
 
   <!-- AUTENTICAZIONE -->
   <div id="viewAuth" class="view on">
-    <h1>Murble <span>Race</span> <small class="ver">v3.18</small></h1>
+    <h1>Murble <span>Race</span> <small class="ver">v3.19</small></h1>
     <p class="sub">Pronostici a punti sulle gare di biglie</p>
     <div class="card">
       <div class="tabs">
@@ -217,11 +217,11 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
     <div class="topbar">
       <div class="tleft">
         <button id="btnDrawer" class="ibtn" type="button" aria-label="Menu">☰</button>
-        <div class="ttl">Murble <span>Race</span> <small class="ver">v3.18</small></div>
+        <div class="ttl">Murble <span>Race</span> <small class="ver">v3.19</small></div>
       </div>
       <button id="balPill" class="pill" type="button" aria-label="Punti totali: apri la classifica"><span id="hPts">0</span> <small>PT</small></button>
     </div>
-    <div id="hTeam" class="banner" style="display:none">Per giocare devi far parte di una Squadra. <button id="btnNeedTeam" class="small" type="button" style="margin-top:8px">Crea o unisciti a una Squadra</button></div>
+    <div id="hTeam" class="banner" style="display:none">Per le Sfide a Squadre devi far parte di una Squadra. <button id="btnNeedTeam" class="small" type="button" style="margin-top:8px">Crea o unisciti a una Squadra</button></div>
     <div id="hWait" class="banner" style="display:none">Account in attesa di attivazione da parte dell'admin: per ora non puoi ancora giocare.</div>
     <div class="pgbody">
       <nav class="bnav" id="raceTabs">
@@ -231,7 +231,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
         <button id="tabMoves" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h12l-3-3M17 17H5l3 3"/></svg>Storico Punti</button>
       </nav>
       <main>
-        <div id="catCard" style="display:none"><button id="btnCat" class="full catbtn" type="button" style="margin-top:0">Crea Partita dal Catalogo</button></div>
+        <div id="catCard" style="display:none"><div style="display:flex;gap:8px"><button id="btnPlay1v1" class="full catbtn" type="button" style="margin-top:0;flex:1">Gioca 1 vs 1</button><button id="btnPlayTeam" class="full catbtn" type="button" style="margin-top:0;flex:1">Sfida a Squadre</button></div></div>
         <div id="raceList"></div>
         <div id="homeErr" class="err"></div>
       </main>
@@ -287,14 +287,12 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
         <label class="rn" style="margin-top:10px"><input id="raceLive" type="checkbox"><span class="nm">Diretta Live (mostra video anche a pronostici aperti)</span></label>
         <label for="raceDur">Durata gara (facoltativa, es. 2:51 o 3 min)</label>
         <input id="raceDur" maxlength="20" placeholder="2:51">
-        <label for="raceInit">Stato iniziale</label>
-        <select id="raceInit"><option value="open" selected>Pronostici aperti subito</option><option value="ready">Pronta da avviare (la avvia il gruppo)</option></select>
         <button class="full" type="submit">Crea gara</button>
       </form>
       <form id="formBulk" style="display:none">
         <label for="bulkText">Incolla le gare: blocchi separati da una riga vuota</label>
-        <textarea id="bulkText" rows="10" placeholder="Nome gara 1&#10;https://youtu.be/XXXXXXXXXXX?t=90&#10;Vincitore: Biglia B&#10;Durata: 2:51&#10;Categoria: Nazioni&#10;Biglia A&#10;Biglia B&#10;Biglia C&#10;&#10;Nome gara 2&#10;https://youtu.be/XXXXXXXXXXX?t=450&#10;Biglia D&#10;Biglia E"></textarea>
-        <div class="mut" style="margin-top:6px">Riga 1: nome gara · Riga 2: link YouTube (anche con minutaggio ?t=...) · Righe facoltative (in qualsiasi ordine dopo il link): "Vincitore: NomeBiglia" (segreta, solo Admin), "Durata: 2:51", "Categoria: Nazioni" · Poi una biglia per riga. Le gare vanno nel Catalogo: sono i giocatori a estrarle e avviarle. Massimo 150 gare per volta.</div>
+        <textarea id="bulkText" rows="10" placeholder="Nome gara 1&#10;https://youtu.be/XXXXXXXXXXX?t=90&#10;Podio: Biglia B, Biglia A, Biglia C&#10;Durata: 2:51&#10;Categoria: Nazioni&#10;Biglia A&#10;Biglia B&#10;Biglia C&#10;&#10;Nome gara 2&#10;https://youtu.be/XXXXXXXXXXX?t=450&#10;Biglia D&#10;Biglia E"></textarea>
+        <div class="mut" style="margin-top:6px">Riga 1: nome gara · Riga 2: link YouTube (anche con minutaggio ?t=...) · Righe facoltative (in qualsiasi ordine dopo il link): "Podio: Biglia1, Biglia2, Biglia3" (1°, 2° e 3° posto, segreto, solo Admin; accettato anche il vecchio "Vincitore: NomeBiglia"), "Durata: 2:51", "Categoria: Nazioni" · Poi una biglia per riga. Le gare vanno nel Catalogo: sono i giocatori a estrarle e avviarle. Massimo 150 gare per volta.</div>
         <button class="full" type="submit">Importa nel catalogo</button>
       </form>
     </div>
@@ -314,8 +312,12 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
       <div class="card">
         <div class="row"><b>Impostazioni</b></div>
         <form id="formCfg" style="margin-top:12px">
-          <label for="sPts">Punti per vittoria (PT)</label>
-          <input id="sPts" type="number" step="1" min="1" inputmode="numeric" required>
+          <label for="sP1">Punti 1° posto (PT)</label>
+          <input id="sP1" type="number" step="1" min="0" inputmode="numeric" required>
+          <label for="sP2">Punti 2° posto (PT)</label>
+          <input id="sP2" type="number" step="1" min="0" inputmode="numeric" required>
+          <label for="sP3">Punti 3° posto (PT)</label>
+          <input id="sP3" type="number" step="1" min="0" inputmode="numeric" required>
           <div class="mut" style="margin-top:6px">Valide solo per le gare create dopo il salvataggio.</div>
           <button class="full" type="submit">Salva impostazioni</button>
           <div id="cfgMsg" class="mut" style="margin-top:8px;color:var(--ok)"></div>
@@ -422,7 +424,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
 <div id="modalTermsUpd" class="modal" role="dialog" aria-modal="true">
   <div class="mbox" style="max-width:420px">
     <b style="font-size:18px">Regolamento aggiornato</b>
-    <p class="mut" style="margin-top:10px">Murble Race è diventato un gioco di <b>Pronostici a Punti</b>: si gioca solo a squadre (minimo 4 giocatori, punti fissi per vittoria), senza saldo né puntate. Per continuare leggi e accetta il nuovo Regolamento e i Termini e Condizioni.</p>
+    <p class="mut" style="margin-top:10px">Murble Race è diventato un gioco di <b>Pronostici a Punti</b>: si gioca in 1 vs 1 o in Sfide a Squadre (max 4 giocatori per squadra), con punti sul podio (1°, 2°, 3° posto), senza saldo né puntate. Per continuare leggi e accetta il nuovo Regolamento e i Termini e Condizioni.</p>
     <button id="btnTuRead" class="sec full" type="button">Leggi Regolamento e Termini</button>
     <button id="btnTuAccept" class="full" type="button">Accetto</button>
     <button id="btnTuLogout" class="sec full" type="button">Esci</button>
@@ -432,25 +434,15 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
 
 <!-- CREA PARTITA DAL CATALOGO -->
 <div id="modalCat" class="modal" role="dialog" aria-modal="true">
-  <div class="mbox">
-    <b style="font-size:18px">Crea Partita dal Catalogo</b>
+  <div class="mbox" style="max-width:420px">
+    <b style="font-size:18px">Sfida a Squadre</b>
     <div class="mbody">
       <form id="formCat">
-        <label for="catCategory">Categoria</label>
-        <select id="catCategory"><option value="">Tutte</option></select>
-        <label for="catRunners">Numero di biglie</label>
-        <select id="catRunners"><option value="">Qualsiasi</option><option value="2-4">2 – 4</option><option value="5-8">5 – 8</option><option value="9-12">9 – 12</option></select>
-        <label for="catDur">Durata massima</label>
-        <select id="catDur"><option value="">Qualsiasi</option><option value="120">Sotto i 2 min</option><option value="240">Sotto i 4 min</option></select>
-        <label for="catRunner">Biglia partecipante (facoltativa)</label>
-        <input id="catRunner" maxlength="30" placeholder="es. Italy" autocapitalize="none">
-        <label class="rn" style="margin-top:10px"><input id="catExcl" type="checkbox" checked><span class="nm">Escludi gare già giocate</span></label>
-        <label for="catPlayers">Numero di giocatori partecipanti (4–20)</label>
-        <input id="catPlayers" type="number" step="1" min="4" max="20" inputmode="numeric" placeholder="minimo 4" required>
         <div id="catInfo" class="mut" style="margin-top:8px"></div>
+        <label for="catTeams">Quante squadre si sfidano? (minimo 2)</label>
+        <input id="catTeams" type="number" step="1" min="2" max="6" inputmode="numeric" placeholder="es. 2" required>
         <div class="uactions" style="margin-top:12px">
-          <button class="small" type="submit">Estrai e Avvia Partita</button>
-          <button class="small sec" id="btnCatReset" type="button">Azzera filtri</button>
+          <button class="small" type="submit">Avvia Partita Casuale</button>
           <button class="small sec" id="btnCatCancel" type="button">Annulla</button>
         </div>
         <div id="catErr" class="err"></div>
@@ -468,36 +460,37 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
     </div>
     <div class="mbody">
       <div id="infoRules">
-        <h3>1. Come funziona una gara</h3>
-        <p>Ogni gara è una corsa di biglie trasmessa su YouTube. Prima della partenza scegli <b>la biglia che pensi vincerà</b> e premi <b>Conferma Pronostico</b>. Partecipare è <b>gratuito</b>: non ci sono saldi, ricariche o importi da indicare. Il gioco è <b>esclusivamente a squadre</b>: per giocare devi far parte di una Squadra (☰ → La mia Squadra).</p>
+        <h3>1. Come si avvia una partita</h3>
+        <p>Ogni gara è una corsa di biglie trasmessa su YouTube. Partecipare è <b>gratuito</b>: non ci sono saldi, ricariche o importi da indicare. Nella Home trovi due pulsanti: <b>Gioca 1 vs 1</b> e <b>Sfida a Squadre</b>. Non ci sono filtri: la partita viene <b>pescata a caso</b> tra le gare del catalogo non ancora giocate.</p>
         <ul>
-          <li>Hai <b>un solo pronostico per gara</b>: una volta confermato non si modifica e non si annulla (può annullarlo solo l'Admin).</li>
-          <li>Per partecipare l'account deve essere <b>attivo</b> e devi appartenere a una <b>Squadra</b>.</li>
-          <li><b>Regola di squadra:</b> scegli <b>1 sola biglia</b> e non puoi scegliere una biglia già pronosticata da un tuo compagno di squadra nella stessa gara. I giocatori di squadre avversarie possono scegliere anche la stessa biglia.</li>
-          <li>Le gare compaiono in <b>Gare Attive</b>. Possono essere già aperte, oppure "da avviare": in quel caso un giocatore attivo la avvia indicando <b>quanti giocatori partecipano</b> (<b>minimo 4</b>, massimo 20). Il numero non si può più cambiare.</li>
-          <li>Dal <b>Catalogo</b> puoi estrarre una gara a caso scegliendo i filtri (categoria, numero di biglie, durata, biglia partecipante) e il numero di giocatori.</li>
+          <li>L'account deve essere <b>attivo</b>. Hai <b>un solo pronostico per gara</b>: una volta confermato non si modifica e non si annulla (può annullarlo solo l'Admin).</li>
+          <li>Le gare compaiono in <b>Gare Attive</b>. Alcune gare caricate dall'Admin sono "da avviare": un giocatore attivo le avvia scegliendo la modalità.</li>
+          <li>Quando i pronostici sono tutti arrivati la gara si <b>chiude automaticamente</b> e il video viene sbloccato per tutti. L'Admin può comunque chiudere i pronostici in anticipo. Il video è visibile solo a pronostici chiusi (salvo gare in diretta).</li>
         </ul>
-        <h3>2. Chiusura dei pronostici</h3>
-        <p>Quando il numero di pronostici raggiunge il numero di partecipanti indicato all'avvio, la gara si <b>chiude automaticamente</b>: da quel momento non si può più pronosticare e il video della corsa viene sbloccato per tutti. L'Admin può comunque chiudere i pronostici in anticipo. Il video è visibile solo a pronostici chiusi (salvo gare in diretta).</p>
-        <h3>3. Punti per vittoria</h3>
-<p>Chi indovina la biglia vincente guadagna i <b>Punti per vittoria</b> (di default 100 PT), uguali per tutti i vincitori. Chi sbaglia non guadagna punti e <b>non perde nulla</b>.</p>
+        <h3>2. Modalità 1 vs 1</h3>
         <ul>
-          <li>I punti si sommano <b>sia al punteggio personale</b> del giocatore <b>sia al punteggio della sua squadra</b>; alla squadra si somma anche la vittoria.</li>
-          <li>Accanto a ogni biglia vedi quanti giocatori l'hanno scelta e, se è già stata scelta da un compagno, il suo nome.</li>
+          <li>Giocano <b>2 giocatori</b> che si dividono equamente le biglie: ognuno ne sceglie la metà (arrotondata per difetto, ad esempio 4 biglie su 8).</li>
+          <li><b>Chi prima arriva sceglie.</b> Le biglie confermate da un giocatore vengono bloccate per l'avversario. Al secondo giocatore confermato la gara si chiude e il video si sblocca.</li>
         </ul>
-        <h3>4. Nessun vincitore e gare annullate</h3>
+        <h3>3. Modalità Sfida a Squadre</h3>
         <ul>
-          <li>Se <b>nessuno ha scelto la biglia vincente</b>, nessuno guadagna punti e la gara non incide sulla classifica.</li>
-          <li>Se la gara viene <b>annullata</b> dall'Admin, tutti i pronostici sono annullati e non assegnano punti.</li>
-          <li>L'Admin può annullare anche un singolo pronostico, quando la gara è ancora aperta o chiusa.</li>
+          <li>Una squadra ha <b>al massimo 4 giocatori</b>. Chi lancia la partita indica <b>quante squadre si sfidano</b> (minimo 2): i partecipanti sono <i>numero di squadre × giocatori della sua squadra</i>.</li>
+          <li>Possono partecipare solo squadre con <b>lo stesso numero di giocatori</b> della squadra che ha lanciato la partita, e ogni squadra non può superare quel numero.</li>
+          <li>Ogni giocatore sceglie <b>1 sola biglia</b>, che non può essere già stata scelta da un compagno della <b>stessa squadra</b>. Le squadre avversarie possono scegliere la stessa biglia.</li>
+        </ul>
+        <h3>4. Podio e punti</h3>
+        <p>A corsa terminata l'Admin conferma il <b>1°, 2° e 3° classificato</b> in base al video. Chi ha scelto quelle biglie guadagna i punti del podio, fissati dall'Admin (di default <b>100 PT</b> al 1°, <b>50 PT</b> al 2°, <b>25 PT</b> al 3°). Le altre biglie non danno punti e <b>non fanno perdere nulla</b>.</p>
+        <ul>
+          <li>I punti si sommano al punteggio personale del giocatore. In 1 vs 1, se più biglie di un giocatore finiscono sul podio, i punti si sommano.</li>
+          <li>Nelle Sfide a Squadre i punti (e le vittorie del 1° posto) si sommano <b>anche al punteggio della squadra</b>.</li>
+          <li>Se la gara viene <b>annullata</b> dall'Admin, i pronostici sono annullati e non assegnano punti. L'Admin può annullare anche un singolo pronostico.</li>
         </ul>
         <h3>5. Classifica e Storico Punti</h3>
-        <p>La <b>Classifica Squadre</b> ordina le squadre per punti totali; la <b>Classifica Individuale</b> (MVP) ordina i singoli giocatori per punti, con il tag della loro squadra. In <b>Storico Punti</b> vedi i punti ottenuti in ogni gara. L'Admin può azzerare i punti per iniziare una <b>nuova stagione</b>.</p>
+        <p>La <b>Classifica Squadre</b> ordina le squadre per punti totali; la <b>Classifica Individuale</b> (MVP) ordina i singoli giocatori, con il tag della loro squadra. In <b>Storico Punti</b> vedi i punti ottenuti in ogni gara. L'Admin può azzerare i punti per iniziare una <b>nuova stagione</b>.</p>
         <h3>6. Biglia personale e Squadre</h3>
         <ul>
           <li>Dal menu ☰ → <b>Account &amp; Biglia</b> crei la tua biglia (due colori e uno stile): compare accanto al tuo nome, in classifica e nelle gare.</li>
-          <li>Dal menu ☰ → <b>La mia Squadra</b> puoi creare una squadra (nome, tag di 2–4 lettere, biglia di squadra) o unirti con un <b>codice invito</b>. Una squadra ha al massimo 6 membri e ogni giocatore può stare in una sola squadra; solo i membri vedono il codice.</li>
-          <li>Il capitano può sciogliere la squadra solo se è rimasto da solo.</li>
+          <li>Dal menu ☰ → <b>La mia Squadra</b> puoi creare una squadra (nome, tag di 2–4 lettere, biglia di squadra) o unirti con un <b>codice invito</b>. Una squadra ha <b>al massimo 4 membri</b> e ogni giocatore può stare in una sola squadra; solo i membri vedono il codice. Il capitano può sciogliere la squadra solo se è rimasto da solo.</li>
         </ul>
         <div class="note">L'esito è deciso dall'Admin a corsa terminata, in base a ciò che si vede nel video. La decisione dell'Admin è definitiva.</div>
       </div>
@@ -551,7 +544,7 @@ const DOMAIN = "@murblerace.app";
 const ADMIN_EMAIL = "admin" + DOMAIN;
 const RESERVED = ["admin"];
 const MAX_BETS_SETTLE = 100;
-const TERMS_VERSION = 3; // incrementare per far riaccettare Regolamento e Termini a tutti
+const TERMS_VERSION = 4; // incrementare per far riaccettare Regolamento e Termini a tutti
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
@@ -724,7 +717,6 @@ $("formReg").addEventListener("submit", async ev => {
 
 // ---------- Sessione giocatore ----------
 let unsubUser = null, unsubTopup = null, unsubRaces = null, unsubBets = null, unsubLedger = null, unsubBoard = null, unsubTeams = null, unsubTeam = null;
-let unsubPicks = null, picksTid = "", teamPicks = {};
 let boardTeams = [], boardSub = "teams", myTeam = null, curTeamId = "", teamCode = "";
 let me = null, myReq = null, meDoc = null, pendingDisplay = null, pendingTerms = false;
 let races = [], myBets = {}, myBetList = [], ledgerRows = [], draft = {}, expanded = {}, raceTab = "active";
@@ -733,7 +725,6 @@ let videoIds = {}, videoReq = {}, boardRows = [], prevStatus = {};
 function stopListeners(){
   [unsubUser, unsubTopup, unsubRaces, unsubBets, unsubLedger, unsubBoard, unsubTeams, unsubTeam].forEach(u => { if (u) u(); });
   unsubUser = unsubTopup = unsubRaces = unsubBets = unsubLedger = unsubBoard = unsubTeams = unsubTeam = null;
-  if (unsubPicks) { unsubPicks(); unsubPicks = null; } picksTid = ""; teamPicks = {};
   myTeam = null; curTeamId = ""; teamCode = ""; boardTeams = [];
 }
 
@@ -780,18 +771,7 @@ onAuthStateChanged(auth, async user => {
   }
 });
 
-function updateCatBtn(){ $("catCard").style.display = (meDoc && meDoc.active && meDoc.teamId && raceTab === "active") ? "" : "none"; }
-function syncPicks(){
-  const tid = (meDoc && meDoc.teamId) || "";
-  if (tid === picksTid) return;
-  if (unsubPicks) { unsubPicks(); unsubPicks = null; }
-  picksTid = tid; teamPicks = {};
-  if (tid) unsubPicks = onSnapshot(query(collection(db, "picks"), where("teamId", "==", tid)), sn => {
-    teamPicks = {};
-    sn.docs.forEach(x => { const v = x.data(); (teamPicks[v.raceId] = teamPicks[v.raceId] || {})[v.runner] = v.username; });
-    renderRaces();
-  }, () => {});
-}
+function updateCatBtn(){ $("catCard").style.display = (meDoc && meDoc.active && raceTab === "active") ? "" : "none"; }
 function renderHome(name, d){
   meDoc = d;
   $("hName").textContent = d.username || name;
@@ -800,7 +780,6 @@ function renderHome(name, d){
   $("modalTermsUpd").classList.toggle("on", d.termsVersion !== TERMS_VERSION);
   $("hMarble").innerHTML = marbleSvg(d.marble, 34);
   syncTeam();
-  syncPicks();
   $("hTeam").style.display = (d.active && !d.teamId) ? "block" : "none";
   const b = $("hBadge");
   b.textContent = d.active ? "Account attivo" : "In attesa di attivazione";
@@ -826,61 +805,78 @@ async function fetchVideo(id){
   } catch (e) { /* nuovo tentativo al prossimo aggiornamento */ }
 }
 
+const PODIUM_DEF = [100, 50, 25];
+const MEDALS = ["🥇", "🥈", "🥉"];
+const podiumPts = r => (Array.isArray(r.podiumPts) && r.podiumPts.length === 3) ? r.podiumPts : PODIUM_DEF;
+const modeLabel = r => r.gameMode === "team" ? "Squadre " + r.teamsCount + "×" + r.teamSize : r.gameMode === "1v1" ? "1 vs 1" : "";
 function raceParts(r){
   const b = myBets[r.id];
-  const pools = r.pools || {};
-  const total = r.pool || 0;
-  const base = Number.isInteger(r.pointsPerWin) ? r.pointsPerWin : 100;
-  const hasTeam = !!(meDoc && meDoc.teamId);
-  const canBet = r.status === "open" && !b && meDoc && meDoc.active && hasTeam;
+  const taken = r.taken || {};
+  const pp = podiumPts(r);
+  const is1v1 = r.gameMode !== "team";
+  const ppp = is1v1 ? (r.picksPerPlayer || 1) : 1;
+  const tid = (meDoc && meDoc.teamId) || "";
+  const counts = r.teamCounts || {};
+  let teamOk = true, teamMsg = "";
+  if (!is1v1) {
+    if (!tid) { teamOk = false; teamMsg = "need"; }
+    else if (myTeam && (myTeam.members || []).length !== r.teamSize) { teamOk = false; teamMsg = "Servono squadre da " + r.teamSize + " giocatori: la tua ne ha " + (myTeam.members || []).length + "."; }
+    else if ((counts[tid] || 0) >= r.teamSize) { teamOk = false; teamMsg = "La tua squadra ha già completato i pronostici."; }
+    else if (!(tid in counts) && Object.keys(counts).length >= r.teamsCount) { teamOk = false; teamMsg = "La gara ha già tutte le squadre."; }
+  }
+  const canBet = r.status === "open" && !b && meDoc && meDoc.active && teamOk;
   const d = draft[r.id] || {};
-  const tp = teamPicks[r.id] || {};
+  const sel = Array.isArray(d.runners) ? d.runners : [];
   const runners = (r.runners || []).map((n, i) => {
-    const c = pools[String(i)] || 0;
-    const isWin = r.status === "settled" && r.winner === i;
-    const mine = b && b.runner === i ? " ★" : "";
-    const taken = tp[i] !== undefined && !(b && b.runner === i);
-    const radio = canBet
-      ? `<input type="radio" name="rn_${esc(r.id)}" value="${i}" ${taken ? "disabled" : ""} ${String(d.runner) === String(i) && !taken ? "checked" : ""}>`
-      : "";
-    const pts = r.status === "settled" ? (isWin && !r.noWinner ? "+" + base : 0) : "+" + base;
-    const info = `${esc(c)} ${c === 1 ? "giocatore" : "giocatori"} · ${esc(pts)} PT${taken ? " · 🔒 " + esc(tp[i]) : ""}`;
-    return `<label class="rn ${isWin ? "win" : ""}${taken ? " off" : ""}" ${taken ? 'style="opacity:.55"' : ""}>${radio}<span class="nm">${esc(n)}${mine}${isWin ? " 🏆" : ""}</span><span class="mut">${info}</span></label>`;
+    const tk = is1v1 ? taken[String(i)] : (tid ? taken[tid + "_" + i] : undefined);
+    const myPick = !!b && (b.runners || []).includes(String(i));
+    const lock = tk !== undefined && !myPick;
+    const place = r.status === "settled" && Array.isArray(r.podium) ? r.podium.indexOf(i) : -1;
+    const control = canBet ? `<input type="${is1v1 ? "checkbox" : "radio"}" name="rn_${esc(r.id)}" value="${i}" ${lock ? "disabled" : ""} ${sel.includes(String(i)) && !lock ? "checked" : ""}>` : "";
+    let cnt = "";
+    if (!is1v1) { const c = Object.keys(taken).filter(k => k.endsWith("_" + i)).length; cnt = c + (c === 1 ? " giocatore" : " giocatori"); }
+    const info = [cnt, place >= 0 ? "+" + pp[place] + " PT" : "", tk !== undefined ? "🔒 " + tk : ""].filter(Boolean).join(" · ");
+    return `<label class="rn ${place === 0 ? "win" : ""}"${lock ? ' style="opacity:.55"' : ""}>${control}<span class="nm">${esc(n)}${myPick ? " ★" : ""}${place >= 0 ? " " + MEDALS[place] : ""}</span><span class="mut">${esc(info)}</span></label>`;
   }).join("");
-  const needTeam = `<div class="betbox"><div class="mut" style="margin-bottom:8px">Per giocare devi far parte di una Squadra.</div><button class="full" data-act="goteam" type="button">Crea o unisciti a una Squadra</button></div>`;
+  const needTeam = `<div class="betbox"><div class="mut" style="margin-bottom:8px">Per le Sfide a Squadre devi far parte di una Squadra.</div><button class="full" data-act="goteam" type="button">Crea o unisciti a una Squadra</button></div>`;
 
   let foot = "";
   if (canBet) {
-    foot = `<div class="mut" style="margin-top:10px">Giochi per <b>${esc(meDoc.teamTag || "")}</b>: 1 sola biglia, non già scelta da un compagno di squadra.</div><div class="betbox">
+    const hint = is1v1
+      ? `Scegli <b>${esc(ppp)}</b> biglie su ${esc((r.runners || []).length)}: quelle che confermi vengono bloccate per l'avversario (chi prima arriva sceglie).`
+      : `Giochi per <b>${esc(meDoc.teamTag || "")}</b>: 1 sola biglia, non già scelta da un compagno di squadra.`;
+    foot = `<div class="mut" style="margin-top:10px">${hint}</div><div class="betbox">
       <button class="full" data-act="bet" type="button">Conferma Pronostico</button>
-      <div class="mut" style="margin-top:6px">Il pronostico non si può più modificare. Vincita fissa: ${esc(base)} PT.</div>
+      <div class="mut" style="margin-top:6px">Il pronostico non si può più modificare. Podio: 1° ${esc(pp[0])} · 2° ${esc(pp[1])} · 3° ${esc(pp[2])} PT.</div>
     </div>`;
   } else if (b) {
     let res = "";
-    if (b.status === "won") res = `<span class="res-won">Pronostico azzeccato +${esc(b.points || 0)} PT</span>`;
-    else if (b.status === "lost") res = `<span class="res-lost">Pronostico sbagliato · 0 PT</span>`;
+    if (b.status === "won") res = `<span class="res-won">+${esc(b.points || 0)} PT</span>`;
+    else if (b.status === "lost") res = `<span class="res-lost">Nessuna biglia sul podio · 0 PT</span>`;
     else if (b.status === "void") res = `<span class="mut">Pronostico annullato · 0 PT</span>`;
     else res = `<span class="mut">In attesa del risultato</span>`;
-    foot = `<div class="betbox mut">${marbleSvg(meDoc && meDoc.marble, 18)} Il tuo pronostico: <b>${esc((r.runners || [])[b.runner] ?? "?")}</b> — ${res}</div>`;
+    const nms = (b.runners || []).map(k => (r.runners || [])[Number(k)] ?? "?").join(", ");
+    foot = `<div class="betbox mut">${marbleSvg(meDoc && meDoc.marble, 18)} Il tuo pronostico: <b>${esc(nms)}</b> — ${res}</div>`;
   } else if (r.status === "ready") {
-    const pl = d.players !== undefined ? d.players : "";
     foot = !(meDoc && meDoc.active) ? `<div class="betbox mut">Account da attivare per poter avviare la gara.</div>`
-      : !hasTeam ? needTeam
-      : `<div class="betbox"><label>Quanti giocatori partecipano? (minimo 4)</label>
-      <input type="number" step="1" min="4" max="20" inputmode="numeric" placeholder="Da 4 a 20" data-players value="${esc(pl)}">
+      : `<div class="betbox"><label>Modalità</label>
+      <select data-gmode><option value="1v1">1 vs 1 (2 giocatori)</option><option value="team" ${d.gmode === "team" ? "selected" : ""}>Sfida a Squadre</option></select>
+      <label>Quante squadre si sfidano? (solo Squadre, minimo 2)</label>
+      <input type="number" step="1" min="2" max="6" inputmode="numeric" placeholder="es. 2" data-teams value="${esc(d.teams !== undefined ? d.teams : "")}">
       <button class="full" data-act="start" type="button">Avvia gara</button>
-      <div class="mut" style="margin-top:6px">Una volta avviata, il numero non si può più cambiare: la gara si chiude da sola all'ultimo pronostico.</div></div>`;
+      <div class="mut" style="margin-top:6px">Una volta avviata, la modalità non si può più cambiare: la gara si chiude da sola all'ultimo pronostico.</div></div>`;
   } else if (r.status === "open" && meDoc && !meDoc.active) {
     foot = `<div class="betbox mut">Account da attivare per poter pronosticare.</div>`;
-  } else if (r.status === "open" && meDoc && !hasTeam) {
-    foot = needTeam;
+  } else if (r.status === "open" && meDoc && !teamOk) {
+    foot = teamMsg === "need" ? needTeam : `<div class="betbox mut">${esc(teamMsg)}</div>`;
   }
 
   const isActive = r.status === "ready" || r.status === "open" || r.status === "closed";
   const isOpen = !isActive || !!expanded[r.id];
   const arrow = isActive ? (isOpen ? " ▲" : " ▼") : "";
-  const head = `<div class="row"><span><b>${esc(r.name)}</b>${r.duration ? `<span class="dur">⏱ ${esc(r.duration)}</span>` : ""}${r.category ? `<span class="tag">${esc(r.category)}</span>` : ""}</span><span class="badge ${STATUS_CLASS[r.status] || "off"}">${STATUS_LABEL[r.status] || esc(r.status)}</span></div>
-      <div class="row mut" style="margin-top:4px"><span>Vittoria: ${esc(base)} PT a pronostico esatto</span><span>${b ? marbleSvg(meDoc && meDoc.marble, 16) + " ✓ Pronostico fatto" : ""}${arrow}</span></div>${r.expectedPlayers ? `<div class="row mut" style="margin-top:4px"><span>Pronostici: <b style="color:var(--txt)">${esc(r.betsCount || 0)} / ${esc(r.expectedPlayers)}</b></span></div>` : ""}`;
+  const teamsPart = r.gameMode === "team" ? ` · Squadre: <b style="color:var(--txt)">${esc(Object.keys(counts).length)} / ${esc(r.teamsCount)}</b>` : "";
+  const head = `<div class="row"><span><b>${esc(r.name)}</b>${r.duration ? `<span class="dur">⏱ ${esc(r.duration)}</span>` : ""}${r.category ? `<span class="tag">${esc(r.category)}</span>` : ""}${r.gameMode ? `<span class="tag" style="border-color:#7db0ff;color:#7db0ff">${esc(modeLabel(r))}</span>` : ""}</span><span class="badge ${STATUS_CLASS[r.status] || "off"}">${STATUS_LABEL[r.status] || esc(r.status)}</span></div>
+      <div class="row mut" style="margin-top:4px"><span>Podio: 🥇${esc(pp[0])} · 🥈${esc(pp[1])} · 🥉${esc(pp[2])} PT</span><span>${b ? marbleSvg(meDoc && meDoc.marble, 16) + " ✓ Pronostico fatto" : ""}${arrow}</span></div>${r.expectedPlayers ? `<div class="row mut" style="margin-top:4px"><span>Giocatori: <b style="color:var(--txt)">${esc(r.betsCount || 0)} / ${esc(r.expectedPlayers)}</b>${teamsPart}</span></div>` : ""}`;
   const showVideo = isOpen && r.status !== "cancelled" && r.status !== "ready" && (r.status !== "open" || r.youtubeLive === true);
   if (showVideo && r.hasVideo && videoIds[r.id] === undefined && !(videoReq[r.id] > Date.now() - 20000)) fetchVideo(r.id);
   return { head, body: isOpen ? runners + foot : "", yt: showVideo ? (videoIds[r.id] || ytInfo(r.youtubeUrl)) : null, isActive };
@@ -892,7 +888,7 @@ function movesHtml(){
   const tot = `<div class="card"><div class="mut">Punti totali</div><div style="font-size:28px;font-weight:700">${esc((meDoc && meDoc.points) || 0)} <span class="mut" style="font-size:16px">PT</span></div></div>`;
   const rows = myBetList.map(b => {
     const r = races.find(x => x.id === b.raceId);
-    const rn = r && r.runners ? r.runners[b.runner] : null;
+    const rn = r && r.runners ? (b.runners || []).map(k => r.runners[Number(k)]).filter(Boolean).join(", ") : null;
     const val = b.status === "won" ? `<b class="res-won">+${esc(b.points || 0)} PT</b>`
       : b.status === "lost" ? `<b class="res-lost">0 PT</b>`
       : b.status === "void" ? `<span class="mut">annullato</span>`
@@ -994,9 +990,16 @@ $("raceList").addEventListener("input", ev => {
   if (!c) return;
   const id = c.dataset.id;
   const d = draft[id] || (draft[id] = {});
-  if (ev.target.type === "radio") d.runner = ev.target.value;
-  if (ev.target.matches("[data-amt]")) d.amount = ev.target.value;
-  if (ev.target.matches("[data-players]")) d.players = ev.target.value;
+  if (ev.target.type === "radio") d.runners = [ev.target.value];
+  if (ev.target.type === "checkbox") {
+    const rc = races.find(x => x.id === id);
+    const lim = (rc && rc.picksPerPlayer) || 1;
+    const all = [...c.querySelectorAll('input[type="checkbox"]:checked')].map(x => x.value);
+    if (all.length > lim) { ev.target.checked = false; return; }
+    d.runners = all;
+  }
+  if (ev.target.matches("[data-gmode]")) d.gmode = ev.target.value;
+  if (ev.target.matches("[data-teams]")) d.teams = ev.target.value;
 });
 
 $("raceList").addEventListener("click", async ev => {
@@ -1008,28 +1011,42 @@ $("raceList").addEventListener("click", async ev => {
   $("homeErr").textContent = "";
   if (btn.dataset.act === "goteam") { openTeam(); return; }
   if (btn.dataset.act === "start") {
-    const n = Number(String(d.players || "").replace(",", "."));
-    if (!Number.isInteger(n) || n < 4 || n > 20) { $("homeErr").textContent = "Inserisci un numero intero di giocatori da 4 a 20 (minimo 4)."; return; }
+    const gm = d.gmode === "team" ? "team" : "1v1";
+    const k = Number(String(d.teams || "").replace(",", "."));
+    if (gm === "team" && (!Number.isInteger(k) || k < 2 || k > 6)) { $("homeErr").textContent = "Indica quante squadre si sfidano (da 2 a 6)."; return; }
     await busy(btn, async () => {
       try {
-        await startRace(id, n);
+        await startRace(id, gm, k);
         delete draft[id];
       } catch (e) { $("homeErr").textContent = msg(e); }
     });
     return;
   }
-  const runner = Number(d.runner);
-  if (d.runner === undefined || !Number.isInteger(runner)) { $("homeErr").textContent = "Scegli una biglia."; return; }
+  const rc = races.find(x => x.id === id);
+  const need = rc && rc.gameMode !== "team" ? (rc.picksPerPlayer || 1) : 1;
+  const chosen = Array.isArray(d.runners) ? d.runners : [];
+  if (chosen.length !== need) { $("homeErr").textContent = need === 1 ? "Scegli una biglia." : "Scegli esattamente " + need + " biglie."; return; }
   await busy(btn, async () => {
     try {
-      await placeBet(id, runner);
+      await placeBet(id, chosen);
       delete draft[id];
     } catch (e) { $("homeErr").textContent = msg(e); }
   });
 });
 
-// Avvio gara da parte di un giocatore attivo: ready -> open, numero partecipanti fissato una sola volta
-async function startRace(raceId, n){
+// Campi di modalità: 1 vs 1 (2 giocatori, metà biglie ciascuno) oppure Squadre (k squadre da size giocatori, 1 biglia a testa)
+function modeFields(mode, k, nRunners, size){
+  if (mode === "1v1") {
+    if (nRunners < 2) throw new Error("Gara con troppe poche biglie per il 1 vs 1.");
+    return { gameMode: "1v1", expectedPlayers: 2, picksPerPlayer: Math.floor(nRunners / 2) };
+  }
+  if (!Number.isInteger(k) || k < 2 || k > 6) throw new Error("Indica quante squadre si sfidano (da 2 a 6).");
+  if (size < 2 || size > 4) throw new Error("Per la sfida a squadre la tua squadra deve avere da 2 a 4 giocatori.");
+  if (nRunners < size) throw new Error("Gara con meno biglie dei giocatori di una squadra.");
+  return { gameMode: "team", teamsCount: k, teamSize: size, expectedPlayers: k * size, picksPerPlayer: 1 };
+}
+// Avvio gara da parte di un giocatore attivo: ready -> open, modalità fissata una sola volta
+async function startRace(raceId, mode, k){
   const rr = doc(db, "races", raceId);
   const ur = doc(db, "users", me.uid);
   await runTransaction(db, async tx => {
@@ -1037,12 +1054,17 @@ async function startRace(raceId, n){
     if (!r.exists()) throw new Error("Gara non trovata.");
     if (r.data().status !== "ready") throw new Error("La gara è già stata avviata da un altro giocatore.");
     if (!u.exists() || !u.data().active) throw new Error("Account non ancora attivo.");
-    if (!u.data().teamId) throw new Error("Per giocare devi far parte di una Squadra.");
-    tx.update(rr, { status: "open", expectedPlayers: n, betsCount: 0, teamMode: true });
+    let size = 0;
+    if (mode === "team") {
+      if (!u.data().teamId) throw new Error("Per le Sfide a Squadre devi far parte di una Squadra.");
+      const t = await tx.get(doc(db, "teams", u.data().teamId));
+      size = t.exists() ? (t.data().members || []).length : 0;
+    }
+    tx.update(rr, { status: "open", betsCount: 0, ...modeFields(mode, k, (r.data().runners || []).length, size) });
   });
 }
 
-async function placeBet(raceId, runner){
+async function placeBet(raceId, keys){
   const rr = doc(db, "races", raceId);
   const ur = doc(db, "users", me.uid);
   const br = doc(db, "bets", raceId + "_" + me.uid);
@@ -1052,121 +1074,103 @@ async function placeBet(raceId, runner){
     if (!u.data().active) throw new Error("Account non ancora attivo.");
     if (b.exists()) throw new Error("Hai già fatto il pronostico per questa gara.");
     const race = r.data();
-    if (runner < 0 || runner >= race.runners.length) throw new Error("Biglia non valida.");
-    const tid = u.data().teamId;
-    if (!tid) throw new Error("Per giocare devi far parte di una Squadra.");
-    const pr = doc(db, "picks", raceId + "_" + tid + "_" + runner);
-    const pk = await tx.get(pr);
-    if (pk.exists()) throw new Error("Questa biglia è già stata scelta da un compagno di squadra.");
-    const key = String(runner);
-    const pools = { ...(race.pools || {}) };
-    pools[key] = (pools[key] || 0) + 1;
-    const bet = { raceId, uid: me.uid, username: me.name, runner, status: "pending", createdAt: serverTimestamp(), teamId: tid, teamTag: u.data().teamTag || "" };
-    tx.set(br, bet);
-    tx.set(pr, { raceId, teamId: tid, runner, uid: me.uid, username: u.data().username || me.name });
-    const upd = { pool: (race.pool || 0) + 1, pools };
-    const exp = race.expectedPlayers || 0;
-    if (exp > 0) {
-      const cnt = (race.betsCount || 0) + 1;
-      upd.betsCount = cnt;
-      upd.status = cnt >= exp ? "closed" : "open"; // ultimo pronostico: chiusura automatica e video sbloccato
+    const n = race.runners.length;
+    if (!keys.length || new Set(keys).size !== keys.length || keys.some(k => !/^\d+$/.test(k) || Number(k) >= n)) throw new Error("Biglia non valida.");
+    const taken = { ...(race.taken || {}) };
+    const nm = u.data().username || me.name;
+    const bet = { raceId, uid: me.uid, username: me.name, runners: keys, status: "pending", createdAt: serverTimestamp() };
+    const upd = {};
+    if (race.gameMode === "team") {
+      const tid = u.data().teamId;
+      if (!tid) throw new Error("Per le Sfide a Squadre devi far parte di una Squadra.");
+      const t = await tx.get(doc(db, "teams", tid));
+      if (!t.exists() || (t.data().members || []).length !== race.teamSize) throw new Error("Servono squadre da " + race.teamSize + " giocatori.");
+      if (keys.length !== 1) throw new Error("Scegli una sola biglia.");
+      const counts = { ...(race.teamCounts || {}) };
+      if ((counts[tid] || 0) >= race.teamSize) throw new Error("La tua squadra ha già completato i pronostici.");
+      if (!(tid in counts) && Object.keys(counts).length >= race.teamsCount) throw new Error("La gara ha già tutte le squadre.");
+      const tk = tid + "_" + keys[0];
+      if (taken[tk] !== undefined) throw new Error("Questa biglia è già stata scelta da un compagno di squadra.");
+      taken[tk] = nm; counts[tid] = (counts[tid] || 0) + 1;
+      upd.teamCounts = counts;
+      bet.teamId = tid; bet.teamTag = u.data().teamTag || "";
+    } else {
+      if (keys.length !== race.picksPerPlayer) throw new Error("Scegli esattamente " + race.picksPerPlayer + " biglie.");
+      if (keys.some(k => taken[k] !== undefined)) throw new Error("Una delle biglie è già stata scelta dall'avversario: scegline altre.");
+      keys.forEach(k => { taken[k] = nm; });
     }
+    upd.taken = taken;
+    const cnt = (race.betsCount || 0) + 1;
+    upd.betsCount = cnt;
+    upd.status = cnt >= (race.expectedPlayers || 0) ? "closed" : "open"; // ultimo pronostico: chiusura automatica e video sbloccato
+    tx.set(br, bet);
     tx.update(rr, upd);
   });
 }
 
-// ---------- Catalogo Gare (giocatore) ----------
+// ---------- Partita casuale dal catalogo (nessun filtro) ----------
 let catRows = [], catAt = 0;
-function catFilters(){
-  const rg = $("catRunners").value;
-  const [nmin, nmax] = rg ? rg.split("-").map(Number) : [0, 0];
-  return { cat: $("catCategory").value, nmin, nmax, maxSec: Number($("catDur").value) || 0,
-    runner: $("catRunner").value.trim().toLowerCase(), excl: $("catExcl").checked };
-}
-function catMatches(c, f){
-  if (c.suspended) return false; // voci sospese dall'Admin: mai estratte
-  if (f.cat && (c.category || "") !== f.cat) return false;
-  const n = c.runnersCount || (c.runners || []).length;
-  if (f.nmin && (n < f.nmin || n > f.nmax)) return false;
-  if (f.maxSec && !(c.durationSec > 0 && c.durationSec < f.maxSec)) return false;
-  if (f.runner && !(c.runners || []).some(x => String(x).toLowerCase().includes(f.runner))) return false;
-  if (f.excl && (c.playedCount || 0) > 0) return false;
-  return true;
-}
-// Mostra solo le opzioni che, combinate con gli altri filtri, danno almeno una gara
-function setCatOpts(id, opts){
-  const sel = $(id), cur = sel.value;
-  const label = sel.previousElementSibling;
-  const first = sel.options[0] ? sel.options[0].outerHTML : "";
-  sel.innerHTML = first + opts.map(o => `<option value="${esc(o[0])}">${esc(o[1])}</option>`).join("");
-  sel.value = opts.some(o => o[0] === cur) ? cur : "";
-  const hide = opts.length === 0;
-  sel.style.display = hide ? "none" : "";
-  if (label && label.tagName === "LABEL") label.style.display = hide ? "none" : "";
-}
-function refreshCatFilters(){
-  const RANGES = [["2-4", "2 – 4"], ["5-8", "5 – 8"], ["9-12", "9 – 12"]];
-  const DURS = [["120", "Sotto i 2 min"], ["240", "Sotto i 4 min"]];
-  for (let k = 0; k < 3; k++) {
-    const before = [$("catCategory").value, $("catRunners").value, $("catDur").value].join("|");
-    const f = catFilters();
-    const rows = over => catRows.filter(c => catMatches(c, { ...f, ...over }));
-    setCatOpts("catCategory", [...new Set(rows({ cat: "" }).map(c => c.category).filter(Boolean))].sort((a, b) => a.localeCompare(b)).map(c => [c, c]));
-    const rr = rows({ nmin: 0, nmax: 0 });
-    setCatOpts("catRunners", RANGES.filter(r => { const [a, b] = r[0].split("-").map(Number); return rr.some(c => { const n = c.runnersCount || (c.runners || []).length; return n >= a && n <= b; }); }));
-    const dr = rows({ maxSec: 0 });
-    setCatOpts("catDur", DURS.filter(d => dr.some(c => c.durationSec > 0 && c.durationSec < Number(d[0]))));
-    if ([$("catCategory").value, $("catRunners").value, $("catDur").value].join("|") === before) break;
-  }
-}
-function updateCatInfo(){
-  refreshCatFilters();
-  const f = catFilters();
-  const n = catRows.filter(c => catMatches(c, f)).length;
-  $("catInfo").textContent = n + (n === 1 ? " gara corrisponde ai filtri" : " gare corrispondono ai filtri") + " (catalogo: " + catRows.length + ").";
-}
 async function loadCatalog(){
-  const s = await getDocs(query(collection(db, "catalog"), limit(500)));
-  catRows = s.docs.map(d => ({ id: d.id, ...d.data() }));
+  const sn = await getDocs(query(collection(db, "catalog"), limit(500)));
+  catRows = sn.docs.map(d => ({ id: d.id, ...d.data() }));
   catAt = Date.now();
-  updateCatInfo();
 }
-$("btnCat").onclick = async () => {
+async function playRandom(mode, k){
+  if (Date.now() - catAt > 60000 || !catRows.length) await loadCatalog();
+  const pool = catRows.filter(c => !c.suspended && (c.playedCount || 0) === 0);
+  for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+  let newId = null;
+  for (const c of pool.slice(0, 20)) {
+    try { newId = await launchFromCatalog(c.id, mode, k); break; }
+    catch (e) { if (!e.skip) throw e; }
+  }
+  if (!newId) { await loadCatalog(); throw new Error("Nessuna gara disponibile: sono tutte già giocate o in corso. Chiedi all'Admin di aggiungerne o di azzerare il catalogo."); }
+  expanded[newId] = true;
+  catAt = 0;
+  setRaceTab("active");
+}
+$("btnPlay1v1").onclick = async () => {
+  $("homeErr").textContent = "";
+  await busy($("btnPlay1v1"), async () => { try { await playRandom("1v1", 0); } catch (e) { $("homeErr").textContent = msg(e); } });
+};
+$("btnPlayTeam").onclick = () => {
+  $("homeErr").textContent = "";
+  if (!meDoc || !meDoc.teamId) { $("homeErr").textContent = "Per le Sfide a Squadre devi far parte di una Squadra."; openTeam(); return; }
+  const size = myTeam ? (myTeam.members || []).length : 0;
+  if (size < 2 || size > 4) { $("homeErr").textContent = "Per la sfida a squadre la tua squadra deve avere da 2 a 4 giocatori."; return; }
+  $("catErr").textContent = ""; $("catTeams").value = "";
+  $("catInfo").textContent = "La tua squadra ha " + size + " giocatori: partecipano solo squadre da " + size + " giocatori. Ognuno sceglie 1 biglia.";
   $("modalCat").classList.add("on");
-  $("catErr").textContent = ""; $("catInfo").textContent = "Caricamento catalogo…";
-  try { await loadCatalog(); } catch (e) { $("catInfo").textContent = ""; $("catErr").textContent = msg(e); }
 };
 $("btnCatCancel").onclick = () => { $("modalCat").classList.remove("on"); };
-$("btnCatReset").onclick = () => {
-  $("catCategory").value = ""; $("catRunners").value = ""; $("catDur").value = "";
-  $("catRunner").value = ""; $("catExcl").checked = true;
-  updateCatInfo();
-};
-$("formCat").addEventListener("change", updateCatInfo);
-$("catRunner").addEventListener("input", updateCatInfo);
 
-async function launchFromCatalog(cid, n, excl){
+async function launchFromCatalog(cid, mode, k){
   const cr = doc(db, "catalog", cid), ur = doc(db, "users", me.uid), rr = doc(collection(db, "races"));
   await runTransaction(db, async tx => {
     const skip = () => { const e = new Error("skip"); e.skip = true; return e; };
     const [c, u, cfg] = await Promise.all([tx.get(cr), tx.get(ur), tx.get(doc(db, "config", "app"))]);
     if (!c.exists()) throw skip();
     if (!u.exists() || !u.data().active) throw new Error("Account non ancora attivo.");
-    if (!u.data().teamId) throw new Error("Per giocare devi far parte di una Squadra.");
     const cd = c.data();
-    if (cd.suspended) throw skip();
-    if (excl && (cd.playedCount || 0) > 0) throw skip();
+    if (cd.suspended || (cd.playedCount || 0) > 0) throw skip();
     if (cd.activeRaceId) {
       const a = await tx.get(doc(db, "races", cd.activeRaceId));
       if (a.exists() && !["settled", "cancelled"].includes(a.data().status)) throw skip();
     }
-    const k = cfg.exists() ? cfg.data() : {};
-    const pools = {};
-    cd.runners.forEach((_, i) => { pools[String(i)] = 0; });
+    let size = 0;
+    if (mode === "team") {
+      if (!u.data().teamId) throw new Error("Per le Sfide a Squadre devi far parte di una Squadra.");
+      const t = await tx.get(doc(db, "teams", u.data().teamId));
+      size = t.exists() ? (t.data().members || []).length : 0;
+    }
+    let mf;
+    try { mf = modeFields(mode, k, cd.runners.length, size); }
+    catch (e) { if (mode === "team" && size >= 2 && cd.runners.length < size) throw skip(); if (mode === "1v1") throw skip(); throw e; }
+    const kc = cfg.exists() ? cfg.data() : {};
     const data = {
-      name: cd.name, runners: cd.runners, status: "open", pool: 0, pools, winner: null, hasVideo: true, youtubeLive: false,
-      pointsPerWin: Number.isInteger(k.pointsPerWin) ? k.pointsPerWin : 100,
-      createdAt: serverTimestamp(), catalogId: cid, createdBy: me.uid, expectedPlayers: n, betsCount: 0, teamMode: true
+      name: cd.name, runners: cd.runners, status: "open", winner: null, hasVideo: true, youtubeLive: false,
+      podiumPts: [Number.isInteger(kc.pts1) ? kc.pts1 : 100, Number.isInteger(kc.pts2) ? kc.pts2 : 50, Number.isInteger(kc.pts3) ? kc.pts3 : 25],
+      createdAt: serverTimestamp(), catalogId: cid, createdBy: me.uid, betsCount: 0, taken: {}, teamCounts: {}, ...mf
     };
     if (cd.duration) data.duration = cd.duration;
     if (cd.category) data.category = cd.category;
@@ -1179,28 +1183,11 @@ async function launchFromCatalog(cid, n, excl){
 $("formCat").addEventListener("submit", async ev => {
   ev.preventDefault();
   $("catErr").textContent = "";
-  const n = Number($("catPlayers").value);
-  if (!Number.isInteger(n) || n < 4 || n > 20) { $("catErr").textContent = "Inserisci un numero intero di giocatori da 4 a 20 (minimo 4)."; return; }
-  if (!(meDoc && meDoc.teamId)) { $("catErr").textContent = "Per giocare devi far parte di una Squadra."; return; }
+  const k = Number($("catTeams").value);
+  if (!Number.isInteger(k) || k < 2 || k > 6) { $("catErr").textContent = "Indica quante squadre si sfidano (da 2 a 6)."; return; }
   await busy(ev.submitter, async () => {
-    try {
-      if (Date.now() - catAt > 60000) await loadCatalog();
-      const f = catFilters();
-      const pool = catRows.filter(c => catMatches(c, f));
-      if (!pool.length) { $("catErr").textContent = "Nessuna gara corrisponde ai filtri scelti."; return; }
-      for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
-      let newId = null;
-      for (const c of pool.slice(0, 20)) {
-        try { newId = await launchFromCatalog(c.id, n, f.excl); break; }
-        catch (e) { if (!e.skip) throw e; }
-      }
-      if (!newId) { await loadCatalog(); $("catErr").textContent = "Le gare corrispondenti sono già in corso o già giocate: cambia i filtri o riprova."; return; }
-      expanded[newId] = true;
-      $("modalCat").classList.remove("on");
-      $("catPlayers").value = "";
-      catAt = 0;
-      setRaceTab("active");
-    } catch (e) { $("catErr").textContent = msg(e); }
+    try { await playRandom("team", k); $("modalCat").classList.remove("on"); }
+    catch (e) { $("catErr").textContent = msg(e); }
   });
 });
 
@@ -1330,7 +1317,7 @@ $("teamBody").addEventListener("submit", async ev => {
           if (!t.exists()) throw new Error("Squadra non trovata.");
           const d = t.data();
           if ((d.members || []).includes(me.uid)) throw new Error("Fai già parte di questa squadra.");
-          if ((d.members || []).length >= 6) throw new Error("La squadra è al completo (max 6 membri).");
+          if ((d.members || []).length >= 4) throw new Error("La squadra è al completo (max 4 membri).");
           tx.update(tr, { members: [...d.members, me.uid], names: { ...(d.names || {}), [me.uid]: (meDoc && meDoc.username) || me.name } });
           tx.update(ur, { teamId: tid, teamTag: d.tag, joinCode: code });
         });
@@ -1452,11 +1439,11 @@ document.addEventListener("click", ev => {
 $("formCfg").addEventListener("submit", async ev => {
   ev.preventDefault();
   $("adminErr").textContent = ""; $("cfgMsg").textContent = "";
-  const pts = Number($("sPts").value);
-  if (!Number.isInteger(pts) || pts < 1 || pts > 100000) { $("adminErr").textContent = "I Punti per vittoria devono essere un intero da 1 a 100000."; return; }
+  const p = [Number($("sP1").value), Number($("sP2").value), Number($("sP3").value)];
+  if (p.some(x => !Number.isInteger(x) || x < 0 || x > 100000)) { $("adminErr").textContent = "I punti del podio devono essere interi da 0 a 100000."; return; }
   await busy(ev.submitter, async () => {
     try {
-      await setDoc(doc(adminDb, "config", "app"), { pointsPerWin: pts }, { merge: true });
+      await setDoc(doc(adminDb, "config", "app"), { pts1: p[0], pts2: p[1], pts3: p[2] }, { merge: true });
       $("cfgMsg").textContent = "Impostazioni salvate (valide per le nuove gare).";
     } catch (e) { $("adminErr").textContent = msg(e); }
   });
@@ -1510,8 +1497,8 @@ $("adminOpts").addEventListener("click", async ev => {
   await busy(btn, async () => {
     try {
       if (k === "season") { await zeroPoints(); }
-      if (k === "bets" || k === "all") { await wipeCollection("picks"); await wipeCollection("bets"); await wipeCollection("races"); await wipeCollection("videos"); await resetCatalogPlays(); await wipeCollection("leaderboard"); }
-      if (k === "users" || k === "all") { await wipeCollection("picks"); await wipeCollection("users"); await wipeCollection("teams"); await wipeCollection("teamCodes"); await wipeCollection("leaderboard"); }
+      if (k === "bets" || k === "all") { await wipeCollection("bets"); await wipeCollection("races"); await wipeCollection("videos"); await resetCatalogPlays(); await wipeCollection("leaderboard"); }
+      if (k === "users" || k === "all") { await wipeCollection("users"); await wipeCollection("teams"); await wipeCollection("teamCodes"); await wipeCollection("leaderboard"); }
       await loadAdmin();
       $("optMsg").textContent = "Reset eseguito.";
     } catch (e) { $("adminErr").textContent = msg(e); }
@@ -1526,7 +1513,7 @@ async function ensureInit(){
   const made = await runTransaction(adminDb, async tx => {
     const c = await tx.get(cfgRef);
     const list = [];
-    if (!c.exists()) { tx.set(cfgRef, { pointsPerWin: 100, liveUrl: "", bettingOpen: true }); list.push("config/app"); }
+    if (!c.exists()) { tx.set(cfgRef, { pts1: 100, pts2: 50, pts3: 25, liveUrl: "", bettingOpen: true }); list.push("config/app"); }
     return list;
   });
   if (made.length) $("adminInfo").textContent = "Database inizializzato: creato " + made.join(" e ") + " con i valori predefiniti.";
@@ -1540,7 +1527,9 @@ async function loadRaceBets(id){
 async function loadConfig(){
   const c = await getDoc(doc(adminDb, "config", "app"));
   const d = c.exists() ? c.data() : {};
-  $("sPts").value = Number.isInteger(d.pointsPerWin) ? d.pointsPerWin : 100;
+  $("sP1").value = Number.isInteger(d.pts1) ? d.pts1 : 100;
+  $("sP2").value = Number.isInteger(d.pts2) ? d.pts2 : 50;
+  $("sP3").value = Number.isInteger(d.pts3) ? d.pts3 : 25;
 }
 
 async function loadRaces(){
@@ -1549,8 +1538,10 @@ async function loadRaces(){
   await Promise.all(adminRaces.filter(r => r.status === "closed" && !(r.id in adminPreset)).map(async r => {
     try {
       const d = await getDoc(r.catalogId ? doc(adminDb, "catalog_w", r.catalogId) : doc(adminDb, "videos", r.id + "_w"));
-      const w = d.exists() ? d.data().presetWinner : null;
-      adminPreset[r.id] = (Number.isInteger(w) && w >= 0 && w < (r.runners || []).length) ? w : null;
+      const wd = d.exists() ? d.data() : {};
+      const nr = (r.runners || []).length;
+      const arr = Array.isArray(wd.presetPodium) ? wd.presetPodium : (Number.isInteger(wd.presetWinner) ? [wd.presetWinner] : []);
+      adminPreset[r.id] = arr.filter(x => Number.isInteger(x) && x >= 0 && x < nr);
     } catch (e) { adminPreset[r.id] = null; }
   }));
   await Promise.all(adminRaces.filter(r => adminExp[r.id] && (r.status === "open" || r.status === "closed")).map(r => loadRaceBets(r.id)));
@@ -1592,8 +1583,8 @@ $("formRace").addEventListener("submit", async ev => {
       const rRef = doc(collection(adminDb, "races"));
       let videoFail = false;
       await setDoc(rRef, {
-        name, runners, status: $("raceInit").value === "ready" ? "ready" : "open", pool: 0, pools, winner: null, hasVideo: !!yt, youtubeLive: !!yt && $("raceLive").checked, teamMode: true, ...(dur ? { duration: dur } : {}),
-        pointsPerWin: Number.isInteger(c.pointsPerWin) ? c.pointsPerWin : 100,
+        name, runners, status: "ready", winner: null, hasVideo: !!yt, youtubeLive: !!yt && $("raceLive").checked, betsCount: 0, taken: {}, teamCounts: {}, ...(dur ? { duration: dur } : {}),
+        podiumPts: [Number.isInteger(c.pts1) ? c.pts1 : 100, Number.isInteger(c.pts2) ? c.pts2 : 50, Number.isInteger(c.pts3) ? c.pts3 : 25],
         createdAt: serverTimestamp()
       });
       if (yt) {
@@ -1640,10 +1631,10 @@ $("formBulk").addEventListener("submit", async ev => {
   const errs = [];
   const parsed = blocks.map((b, i) => {
     const n = i + 1, name = b[0], url = b[1] || "";
-    let rest = b.slice(2), winnerName = null, durTxt = null, category = "";
+    let rest = b.slice(2), winnerName = null, podiumNames = null, durTxt = null, category = "";
     while (rest.length) {
-      const wm = rest[0].match(/^vincitore\s*:\s*(.+)$/i), dm = rest[0].match(/^durata\s*:\s*(.+)$/i), cm = rest[0].match(/^categoria\s*:\s*(.+)$/i);
-      if (wm) winnerName = wm[1].trim(); else if (dm) durTxt = dm[1].trim(); else if (cm) category = cm[1].trim(); else break;
+      const pm = rest[0].match(/^podio\s*:\s*(.+)$/i), wm = rest[0].match(/^vincitore\s*:\s*(.+)$/i), dm = rest[0].match(/^durata\s*:\s*(.+)$/i), cm = rest[0].match(/^categoria\s*:\s*(.+)$/i);
+      if (pm) podiumNames = pm[1].split(",").map(x => x.trim()).filter(Boolean); else if (wm) winnerName = wm[1].trim(); else if (dm) durTxt = dm[1].trim(); else if (cm) category = cm[1].trim(); else break;
       rest = rest.slice(1);
     }
     const runners = rest;
@@ -1657,13 +1648,21 @@ $("formBulk").addEventListener("submit", async ev => {
       durationSec = parseDur(durTxt);
       if (durationSec === null || durationSec <= 0) { errs.push("Gara " + n + " (" + name + "): durata non valida (usa MM:SS, es. 2:51)."); durationSec = null; }
     }
+    let presetPodium = null;
+    if (podiumNames !== null) {
+      const idx = podiumNames.map(pn => runners.findIndex(r => r.toLowerCase() === pn.toLowerCase()));
+      if (podiumNames.length < 1 || podiumNames.length > 3) errs.push("Gara " + n + " (" + name + "): il podio ha da 1 a 3 biglie.");
+      else if (idx.some(k => k < 0)) errs.push("Gara " + n + " (" + name + "): una biglia del podio non è tra le biglie.");
+      else if (new Set(idx).size !== idx.length) errs.push("Gara " + n + " (" + name + "): biglie duplicate nel podio.");
+      else presetPodium = idx;
+    }
     let presetWinner = null;
-    if (winnerName !== null) {
+    if (winnerName !== null && presetPodium === null) {
       const k = runners.findIndex(r => r.toLowerCase() === winnerName.toLowerCase());
       if (k < 0) errs.push("Gara " + n + " (" + name + "): il vincitore \"" + winnerName + "\" non è tra le biglie.");
-      else presetWinner = k;
+      else presetPodium = [k];
     }
-    return { name, url, runners, presetWinner, durationSec, category };
+    return { name, url, runners, presetPodium, durationSec, category };
   });
   if (errs.length) { $("adminErr").textContent = errs.slice(0, 3).join(" ") + (errs.length > 3 ? " (+ altri " + (errs.length - 3) + " errori)" : ""); return; }
   await busy(ev.submitter, async () => {
@@ -1676,7 +1675,7 @@ $("formBulk").addEventListener("submit", async ev => {
         if (g.durationSec) { d.durationSec = g.durationSec; d.duration = fmtDur(g.durationSec); }
         batch.set(cRef, d);
         batch.set(doc(adminDb, "catalog_v", cRef.id), { url: g.url });
-        if (g.presetWinner !== null) batch.set(doc(adminDb, "catalog_w", cRef.id), { presetWinner: g.presetWinner });
+        if (g.presetPodium) batch.set(doc(adminDb, "catalog_w", cRef.id), { presetPodium: g.presetPodium });
       });
       await batch.commit();
       if (cadm.length) loadCatAdm().catch(() => {});
@@ -1686,27 +1685,35 @@ $("formBulk").addEventListener("submit", async ev => {
   });
 });
 
+function fillPodium(pre, n){
+  const out = (pre || []).slice(0, 3).filter(x => Number.isInteger(x) && x < n);
+  for (let i = 0; out.length < Math.min(3, n) && i < n; i++) if (!out.includes(i)) out.push(i);
+  return out;
+}
 function renderAdminRaces(){
   const box = $("raceAdminList");
   if (!adminRaces.length) { box.innerHTML = '<div class="mut" style="margin-top:10px">Nessuna gara creata.</div>'; return; }
   box.innerHTML = adminRaces.map(r => {
-    const pools = r.pools || {};
-    const sel = adminSel[r.id] !== undefined ? adminSel[r.id] : adminPreset[r.id];
-    const list = (r.runners || []).map((n, i) => `${esc(n)}: ${esc(pools[String(i)] || 0)}`).join(" · ");
+    const pp = podiumPts(r);
+    const nr = (r.runners || []).length;
+    const list = (r.runners || []).map(n => esc(n)).join(" · ");
     let actions = "";
     if (r.status === "ready") {
-      actions = `<span class="mut" style="width:100%">In attesa che il gruppo avvii la gara.</span>
-                 <button class="small" data-act="publish">Apri pronostici subito</button>
+      actions = `<span class="mut" style="width:100%">In attesa che il gruppo avvii la gara (1 vs 1 o Squadre).</span>
                  <button class="small danger" data-act="cancelready">Annulla gara</button>`;
     } else if (r.status === "open") {
       actions = `<button class="small" data-act="close">Chiudi pronostici</button>
                  <button class="small danger" data-act="cancel">Annulla gara</button>`;
     } else if (r.status === "closed") {
-      actions = `${Number.isInteger(adminPreset[r.id]) ? `<span class="mut" style="width:100%">Vincitore preimpostato: <b>${esc((r.runners || [])[adminPreset[r.id]] ?? "?")}</b></span>` : ""}<select data-win>${(r.runners || []).map((n, i) => `<option value="${i}" ${String(sel) === String(i) ? "selected" : ""}>${esc(n)}</option>`).join("")}</select>
-                 <button class="small" data-act="settle">Assegna vincitore</button>
+      const ch = fillPodium(adminSel[r.id] || adminPreset[r.id], nr);
+      const pre = Array.isArray(adminPreset[r.id]) && adminPreset[r.id].length
+        ? `<span class="mut" style="width:100%">Podio preimpostato: <b>${esc(adminPreset[r.id].map(i => (r.runners || [])[i]).join(", "))}</b></span>` : "";
+      const sels = ch.map((v, p) => `<label class="mut" style="width:100%">${MEDALS[p]} ${p + 1}° posto (${esc(pp[p])} PT)</label><select data-pod="${p}">${(r.runners || []).map((n, i) => `<option value="${i}" ${v === i ? "selected" : ""}>${esc(n)}</option>`).join("")}</select>`).join("");
+      actions = `${pre}${sels}
+                 <button class="small" data-act="settle">Assegna podio</button>
                  <button class="small danger" data-act="cancel">Annulla gara</button>`;
     } else if (r.status === "settled") {
-      actions = `<span class="mut">Vincitore: <b>${esc((r.runners || [])[r.winner] ?? "?")}</b>${r.noWinner ? " (nessun pronostico vincente: 0 punti assegnati)" : ""}</span>`;
+      actions = `<span class="mut">Podio: <b>${esc((r.podium || [r.winner]).map((i, p) => MEDALS[p] + " " + ((r.runners || [])[i] ?? "?")).join(" · "))}</b></span>`;
     } else {
       actions = `<span class="mut">Annullata, pronostici annullati.</span>`;
     }
@@ -1718,13 +1725,14 @@ function renderAdminRaces(){
       else if (!bl.length) betsHtml = '<div class="mut">Nessun pronostico.</div>';
       else betsHtml = bl.map(b => {
         const nm = (users.find(x => x.id === b.uid) || {}).username || b.username;
-        return `<div class="row" style="margin-top:6px"><span class="mut"><b style="color:var(--txt)">${esc(nm)}</b>${b.teamTag ? `<span class="ttag">${esc(b.teamTag)}</span>` : ""} · ${esc((r.runners || [])[b.runner] ?? "?")}${b.status !== "pending" ? " · " + esc(b.status) + (b.status === "won" ? " +" + esc(b.points || 0) + " PT" : "") : ""}</span>${b.status === "pending" ? `<button class="small danger" data-act="refund" data-bet="${esc(b.id)}">Annulla</button>` : ""}</div>`;
+        const rn = (b.runners || []).map(k => (r.runners || [])[Number(k)] ?? "?").join(", ");
+        return `<div class="row" style="margin-top:6px"><span class="mut"><b style="color:var(--txt)">${esc(nm)}</b>${b.teamTag ? `<span class="ttag">${esc(b.teamTag)}</span>` : ""} · ${esc(rn)}${b.status !== "pending" ? " · " + esc(b.status) + (b.status === "won" ? " +" + esc(b.points || 0) + " PT" : "") : ""}</span>${b.status === "pending" ? `<button class="small danger" data-act="refund" data-bet="${esc(b.id)}">Annulla</button>` : ""}</div>`;
       }).join("");
     }
     return `<div class="urow" data-id="${esc(r.id)}">
       <div class="rhead" data-tgl>
-        <div class="row"><span><b>${esc(r.name)}</b>${r.duration ? `<span class="dur">⏱ ${esc(r.duration)}</span>` : ""}${r.category ? `<span class="tag">${esc(r.category)}</span>` : ""}</span><span><span class="badge ${STATUS_CLASS[r.status] || "off"}">${STATUS_LABEL[r.status] || esc(r.status)}</span> <span class="mut">${open ? "▲" : "▼"}</span></span></div>
-        <div class="mut">Pronostici: ${esc(r.pool || 0)} · Punti vittoria ${esc(r.pointsPerWin ?? 100)} PT${r.expectedPlayers ? " · Partecipanti: " + esc(r.betsCount || 0) + " / " + esc(r.expectedPlayers) : ""}</div>
+        <div class="row"><span><b>${esc(r.name)}</b>${r.duration ? `<span class="dur">⏱ ${esc(r.duration)}</span>` : ""}${r.category ? `<span class="tag">${esc(r.category)}</span>` : ""}${r.gameMode ? `<span class="tag">${esc(modeLabel(r))}</span>` : ""}</span><span><span class="badge ${STATUS_CLASS[r.status] || "off"}">${STATUS_LABEL[r.status] || esc(r.status)}</span> <span class="mut">${open ? "▲" : "▼"}</span></span></div>
+        <div class="mut">Podio ${esc(pp.join(" / "))} PT${r.expectedPlayers ? " · Giocatori: " + esc(r.betsCount || 0) + " / " + esc(r.expectedPlayers) : ""}</div>
       </div>
       ${open ? `<div class="mut" style="margin-top:6px">${list}</div>${betsHtml ? `<div style="margin-top:8px"><b style="font-size:14px">Pronostici</b>${betsHtml}</div>` : ""}<div class="uactions">${actions}</div>` : ""}
     </div>`;
@@ -1732,9 +1740,10 @@ function renderAdminRaces(){
 }
 
 $("raceAdminList").addEventListener("change", ev => {
-  const sel = ev.target.closest("[data-win]");
+  const sel = ev.target.closest("[data-pod]");
   if (!sel) return;
-  adminSel[sel.closest(".urow").dataset.id] = sel.value;
+  const rw = sel.closest(".urow");
+  adminSel[rw.dataset.id] = [...rw.querySelectorAll("[data-pod]")].map(x => Number(x.value));
 });
 
 $("raceAdminList").addEventListener("click", async ev => {
@@ -1761,16 +1770,14 @@ $("raceAdminList").addEventListener("click", async ev => {
       const rr = doc(adminDb, "races", id);
       if (act === "close") {
         await updateDoc(rr, { status: "closed" });
-      } else if (act === "publish") {
-        if (!confirm("Aprire subito i pronostici senza limite di giocatori? Il gruppo non potrà più avviarla.")) return;
-        await updateDoc(rr, { status: "open" });
-      } else if (act === "cancelready") {
+            } else if (act === "cancelready") {
         if (!confirm("Annullare questa gara non ancora avviata?")) return;
         await updateDoc(rr, { status: "cancelled", settledAt: serverTimestamp() });
       } else if (act === "settle") {
-        const w = Number(row.querySelector("[data-win]").value);
-        if (!confirm("Assegnare la vittoria a \"" + r.runners[w] + "\"? L'operazione è definitiva e assegna i punti ai vincitori.")) return;
-        await finalizeRace(id, "settle", w);
+        const podium = [...row.querySelectorAll("[data-pod]")].map(x => Number(x.value));
+        if (new Set(podium).size !== podium.length) { $("adminErr").textContent = "Il podio deve avere biglie diverse."; return; }
+        if (!confirm("Confermare il podio: " + podium.map((i, p) => (p + 1) + "° " + r.runners[i]).join(", ") + "? L'operazione è definitiva e assegna i punti.")) return;
+        await finalizeRace(id, "settle", podium);
       } else if (act === "refund") {
         if (!confirm("Annullare questo pronostico? Il conteggio della gara viene scalato.")) return;
         await refundBet(id, btn.dataset.bet);
@@ -1785,7 +1792,7 @@ $("raceAdminList").addEventListener("click", async ev => {
   });
 });
 
-// Annullamento di un singolo pronostico (atomico): conteggi della gara e stato del pronostico
+// Annullamento di un singolo pronostico (atomico): libera le biglie e segna il pronostico come annullato
 async function refundBet(raceId, betId){
   const rr = doc(adminDb, "races", raceId);
   const br = doc(adminDb, "bets", betId);
@@ -1794,17 +1801,23 @@ async function refundBet(raceId, betId){
     if (!rs.exists() || !["open", "closed"].includes(rs.data().status)) throw new Error("La gara non è più modificabile.");
     if (!bs.exists() || bs.data().status !== "pending") throw new Error("Pronostico già gestito.");
     const b = bs.data(), race = rs.data();
-    const key = String(b.runner);
-    const pools = { ...(race.pools || {}) };
-    pools[key] = Math.max(0, (pools[key] || 0) - 1);
+    const taken = { ...(race.taken || {}) };
+    const upd = {};
+    if (race.gameMode === "team" && b.teamId) {
+      (b.runners || []).forEach(k => { delete taken[b.teamId + "_" + k]; });
+      const counts = { ...(race.teamCounts || {}) };
+      counts[b.teamId] = (counts[b.teamId] || 1) - 1;
+      if (counts[b.teamId] <= 0) delete counts[b.teamId];
+      upd.teamCounts = counts;
+    } else (b.runners || []).forEach(k => { delete taken[k]; });
+    upd.taken = taken;
     tx.update(br, { status: "void", points: 0 });
-    if (b.teamId) tx.delete(doc(adminDb, "picks", raceId + "_" + b.teamId + "_" + b.runner));
-    tx.update(rr, { pool: Math.max(0, (race.pool || 0) - 1), pools });
+    tx.update(rr, upd);
   });
 }
 
 // Chiusura gara atomica: assegnazione punti, classifiche e stato gara in un'unica transazione
-async function finalizeRace(raceId, mode, winner){
+async function finalizeRace(raceId, mode, podium){
   const bs = await getDocs(query(collection(adminDb, "bets"), where("raceId", "==", raceId)));
   if (bs.size > MAX_BETS_SETTLE) throw new Error("Troppi pronostici (max " + MAX_BETS_SETTLE + ") per una chiusura atomica.");
   const betRefs = bs.docs.map(d => d.ref);
@@ -1816,22 +1829,24 @@ async function finalizeRace(raceId, mode, winner){
     if (race.status !== "closed") throw new Error("La gara deve essere chiusa ai pronostici.");
     const bSnaps = await Promise.all(betRefs.map(r => tx.get(r)));
     const bets = bSnaps.filter(s => s.exists() && s.data().status === "pending").map(s => ({ ref: s.ref, ...s.data() }));
-    const fixed = Number.isInteger(race.pointsPerWin) ? race.pointsPerWin : 100;
-    const total = bets.length;
-    const W = mode === "settle" ? bets.filter(b => b.runner === winner).length : 0;
-    const voided = mode === "cancel" || W === 0;
-    const pts = voided ? 0 : fixed; // punteggio fisso per ogni vincitore
-
+    const pp = podiumPts(race);
+    const voided = mode === "cancel";
+    const pod = voided ? [] : podium;
+    // punti per pronostico: somma dei punti del podio delle biglie scelte
+    const res = bets.map(b => {
+      let pts = 0, first = 0;
+      (b.runners || []).forEach(k => { const p = pod.indexOf(Number(k)); if (p >= 0) { pts += pp[p]; if (p === 0) first++; } });
+      return { pts, first };
+    });
     const uSnaps = await Promise.all(bets.map(b => tx.get(doc(adminDb, "users", b.uid))));
     const lSnaps = voided ? [] : await Promise.all(bets.map(b => tx.get(doc(adminDb, "leaderboard", b.uid))));
-    const teamIds = (race.teamMode && !voided) ? [...new Set(bets.filter(b => b.teamId).map(b => b.teamId))] : [];
+    const teamIds = (race.gameMode === "team" && !voided) ? [...new Set(bets.filter(b => b.teamId).map(b => b.teamId))] : [];
     const tSnaps = await Promise.all(teamIds.map(id => tx.get(doc(adminDb, "teams", id))));
 
     bets.forEach((b, i) => {
-      const us = uSnaps[i];
-      const won = !voided && b.runner === winner;
-      tx.update(b.ref, { status: voided ? "void" : (won ? "won" : "lost"), points: won ? pts : 0 });
-      if (won && us.exists()) tx.update(us.ref, { points: (us.data().points || 0) + pts });
+      const us = uSnaps[i], { pts, first } = res[i];
+      tx.update(b.ref, { status: voided ? "void" : (pts > 0 ? "won" : "lost"), points: pts });
+      if (pts > 0 && us.exists()) tx.update(us.ref, { points: (us.data().points || 0) + pts });
       if (!voided) {
         const lb = lSnaps[i].exists() ? lSnaps[i].data() : {};
         tx.set(lSnaps[i].ref, {
@@ -1839,24 +1854,21 @@ async function finalizeRace(raceId, mode, winner){
           marble: (us.exists() && us.data().marble) || null,
           teamTag: (us.exists() && us.data().teamTag) || "",
           picks: (lb.picks || 0) + 1,
-          wins: (lb.wins || 0) + (won ? 1 : 0),
-          points: (lb.points || 0) + (won ? pts : 0)
+          wins: (lb.wins || 0) + (first > 0 ? 1 : 0),
+          points: (lb.points || 0) + pts
         });
       }
     });
     teamIds.forEach((id, i) => {
       if (!tSnaps[i].exists()) return;
       const st = tSnaps[i].data().stats || {};
-      const tb = bets.filter(b => b.teamId === id);
-      const tw = tb.filter(b => b.runner === winner).length;
-      tx.update(tSnaps[i].ref, { stats: { picks: (st.picks || 0) + tb.length, wins: (st.wins || 0) + tw, points: (st.points || 0) + tw * pts } });
+      let tp = 0, tw = 0, tn = 0;
+      bets.forEach((b, j) => { if (b.teamId === id) { tn++; tp += res[j].pts; tw += res[j].first; } });
+      tx.update(tSnaps[i].ref, { stats: { picks: (st.picks || 0) + tn, wins: (st.wins || 0) + tw, points: (st.points || 0) + tp } });
     });
-    tx.update(rr, {
-      status: mode === "cancel" ? "cancelled" : "settled",
-      winner: mode === "settle" ? winner : null,
-      noWinner: mode === "settle" && voided,
-      settledAt: serverTimestamp()
-    });
+    tx.update(rr, voided
+      ? { status: "cancelled", winner: null, settledAt: serverTimestamp() }
+      : { status: "settled", winner: pod[0], podium: pod, settledAt: serverTimestamp() });
   });
 }
 
@@ -1873,8 +1885,9 @@ async function loadCatAdm(){
 async function openCatAdm(id){
   const [v, w] = await Promise.all([getDoc(doc(adminDb, "catalog_v", id)), getDoc(doc(adminDb, "catalog_w", id))]);
   const c = cadm.find(x => x.id === id);
-  const wi = w.exists() ? w.data().presetWinner : null;
-  cadmDet[id] = { url: v.exists() ? v.data().url || "" : "", winner: (c && Number.isInteger(wi) && (c.runners || [])[wi]) || "" };
+  const wd = w.exists() ? w.data() : {};
+  const pi = Array.isArray(wd.presetPodium) ? wd.presetPodium : (Number.isInteger(wd.presetWinner) ? [wd.presetWinner] : []);
+  cadmDet[id] = { url: v.exists() ? v.data().url || "" : "", winner: c ? pi.map(i => (c.runners || [])[i]).filter(Boolean).join(", ") : "" };
   renderCatAdm();
 }
 let cadmFilter = "all", cadmSel = new Set();
@@ -1913,7 +1926,7 @@ function renderCatAdm(){
         <label>Durata (MM:SS, facoltativa)</label><input data-f="duration" maxlength="20" value="${esc(c.duration || "")}">
         <label>Link YouTube</label><input data-f="url" inputmode="url" autocapitalize="none" value="${esc(d.url)}">
         <label>Biglie (una per riga)${locked ? " — bloccate: la gara è già stata giocata" : ""}</label><textarea data-f="runners" rows="5" ${locked ? "readonly" : ""}>${esc((c.runners || []).join("\n"))}</textarea>
-        <label>Vincitore segreto (nome biglia, vuoto = nessuno)</label><input data-f="winner" value="${esc(d.winner)}">
+        <label>Podio segreto: 1°, 2°, 3° separati da virgola (vuoto = nessuno)</label><input data-f="winner" value="${esc(d.winner)}">
         <div class="uactions" style="margin-top:12px"><button class="small" data-act="csave">Salva</button><button class="small danger" data-act="cdel">Elimina</button></div>
       </div>`;
     }
@@ -2013,17 +2026,21 @@ $("cadmList").addEventListener("click", async ev => {
       if (new Set(runners.map(r => r.toLowerCase())).size !== runners.length) { $("adminErr").textContent = "I nomi delle biglie devono essere diversi."; return; }
       let sec = null;
       if (durTxt) { sec = parseDur(durTxt); if (!sec || sec <= 0) { $("adminErr").textContent = "Durata non valida (usa MM:SS, es. 2:51)."; return; } }
-      let wi = -1;
-      if (winner) { wi = runners.findIndex(r => r.toLowerCase() === winner.toLowerCase()); if (wi < 0) { $("adminErr").textContent = "Il vincitore non è tra le biglie."; return; } }
+      let pod = [];
+      if (winner) {
+        const names = winner.split(",").map(x => x.trim()).filter(Boolean);
+        pod = names.map(pn => runners.findIndex(r => r.toLowerCase() === pn.toLowerCase()));
+        if (names.length > 3 || pod.some(k => k < 0) || new Set(pod).size !== pod.length) { $("adminErr").textContent = "Podio non valido: da 1 a 3 biglie diverse, tra quelle della gara."; return; }
+      }
       const upd = { name, runners, runnersCount: runners.length,
         category: category || deleteField(), duration: sec ? fmtDur(sec) : deleteField(), durationSec: sec || deleteField() };
       const b = writeBatch(adminDb);
       b.update(doc(adminDb, "catalog", id), upd);
       b.set(doc(adminDb, "catalog_v", id), { url });
-      if (wi >= 0) b.set(doc(adminDb, "catalog_w", id), { presetWinner: wi }); else b.delete(doc(adminDb, "catalog_w", id));
+      if (pod.length) b.set(doc(adminDb, "catalog_w", id), { presetPodium: pod }); else b.delete(doc(adminDb, "catalog_w", id));
       await b.commit();
       Object.assign(c, { name, runners, runnersCount: runners.length, category: category || undefined, duration: sec ? fmtDur(sec) : undefined, durationSec: sec || undefined });
-      cadmDet[id] = { url, winner: wi >= 0 ? runners[wi] : "" };
+      cadmDet[id] = { url, winner: pod.map(i => runners[i]).join(", ") };
       renderCatAdm(); flashOk("Gara del catalogo salvata.");
     } catch (e) { $("adminErr").textContent = msg(e); }
   });
