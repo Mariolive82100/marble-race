@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0f1220">
+<meta name="theme-color" content="#090b10">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -11,11 +11,11 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Murble Race">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Murble Race v3.28</title>
+<title>Murble Race v3.29</title>
 <style>
-:root{--bg:#0f1220;--card:#181c30;--line:#2a3050;--txt:#eef0fa;--mut:#8f96b8;--acc:#ff9f1c;--ok:#2ec27e;--err:#ff5d6c}
+:root{--bg:#090b10;--card:#121622;--line:#232b40;--txt:#eef0fa;--mut:#8f96b8;--acc:#ffb300;--ok:#00e676;--err:#ff3b5c}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--txt);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;min-height:100vh}
+body{margin:0;background-color:var(--bg);background-image:linear-gradient(45deg,rgba(255,255,255,.025) 25%,transparent 25%,transparent 75%,rgba(255,255,255,.025) 75%),linear-gradient(45deg,rgba(255,255,255,.025) 25%,transparent 25%,transparent 75%,rgba(255,255,255,.025) 75%),linear-gradient(rgba(255,179,0,.035) 1px,transparent 1px);background-size:8px 8px,8px 8px,100% 64px;background-position:0 0,4px 4px,0 0;background-attachment:fixed;font-variant-numeric:tabular-nums;color:var(--txt);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;min-height:100vh}
 .wrap{max-width:460px;margin:0 auto;padding:max(28px,env(safe-area-inset-top)) 16px max(56px,env(safe-area-inset-bottom))}
 h1{margin:0;font-size:30px;letter-spacing:.5px}
 h1 span{color:var(--acc)}
@@ -24,9 +24,9 @@ h1 .ver{font-size:12px;font-weight:600;color:var(--mut);letter-spacing:0;vertica
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:14px}
 .view{display:none}.view.on{display:block}
 label{display:block;font-size:13px;color:var(--mut);margin:12px 0 4px}
-input,select,textarea{width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:#0f1220;color:var(--txt);font-size:16px;font-family:inherit}
+input,select,textarea{width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:#0b0e17;color:var(--txt);font-size:16px;font-family:inherit}
 input:focus,select:focus,textarea:focus{outline:2px solid var(--acc);border-color:transparent}
-button{cursor:pointer;border:0;border-radius:10px;padding:12px 16px;font-size:16px;font-weight:600;background:var(--acc);color:#1b1300}
+button{cursor:pointer;border:0;border-radius:10px;padding:12px 16px;font-size:16px;font-weight:700;background:var(--acc);color:#1b1300;letter-spacing:.2px}
 button.sec{background:transparent;color:var(--txt);border:1px solid var(--line)}
 button.danger{background:transparent;color:var(--err);border:1px solid var(--err)}
 button.small{padding:8px 12px;font-size:14px}
@@ -40,7 +40,7 @@ button:disabled{opacity:.5;cursor:default}
 .mut{color:var(--mut);font-size:14px}
 .badge{display:inline-block;padding:4px 10px;border-radius:99px;font-size:13px;font-weight:600}
 .badge.ok{background:rgba(46,194,126,.15);color:var(--ok)}
-.badge.wait{background:rgba(255,159,28,.15);color:var(--acc)}
+.badge.wait{background:rgba(255,179,0,.15);color:var(--acc)}
 .badge.off{background:rgba(143,150,184,.15);color:var(--mut)}
 .foot{text-align:center;margin-top:28px}
 .foot a{color:var(--mut);font-size:13px;cursor:pointer;text-decoration:underline}
@@ -133,7 +133,7 @@ details.rsx[open] summary::after{content:"▲"}
 a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
 
 /* ===== Navigazione: top bar, bottom bar / sidebar, drawer ===== */
-.topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:10px;background:rgba(15,18,32,.94);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);margin:-28px -16px 14px;padding:max(10px,env(safe-area-inset-top)) 16px 10px}
+.topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:10px;background:rgba(9,11,16,.94);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);margin:-28px -16px 14px;padding:max(10px,env(safe-area-inset-top)) 16px 10px}
 .topbar .ttl{font-size:20px;font-weight:700;letter-spacing:.3px;white-space:nowrap}
 .topbar .ttl span{color:var(--acc)}
 .topbar .ttl .ver{font-size:11px;font-weight:600;color:var(--mut);letter-spacing:0}
@@ -142,13 +142,31 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
 .pill{display:inline-flex;align-items:center;gap:6px;background:var(--card);color:var(--txt);border:1px solid var(--line);border-radius:99px;padding:5px 6px 5px 14px;font-size:15px;font-weight:700;white-space:nowrap}
 .pill small{font-size:12px;font-weight:500;color:var(--mut)}
 .pill b{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--acc);color:#1b1300;font-size:16px}
-.banner{background:rgba(255,159,28,.12);border:1px solid rgba(255,159,28,.4);color:var(--acc);border-radius:10px;padding:8px 12px;font-size:13px;margin-bottom:12px}
+.banner{background:rgba(255,179,0,.12);border:1px solid rgba(255,179,0,.4);color:var(--acc);border-radius:10px;padding:8px 12px;font-size:13px;margin-bottom:12px}
 #viewHome{padding-bottom:84px}
 .bnav{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
 .bnav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:transparent;color:var(--mut);border:0;border-radius:0;padding:9px 4px 8px;font-size:11px;font-weight:600}
 .bnav button svg{width:22px;height:22px}
 .bnav button.on{color:var(--acc)}
 .catbtn{margin-bottom:12px}
+.race.card{position:relative;overflow:hidden;padding-top:24px;border-left:4px solid var(--acc);background:linear-gradient(180deg,rgba(255,179,0,.05),transparent 90px),var(--card)}
+.race.card::before{content:"";position:absolute;left:0;right:0;top:0;height:8px;background:repeating-conic-gradient(#e9ecf5 0 25%,#0b0e17 0 50%) 0 0/8px 8px;opacity:.85}
+.badge{letter-spacing:.3px;text-transform:uppercase;font-size:11px;border:1px solid currentColor}
+.dur,.pill,#hPts,#hPts2,.res-won,.res-lost,.bal{font-variant-numeric:tabular-nums}
+.tag{background:rgba(255,179,0,.08);font-weight:700}
+.pass{position:relative;overflow:hidden;display:flex;align-items:center;gap:14px;cursor:pointer;border:1px solid var(--acc);border-left-width:5px;background:linear-gradient(135deg,rgba(255,179,0,.14),rgba(18,22,34,.96) 60%)}
+.pass::after{content:"";position:absolute;right:0;top:0;bottom:0;width:10px;background:repeating-conic-gradient(#e9ecf5 0 25%,#0b0e17 0 50%) 0 0/10px 10px;opacity:.7}
+.pass .pn{font-size:20px;font-weight:800;letter-spacing:.3px}
+.pass .pp{font-size:30px;font-weight:800;color:var(--acc);line-height:1}
+.pass .pp small{font-size:13px;color:var(--mut);font-weight:600}
+.bigbtns{display:flex;gap:14px;margin-bottom:14px}
+.bigbtns button{flex:1;margin:0;padding:22px 10px;font-size:18px;font-weight:800;border-radius:14px;text-transform:uppercase;letter-spacing:.5px}
+.btn-go{background:#00e676;color:#041f11;box-shadow:0 0 18px rgba(0,230,118,.35)}
+.btn-team{background:linear-gradient(135deg,#ff6d00,#ff3d00);color:#fff;box-shadow:0 0 18px rgba(255,86,34,.35)}
+.news{border-left:4px solid var(--acc)}
+.news h4{margin:0 0 8px;font-size:15px;color:var(--acc);text-transform:uppercase;letter-spacing:.6px}
+.news .nt{white-space:pre-wrap;font-size:15px;line-height:1.5}
+.cnt{display:inline-block;min-width:18px;padding:0 5px;margin-left:4px;border-radius:99px;background:var(--ok);color:#041f11;font-size:11px;font-weight:800;line-height:18px;text-align:center}
 .dbg{position:fixed;inset:0;background:rgba(5,7,15,.62);z-index:60;display:none}
 .dbg.on{display:block}
 .drawer{position:fixed;top:0;left:0;bottom:0;width:min(320px,86vw);background:var(--card);border-right:1px solid var(--line);z-index:61;transform:translateX(-104%);transition:transform .2s;display:flex;flex-direction:column;gap:12px;padding:max(18px,env(safe-area-inset-top)) 18px max(18px,env(safe-area-inset-bottom));overflow-y:auto}
@@ -166,14 +184,14 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
   #viewHome .pgbody{display:grid;grid-template-columns:190px minmax(0,1fr);gap:24px;align-items:start}
   .bnav{position:sticky;top:76px;left:auto;right:auto;bottom:auto;flex-direction:column;gap:4px;border:1px solid var(--line);border-radius:14px;padding:8px;z-index:1}
   .bnav button{flex:none;flex-direction:row;gap:12px;font-size:14px;padding:11px 12px;border-radius:10px;justify-content:flex-start}
-  .bnav button.on{background:rgba(255,159,28,.12)}
+  .bnav button.on{background:rgba(255,179,0,.12)}
   .catbtn{width:auto}
 }
 .swrow{display:flex;flex-wrap:wrap;gap:8px}
 .sw8{width:34px;height:34px;border-radius:50%;padding:0;border:2px solid transparent}
 .sw8.on{border-color:#fff;box-shadow:0 0 0 2px var(--acc)}
 .pat{display:flex;flex-direction:column;align-items:center;gap:4px;background:transparent;color:var(--txt);border:1px solid var(--line);padding:8px 10px;font-size:12px;font-weight:500}
-.pat.on{border-color:var(--acc);background:rgba(255,159,28,.1)}
+.pat.on{border-color:var(--acc);background:rgba(255,179,0,.1)}
 .mrow{display:inline-flex;align-items:center;gap:8px}
 .ttag{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:6px;background:rgba(59,130,246,.18);color:#7db0ff;font-size:12px;font-weight:700;vertical-align:middle}
 </style>
@@ -183,7 +201,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
 
   <!-- AUTENTICAZIONE -->
   <div id="viewAuth" class="view on">
-    <h1>Murble <span>Race</span> <small class="ver">v3.28</small></h1>
+    <h1>Murble <span>Race</span> <small class="ver">v3.29</small></h1>
     <p class="sub">Pronostici a punti sulle gare di biglie</p>
     <div class="card">
       <div class="tabs">
@@ -217,7 +235,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
     <div class="topbar">
       <div class="tleft">
         <button id="btnDrawer" class="ibtn" type="button" aria-label="Menu">☰</button>
-        <div class="ttl">Murble <span>Race</span> <small class="ver">v3.28</small></div>
+        <div class="ttl">Murble <span>Race</span> <small class="ver">v3.29</small></div>
       </div>
       <button id="balPill" class="pill" type="button" aria-label="Punti totali: apri la classifica"><span id="hPts">0</span> <small>PT</small></button>
     </div>
@@ -225,13 +243,18 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
     <div id="hWait" class="banner" style="display:none">Account in attesa di attivazione da parte dell'admin: per ora non puoi ancora giocare.</div>
     <div class="pgbody">
       <nav class="bnav" id="raceTabs">
-        <button id="tabActive" type="button" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg>Gare</button>
+        <button id="tabStart" type="button" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg>START</button>
+        <button id="tabActive" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg><span>In corso<span id="actCnt" class="cnt" style="display:none">0</span></span></button>
         <button id="tabHistory" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h9"/></svg>Esiti</button>
         <button id="tabBoard" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4zM17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg>Classifica</button>
         <button id="tabMoves" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h12l-3-3M17 17H5l3 3"/></svg>Storico Punti</button>
       </nav>
       <main>
-        <div id="catCard" style="display:none"><div style="display:flex;gap:8px"><button id="btnPlay1v1" class="full catbtn" type="button" style="margin-top:0;flex:1">Estrai gara</button><button id="btnPlayTeam" class="full catbtn" type="button" style="margin-top:0;flex:1">Sfida a Squadre</button></div></div>
+        <div id="startCard" style="display:none">
+          <div id="passCard" class="card pass" role="button" tabindex="0" aria-label="Personalizza la biglia"></div>
+          <div id="catCard" class="bigbtns"><button id="btnPlay1v1" class="btn-go" type="button">Estrai gara</button><button id="btnPlayTeam" class="btn-team" type="button">Sfida a Squadre</button></div>
+          <div id="newsCard" class="card news"></div>
+        </div>
         <div id="raceList"></div>
         <div id="homeErr" class="err"></div>
       </main>
@@ -319,6 +342,8 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
           <label for="sP3">Punti 3° posto (PT)</label>
           <input id="sP3" type="number" step="1" min="0" inputmode="numeric" required>
           <div class="mut" style="margin-top:6px">Valide solo per le gare create dopo il salvataggio.</div>
+          <label for="sAnn">Avvisi e Novità in Bacheca</label>
+          <textarea id="sAnn" rows="5" maxlength="1000" placeholder="Testo mostrato ai giocatori nella pagina START (vuoto = messaggio di benvenuto)"></textarea>
           <button class="full" type="submit">Salva impostazioni</button>
           <div id="cfgMsg" class="mut" style="margin-top:8px;color:var(--ok)"></div>
         </form>
@@ -727,22 +752,22 @@ $("formReg").addEventListener("submit", async ev => {
 });
 
 // ---------- Sessione giocatore ----------
-let unsubUser = null, unsubTopup = null, unsubRaces = null, unsubBets = null, unsubLedger = null, unsubBoard = null, unsubTeams = null, unsubTeam = null;
+let unsubCfg = null, unsubUser = null, unsubTopup = null, unsubRaces = null, unsubBets = null, unsubLedger = null, unsubBoard = null, unsubTeams = null, unsubTeam = null;
 let boardTeams = [], boardSub = "teams", myTeam = null, curTeamId = "", teamCode = "";
 let me = null, myReq = null, meDoc = null, pendingDisplay = null, pendingTerms = false;
-let races = [], myBets = {}, myBetList = [], ledgerRows = [], draft = {}, expanded = {}, raceTab = "active";
+let races = [], myBets = {}, myBetList = [], ledgerRows = [], draft = {}, expanded = {}, raceTab = "start";
 let ytPlayers = {}, ytCur = {}, showRes = {}, presetPod = {}, podReq = {}, editPod = {};
 let videoIds = {}, videoReq = {}, boardRows = [], prevStatus = {};
 
 function stopListeners(){
-  [unsubUser, unsubTopup, unsubRaces, unsubBets, unsubLedger, unsubBoard, unsubTeams, unsubTeam].forEach(u => { if (u) u(); });
-  unsubUser = unsubTopup = unsubRaces = unsubBets = unsubLedger = unsubBoard = unsubTeams = unsubTeam = null;
+  [unsubCfg, unsubUser, unsubTopup, unsubRaces, unsubBets, unsubLedger, unsubBoard, unsubTeams, unsubTeam].forEach(u => { if (u) u(); });
+  unsubCfg = unsubUser = unsubTopup = unsubRaces = unsubBets = unsubLedger = unsubBoard = unsubTeams = unsubTeam = null;
   myTeam = null; curTeamId = ""; teamCode = ""; boardTeams = [];
 }
 
 onAuthStateChanged(auth, async user => {
   stopListeners();
-  if (!user) { me = null; myReq = null; meDoc = null; races = []; myBets = {}; myBetList = []; ledgerRows = []; draft = {}; raceTab = "active"; videoIds = {}; videoReq = {}; boardRows = []; prevStatus = {}; $("modalTermsUpd").classList.remove("on"); show("viewAuth"); return; }
+  if (!user) { me = null; myReq = null; meDoc = null; races = []; myBets = {}; myBetList = []; ledgerRows = []; draft = {}; raceTab = "start"; cfgApp = {}; videoIds = {}; videoReq = {}; boardRows = []; prevStatus = {}; $("modalTermsUpd").classList.remove("on"); show("viewAuth"); return; }
   const name = user.email.split("@")[0];
   const display = (pendingDisplay && normName(pendingDisplay) === name) ? pendingDisplay : name;
   pendingDisplay = null;
@@ -757,6 +782,7 @@ onAuthStateChanged(auth, async user => {
       if (!accepted && !confirm("Per continuare devi accettare il Regolamento e i Termini e Condizioni (li trovi in fondo alla Home). Li accetti?")) throw new Error("Per usare l'app devi accettare il Regolamento e i Termini e Condizioni.");
       await setDoc(ref, { username: display, points: 0, active: false, acceptedTerms: true, termsVersion: TERMS_VERSION, createdAt: serverTimestamp() });
     }
+    unsubCfg = onSnapshot(doc(db, "config", "app"), s => { cfgApp = s.exists() ? s.data() : {}; if (raceTab === "start") renderStart(); }, () => {});
     unsubUser = onSnapshot(ref, s => { if (s.exists()) renderHome(name, s.data()); },
       e => { $("homeErr").textContent = msg(e); });
     unsubRaces = onSnapshot(query(collection(db, "races"), orderBy("createdAt", "desc"), limit(20)),
@@ -783,7 +809,22 @@ onAuthStateChanged(auth, async user => {
   }
 });
 
-function updateCatBtn(){ $("catCard").style.display = (meDoc && meDoc.active && raceTab === "active") ? "" : "none"; }
+function updateCatBtn(){
+  const st = raceTab === "start";
+  $("startCard").style.display = (meDoc && st) ? "" : "none";
+  $("raceList").style.display = st ? "none" : "";
+  $("catCard").style.display = (meDoc && meDoc.active) ? "" : "none";
+  if (meDoc && st) renderStart();
+}
+let cfgApp = {};
+function renderStart(){
+  const d = meDoc; if (!d) return;
+  $("passCard").innerHTML = `<div>${marbleSvg(d.marble, 56)}</div><div style="min-width:0;flex:1"><div class="pn">${esc(d.username || "")}${d.teamTag ? `<span class="ttag" style="margin-left:8px">${esc(d.teamTag)}</span>` : ""}</div><div style="margin:4px 0"><span class="badge ${d.active ? "ok" : "wait"}">${d.active ? "Account attivo" : "In attesa di attivazione"}</span></div><div class="mut" style="font-size:12px">Tocca per personalizzare la biglia</div></div><div class="pp" style="padding-right:12px;text-align:right">${esc(d.points || 0)}<br><small>PT</small></div>`;
+  const ann = String(cfgApp.announcements || "").trim();
+  $("newsCard").innerHTML = '<h4>🏁 Bacheca Paddock &amp; Novità</h4><div class="nt">' + (ann ? esc(ann) : "Benvenuto al Paddock! Estrai una gara o sfida un'altra squadra: chi sale sul podio guadagna punti. Buona fortuna in pista!") + '</div>';
+}
+$("passCard").onclick = () => openAccount();
+$("passCard").addEventListener("keydown", ev => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); openAccount(); } });
 function renderHome(name, d){
   meDoc = d;
   $("hName").textContent = d.username || name;
@@ -1007,6 +1048,9 @@ function boardHtml(){
 function renderRaces(){
   const box = $("raceList");
   if (!meDoc) return;
+  const nAct = races.filter(r => ["ready", "open", "closed"].includes(r.status)).length;
+  $("actCnt").textContent = nAct; $("actCnt").style.display = nAct ? "" : "none";
+  if (raceTab === "start") { box.innerHTML = ""; return; }
   if (raceTab === "moves") { box.innerHTML = movesHtml(); return; }
   if (raceTab === "board") { box.innerHTML = boardHtml(); return; }
   const isHist = r => r.status === "settled" || r.status === "cancelled";
@@ -1045,6 +1089,7 @@ function renderRaces(){
 
 function setRaceTab(t){
   raceTab = t;
+  $("tabStart").classList.toggle("on", t === "start");
   $("tabActive").classList.toggle("on", t === "active");
   $("tabHistory").classList.toggle("on", t === "history");
   $("tabMoves").classList.toggle("on", t === "moves");
@@ -1053,6 +1098,7 @@ function setRaceTab(t){
   renderRaces();
   window.scrollTo(0, 0);
 }
+$("tabStart").onclick = () => setRaceTab("start");
 $("tabActive").onclick = () => setRaceTab("active");
 $("tabHistory").onclick = () => setRaceTab("history");
 $("tabMoves").onclick = () => setRaceTab("moves");
@@ -1667,8 +1713,8 @@ $("formCfg").addEventListener("submit", async ev => {
   if (p.some(x => !Number.isInteger(x) || x < 0 || x > 100000)) { $("adminErr").textContent = "I punti del podio devono essere interi da 0 a 100000."; return; }
   await busy(ev.submitter, async () => {
     try {
-      await setDoc(doc(adminDb, "config", "app"), { pts1: p[0], pts2: p[1], pts3: p[2] }, { merge: true });
-      $("cfgMsg").textContent = "Impostazioni salvate (valide per le nuove gare).";
+      await setDoc(doc(adminDb, "config", "app"), { pts1: p[0], pts2: p[1], pts3: p[2], announcements: $("sAnn").value.trim().slice(0, 1000) }, { merge: true });
+      $("cfgMsg").textContent = "Impostazioni salvate (i punti valgono per le nuove gare).";
     } catch (e) { $("adminErr").textContent = msg(e); }
   });
 });
@@ -1754,6 +1800,7 @@ async function loadConfig(){
   $("sP1").value = Number.isInteger(d.pts1) ? d.pts1 : 100;
   $("sP2").value = Number.isInteger(d.pts2) ? d.pts2 : 50;
   $("sP3").value = Number.isInteger(d.pts3) ? d.pts3 : 25;
+  $("sAnn").value = typeof d.announcements === "string" ? d.announcements : "";
 }
 
 async function loadRaces(){
