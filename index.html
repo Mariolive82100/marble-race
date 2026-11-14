@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Murble Race">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Murble Race v2.8</title>
+<title>Murble Race v2.9</title>
 <style>
 :root{--bg:#0f1220;--card:#181c30;--line:#2a3050;--txt:#eef0fa;--mut:#8f96b8;--acc:#ff9f1c;--ok:#2ec27e;--err:#ff5d6c}
 *{box-sizing:border-box}
@@ -73,7 +73,8 @@ details.rsx summary{cursor:pointer;font-weight:600;padding:10px 12px;border:1px 
 details.rsx summary::-webkit-details-marker{display:none}
 details.rsx summary::after{content:"▼";font-size:12px;color:var(--mut)}
 details.rsx[open] summary::after{content:"▲"}
-#raceTabs button{font-size:14px;padding:10px 6px}
+#raceTabs{flex-wrap:wrap}
+#raceTabs button{font-size:14px;padding:10px 6px;flex:1 1 auto}
 #adminErr:not(:empty),#homeErr:not(:empty),#adminOk:not(:empty){position:sticky;bottom:12px;background:var(--card);border:1px solid var(--err);border-radius:10px;padding:10px 12px;z-index:4}
 #adminOk:not(:empty){border-color:var(--ok);color:var(--ok);margin-top:10px;font-size:14px}
 .res-won{color:var(--ok);font-weight:600}
@@ -85,7 +86,7 @@ details.rsx[open] summary::after{content:"▲"}
 
   <!-- AUTENTICAZIONE -->
   <div id="viewAuth" class="view on">
-    <h1>Murble <span>Race</span> <small class="ver">v2.8</small></h1>
+    <h1>Murble <span>Race</span> <small class="ver">v2.9</small></h1>
     <p class="sub">Scommesse sulle gare di biglie</p>
     <div class="card">
       <div class="tabs">
@@ -116,7 +117,7 @@ details.rsx[open] summary::after{content:"▲"}
   <!-- HOME GIOCATORE -->
   <div id="viewHome" class="view">
     <div class="row">
-      <h1>Murble <span>Race</span> <small class="ver">v2.8</small></h1>
+      <h1>Murble <span>Race</span> <small class="ver">v2.9</small></h1>
       <div class="uactions" style="margin-top:0;flex-wrap:nowrap">
         <label id="wrapAdminQuick" class="sw" style="display:none">Admin<input id="swAdminHome" type="checkbox"><i></i></label>
         <button id="btnLogout" class="sec small" type="button">Esci</button>
@@ -146,6 +147,7 @@ details.rsx[open] summary::after{content:"▲"}
       <button id="tabActive" type="button">Gare Attive</button>
       <button id="tabHistory" type="button" class="sec">Storico / Esiti</button>
       <button id="tabMoves" type="button" class="sec">Movimenti</button>
+      <button id="tabBoard" type="button" class="sec">Classifica</button>
     </div>
     <div id="raceList"></div>
     <div id="homeErr" class="err"></div>
@@ -284,7 +286,7 @@ const adminDb = getFirestore(adminApp);
 const DOMAIN = "@murblerace.app";
 const ADMIN_EMAIL = "admin" + DOMAIN;
 const RESERVED = ["admin"];
-const MAX_BETS_SETTLE = 150;
+const MAX_BETS_SETTLE = 100;
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
@@ -370,19 +372,19 @@ $("formReg").addEventListener("submit", async ev => {
 });
 
 // ---------- Sessione giocatore ----------
-let unsubUser = null, unsubTopup = null, unsubRaces = null, unsubBets = null, unsubLedger = null;
+let unsubUser = null, unsubTopup = null, unsubRaces = null, unsubBets = null, unsubLedger = null, unsubBoard = null;
 let me = null, myReq = null, meDoc = null, pendingDisplay = null;
 let races = [], myBets = {}, myBetList = [], ledgerRows = [], draft = {}, expanded = {}, raceTab = "active";
-let videoIds = {}, videoReq = {};
+let videoIds = {}, videoReq = {}, boardRows = [];
 
 function stopListeners(){
-  [unsubUser, unsubTopup, unsubRaces, unsubBets, unsubLedger].forEach(u => { if (u) u(); });
-  unsubUser = unsubTopup = unsubRaces = unsubBets = unsubLedger = null;
+  [unsubUser, unsubTopup, unsubRaces, unsubBets, unsubLedger, unsubBoard].forEach(u => { if (u) u(); });
+  unsubUser = unsubTopup = unsubRaces = unsubBets = unsubLedger = unsubBoard = null;
 }
 
 onAuthStateChanged(auth, async user => {
   stopListeners();
-  if (!user) { me = null; myReq = null; meDoc = null; races = []; myBets = {}; myBetList = []; ledgerRows = []; draft = {}; raceTab = "active"; videoIds = {}; videoReq = {}; show("viewAuth"); return; }
+  if (!user) { me = null; myReq = null; meDoc = null; races = []; myBets = {}; myBetList = []; ledgerRows = []; draft = {}; raceTab = "active"; videoIds = {}; videoReq = {}; boardRows = []; show("viewAuth"); return; }
   const name = user.email.split("@")[0];
   const display = (pendingDisplay && pendingDisplay.toLowerCase() === name) ? pendingDisplay : name;
   pendingDisplay = null;
@@ -405,6 +407,9 @@ onAuthStateChanged(auth, async user => {
       e => { $("homeErr").textContent = msg(e); });
     unsubLedger = onSnapshot(query(collection(db, "ledger"), where("uid", "==", user.uid)),
       s => { ledgerRows = s.docs.map(d => d.data()); if (raceTab === "moves") renderRaces(); },
+      () => {});
+    unsubBoard = onSnapshot(query(collection(db, "leaderboard"), orderBy("net", "desc"), limit(50)),
+      s => { boardRows = s.docs.map(d => ({ id: d.id, ...d.data() })); if (raceTab === "board") renderRaces(); },
       () => {});
     show("viewHome");
   } catch (e) {
@@ -508,10 +513,20 @@ function movesHtml(){
   return '<div class="card">' + rows.slice(0, 60).map(r => `<div class="urow"><div class="row"><span>${esc(r.label)}</span><b class="${r.amt >= 0 ? "res-won" : "res-lost"}">${r.amt > 0 ? "+" : ""}${esc(r1(r.amt))}</b></div><div class="mut">${esc(new Date(r.t).toLocaleString("it-IT", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }))}</div></div>`).join("") + '</div>';
 }
 
+function boardHtml(){
+  if (!boardRows.length) return '<div class="card mut">Nessun risultato ancora: la classifica si aggiorna a ogni gara conclusa.</div>';
+  return '<div class="card">' + boardRows.map((r, i) => {
+    const mine = me && r.id === me.uid;
+    const net = r1(r.net || 0);
+    return `<div class="urow"><div class="row"><span>${i + 1}. <b${mine ? ' style="color:var(--acc)"' : ""}>${esc(r.username || "?")}</b>${mine ? " (tu)" : ""}</span><b class="${net >= 0 ? "res-won" : "res-lost"}">${net > 0 ? "+" : ""}${esc(net)}</b></div><div class="mut">Vittorie ${esc(r.wins || 0)} su ${esc(r.bets || 0)} puntate</div></div>`;
+  }).join("") + '</div><div class="mut" style="text-align:center">Guadagno netto = vincite meno puntate, sulle gare concluse.</div>';
+}
+
 function renderRaces(){
   const box = $("raceList");
   if (!meDoc) return;
   if (raceTab === "moves") { box.innerHTML = movesHtml(); return; }
+  if (raceTab === "board") { box.innerHTML = boardHtml(); return; }
   const isHist = r => r.status === "settled" || r.status === "cancelled";
   const list = races.filter(r => raceTab === "history" ? isHist(r) : !isHist(r));
   if (!list.length) { box.innerHTML = '<div class="card mut">' + (raceTab === "history" ? "Nessuna gara conclusa." : "Nessuna gara attiva al momento.") + '</div>'; return; }
@@ -546,11 +561,13 @@ function setRaceTab(t){
   $("tabActive").classList.toggle("sec", t !== "active");
   $("tabHistory").classList.toggle("sec", t !== "history");
   $("tabMoves").classList.toggle("sec", t !== "moves");
+  $("tabBoard").classList.toggle("sec", t !== "board");
   renderRaces();
 }
 $("tabActive").onclick = () => setRaceTab("active");
 $("tabHistory").onclick = () => setRaceTab("history");
 $("tabMoves").onclick = () => setRaceTab("moves");
+$("tabBoard").onclick = () => setRaceTab("board");
 
 $("raceList").addEventListener("click", ev => {
   const h = ev.target.closest("[data-toggle]");
@@ -746,8 +763,8 @@ $("adminOpts").addEventListener("click", async ev => {
   await busy(btn, async () => {
     try {
       if (k === "credits" || k === "all") { await zeroBalances(); await wipeCollection("ledger"); await setDoc(doc(adminDb, "treasury", "main"), { balance: 0, totalFees: 0 }); }
-      if (k === "bets" || k === "all") { await wipeCollection("bets"); await wipeCollection("races"); await wipeCollection("videos"); }
-      if (k === "users" || k === "all") { await wipeCollection("users"); await wipeCollection("topupRequests"); }
+      if (k === "bets" || k === "all") { await wipeCollection("bets"); await wipeCollection("races"); await wipeCollection("videos"); await wipeCollection("leaderboard"); }
+      if (k === "users" || k === "all") { await wipeCollection("users"); await wipeCollection("topupRequests"); await wipeCollection("leaderboard"); }
       await loadAdmin();
       $("optMsg").textContent = "Reset eseguito.";
     } catch (e) { $("adminErr").textContent = msg(e); }
@@ -986,21 +1003,32 @@ async function finalizeRace(raceId, mode, winner){
     });
     const toTreasury = refund ? 0 : r1(net - paid + fee);
 
-    const payees = bets.filter(b => pay[b.ref.id] > 0);
-    const uSnaps = await Promise.all(payees.map(b => tx.get(doc(adminDb, "users", b.uid))));
+    const uSnaps = await Promise.all(bets.map(b => tx.get(doc(adminDb, "users", b.uid))));
+    const lSnaps = refund ? [] : await Promise.all(bets.map(b => tx.get(doc(adminDb, "leaderboard", b.uid))));
     const t = await tx.get(tr);
 
-    payees.forEach((b, i) => {
+    bets.forEach((b, i) => {
       const p = pay[b.ref.id];
-      const nb = r1(uSnaps[i].data().balance + p);
-      tx.update(uSnaps[i].ref, { balance: nb });
-      tx.set(doc(collection(adminDb, "ledger")), {
-        uid: b.uid, type: refund ? "refund" : "win", amount: p, balanceAfter: nb, raceId, createdAt: serverTimestamp()
-      });
-    });
-    bets.forEach(b => {
-      const p = pay[b.ref.id];
+      const us = uSnaps[i];
+      if (p > 0 && us.exists()) {
+        const nb = r1(us.data().balance + p);
+        tx.update(us.ref, { balance: nb });
+        tx.set(doc(collection(adminDb, "ledger")), {
+          uid: b.uid, type: refund ? "refund" : "win", amount: p, balanceAfter: nb, raceId, createdAt: serverTimestamp()
+        });
+      }
       tx.update(b.ref, { status: refund ? "refunded" : (b.runner === winner ? "won" : "lost"), payout: p });
+      if (!refund) {
+        const lb = lSnaps[i].exists() ? lSnaps[i].data() : { bets: 0, wins: 0, staked: 0, payout: 0 };
+        const staked = r1((lb.staked || 0) + b.amount);
+        const payout = r1((lb.payout || 0) + p);
+        tx.set(lSnaps[i].ref, {
+          username: (us.exists() && us.data().username) || b.username,
+          bets: (lb.bets || 0) + 1,
+          wins: (lb.wins || 0) + (b.runner === winner ? 1 : 0),
+          staked, payout, net: r1(payout - staked)
+        });
+      }
     });
     if (toTreasury > 0.0001) {
       const td = t.exists() ? t.data() : { balance: 0, totalFees: 0 };
