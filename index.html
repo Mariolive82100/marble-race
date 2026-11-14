@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Murble Race">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Murble Race v3.14</title>
+<title>Murble Race v3.15</title>
 <style>
 :root{--bg:#0f1220;--card:#181c30;--line:#2a3050;--txt:#eef0fa;--mut:#8f96b8;--acc:#ff9f1c;--ok:#2ec27e;--err:#ff5d6c}
 *{box-sizing:border-box}
@@ -167,6 +167,13 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
   .bnav button.on{background:rgba(255,159,28,.12)}
   .catbtn{width:auto}
 }
+.swrow{display:flex;flex-wrap:wrap;gap:8px}
+.sw8{width:34px;height:34px;border-radius:50%;padding:0;border:2px solid transparent}
+.sw8.on{border-color:#fff;box-shadow:0 0 0 2px var(--acc)}
+.pat{display:flex;flex-direction:column;align-items:center;gap:4px;background:transparent;color:var(--txt);border:1px solid var(--line);padding:8px 10px;font-size:12px;font-weight:500}
+.pat.on{border-color:var(--acc);background:rgba(255,159,28,.1)}
+.mrow{display:inline-flex;align-items:center;gap:8px}
+.ttag{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:6px;background:rgba(59,130,246,.18);color:#7db0ff;font-size:12px;font-weight:700;vertical-align:middle}
 </style>
 </head>
 <body>
@@ -174,7 +181,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
 
   <!-- AUTENTICAZIONE -->
   <div id="viewAuth" class="view on">
-    <h1>Murble <span>Race</span> <small class="ver">v3.14</small></h1>
+    <h1>Murble <span>Race</span> <small class="ver">v3.15</small></h1>
     <p class="sub">Scommesse sulle gare di biglie</p>
     <div class="card">
       <div class="tabs">
@@ -208,7 +215,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
     <div class="topbar">
       <div class="tleft">
         <button id="btnDrawer" class="ibtn" type="button" aria-label="Menu">☰</button>
-        <div class="ttl">Murble <span>Race</span> <small class="ver">v3.14</small></div>
+        <div class="ttl">Murble <span>Race</span> <small class="ver">v3.15</small></div>
       </div>
       <button id="balPill" class="pill" type="button" aria-label="Ricarica crediti"><span id="hBal">0</span> <small>crediti</small> <b>+</b></button>
     </div>
@@ -275,6 +282,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
         <label for="raceYt">Link YouTube (facoltativo, live o registrato)</label>
         <input id="raceYt" inputmode="url" autocapitalize="none" placeholder="https://www.youtube.com/watch?v=...">
         <label class="rn" style="margin-top:10px"><input id="raceLive" type="checkbox"><span class="nm">Diretta Live (mostra video anche a puntate aperte)</span></label>
+        <label class="rn" style="margin-top:10px"><input id="raceTeam" type="checkbox"><span class="nm">Sfida a Squadre</span></label>
         <label for="raceDur">Durata gara (facoltativa, es. 2:51 o 3 min)</label>
         <input id="raceDur" maxlength="20" placeholder="2:51">
         <label for="raceInit">Stato iniziale</label>
@@ -382,13 +390,15 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
   <div class="row"><b style="font-size:20px">Murble <span style="color:var(--acc)">Race</span></b><button id="btnDrawerClose" class="ibtn" type="button" aria-label="Chiudi">✕</button></div>
   <div class="prof">
     <div class="mut">Giocatore</div>
-    <b id="hName" style="font-size:19px"></b>
+    <div class="mrow"><span id="hMarble"></span><b id="hName" style="font-size:19px"></b></div>
     <div style="margin-top:8px"><span id="hBadge" class="badge wait"></span></div>
     <div class="mut" style="margin-top:12px">Saldo</div>
     <div style="font-size:26px;font-weight:700"><span id="hBal2">0</span> <span class="mut">crediti</span></div>
   </div>
   <button id="btnTopup" class="full" type="button" style="margin-top:0">Ricarica crediti</button>
   <nav class="dlinks">
+    <a data-open="acc">Account &amp; Biglia</a>
+    <a data-open="team">La mia Squadra</a>
     <a data-info="rules">Regolamento di Gioco</a>
     <a data-info="terms">Termini e Condizioni</a>
   </nav>
@@ -398,6 +408,24 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
   </div>
   <button id="btnLogout" class="sec full" type="button" style="margin-top:auto">Esci</button>
 </aside>
+
+<!-- ACCOUNT & BIGLIA -->
+<div id="modalAcc" class="modal" role="dialog" aria-modal="true">
+  <div class="mbox" style="max-width:440px">
+    <b style="font-size:18px">Account &amp; Biglia</b>
+    <div class="mbody"><div id="accPicker"></div><div id="accErr" class="err"></div></div>
+    <div class="uactions" style="margin-top:12px"><button id="btnAccSave" class="small" type="button">Salva biglia</button><button id="btnAccClose" class="small sec" type="button">Chiudi</button></div>
+  </div>
+</div>
+
+<!-- LA MIA SQUADRA -->
+<div id="modalTeam" class="modal" role="dialog" aria-modal="true">
+  <div class="mbox" style="max-width:480px">
+    <b style="font-size:18px">La mia Squadra</b>
+    <div class="mbody" id="teamBody"></div>
+    <button id="btnTeamClose" class="sec full" type="button">Chiudi</button>
+  </div>
+</div>
 
 <!-- RICARICA CREDITI -->
 <div id="modalTopup" class="modal" role="dialog" aria-modal="true">
@@ -431,6 +459,8 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
         <select id="catDur"><option value="">Qualsiasi</option><option value="120">Sotto i 2 min</option><option value="240">Sotto i 4 min</option></select>
         <label for="catRunner">Biglia partecipante (facoltativa)</label>
         <input id="catRunner" maxlength="30" placeholder="es. Italy" autocapitalize="none">
+        <label for="catMode">Modalità gara</label>
+        <select id="catMode"><option value="0">Singolo (Tutti contro tutti)</option><option value="1">Sfida a Squadre</option></select>
         <label class="rn" style="margin-top:10px"><input id="catExcl" type="checkbox" checked><span class="nm">Escludi gare già giocate</span></label>
         <label for="catPlayers">Numero di giocatori partecipanti (2–20)</label>
         <input id="catPlayers" type="number" step="1" min="2" max="20" inputmode="numeric" placeholder="es. 4" required>
@@ -481,6 +511,13 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
         </ul>
         <h3>5. Classifica</h3>
         <p>La classifica ordina i giocatori per <b>guadagno netto</b>: somma delle vincite meno somma delle puntate, calcolata solo sulle gare concluse con un vincitore. Le gare rimborsate o annullate non incidono. Nel dettaglio trovi anche le vittorie sul totale delle puntate.</p>
+        <h3>6. Biglia personale e Squadre</h3>
+        <ul>
+          <li>Dal menu ☰ → <b>Account &amp; Biglia</b> crei la tua biglia (due colori e uno stile): compare accanto al tuo nome, in classifica e nelle gare.</li>
+          <li>Dal menu ☰ → <b>La mia Squadra</b> puoi creare una squadra (nome, tag di 2–4 lettere, biglia di squadra) o unirti con un <b>codice invito</b>. Una squadra ha al massimo 6 membri e ogni giocatore può stare in una sola squadra; solo i membri vedono il codice.</li>
+          <li>Ogni gara è <b>Singolo (tutti contro tutti)</b> oppure <b>Sfida a Squadre</b>. Le regole di puntata e di vincita non cambiano: nelle sfide a squadre la tua puntata viene contata anche nelle statistiche della squadra (puntate, vittorie, puntato, vinto, netto). Senza squadra giochi come "Indipendente".</li>
+          <li>La classifica ha due schede: <b>Singoli</b> e <b>Squadre</b>, entrambe per guadagno netto. Il capitano può sciogliere la squadra solo se è rimasto da solo.</li>
+        </ul>
         <div class="note">L'esito è deciso dall'Admin a corsa terminata, in base a ciò che si vede nel video. La decisione dell'Admin è definitiva.</div>
       </div>
       <div id="infoTerms" style="display:none">
@@ -597,6 +634,39 @@ async function busy(btn, fn){
   try { await fn(); } finally { if (btn) btn.disabled = false; }
 }
 
+// ---------- Biglia personale ----------
+const MARBLE_COLORS = ["#ff3b3b", "#ff9f1c", "#ffd60a", "#2ec27e", "#00c2d1", "#3b82f6", "#a855f7", "#ff4fa3"];
+const MARBLE_PATTERNS = [["solid", "Tinta unita"], ["stripe", "Fascia"], ["swirl", "Spirale"], ["core", "Nucleo"]];
+const DEF_MARBLE = { color1: "#ff9f1c", color2: "#3b82f6", pattern: "solid" };
+let marbleN = 0;
+function okMarble(m){
+  return m && MARBLE_COLORS.includes(m.color1) && MARBLE_COLORS.includes(m.color2) && MARBLE_PATTERNS.some(x => x[0] === m.pattern);
+}
+// Icona SVG a sfera: colore base, disegno secondario, ombra interna e riflesso lucido
+function marbleSvg(cfg, size){
+  const c = okMarble(cfg) ? cfg : DEF_MARBLE;
+  const id = "mb" + (++marbleN);
+  let pat = "";
+  if (c.pattern === "stripe") pat = `<rect x="-10" y="38" width="120" height="24" fill="${c.color2}" transform="rotate(-24 50 50)"/>`;
+  else if (c.pattern === "swirl") pat = `<path d="M-5 58 C18 22 42 88 62 50 S96 30 105 44 L105 105 L-5 105 Z" fill="${c.color2}"/>`;
+  else if (c.pattern === "core") pat = `<circle cx="50" cy="50" r="23" fill="${c.color2}"/>`;
+  const px = size || 28;
+  return `<svg width="${px}" height="${px}" viewBox="0 0 100 100" aria-hidden="true" style="flex:none;vertical-align:middle"><defs><clipPath id="${id}c"><circle cx="50" cy="50" r="48"/></clipPath><radialGradient id="${id}s" cx=".5" cy=".5" r=".5"><stop offset=".55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".6"/></radialGradient><radialGradient id="${id}h" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fff" stop-opacity=".95"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient></defs><g clip-path="url(#${id}c)"><rect width="100" height="100" fill="${c.color1}"/>${pat}<rect width="100" height="100" fill="url(#${id}s)"/></g><ellipse cx="34" cy="27" rx="17" ry="10" fill="url(#${id}h)" transform="rotate(-28 34 27)"/><circle cx="50" cy="50" r="48" fill="none" stroke="rgba(0,0,0,.35)" stroke-width="1.5"/></svg>`;
+}
+// Selettore biglia (anteprima grande + 8 colori + 4 stili) montato in un contenitore
+function mountPicker(boxId, st){
+  const box = $(boxId);
+  const draw = () => {
+    const sw = (key, cur) => MARBLE_COLORS.map(c => `<button type="button" class="sw8${cur === c ? " on" : ""}" data-pk="${key}" data-v="${c}" style="background:${c}" aria-label="${c}"></button>`).join("");
+    box.innerHTML = `<div style="text-align:center;margin:6px 0 4px">${marbleSvg(st, 96)}</div>
+      <label>Colore principale</label><div class="swrow">${sw("color1", st.color1)}</div>
+      <label>Colore secondario</label><div class="swrow">${sw("color2", st.color2)}</div>
+      <label>Stile</label><div class="swrow">${MARBLE_PATTERNS.map(([k, t]) => `<button type="button" class="pat${st.pattern === k ? " on" : ""}" data-pk="pattern" data-v="${k}">${marbleSvg({ ...st, pattern: k }, 34)}<span>${t}</span></button>`).join("")}</div>`;
+  };
+  box.onclick = ev => { const b = ev.target.closest("[data-pk]"); if (!b) return; st[b.dataset.pk] = b.dataset.v; draw(); };
+  draw();
+}
+
 // ---------- Regolamento / Termini ----------
 function openInfo(tab){
   const t = tab === "terms";
@@ -610,7 +680,7 @@ function openInfo(tab){
 function closeInfo(){ $("modalInfo").classList.remove("on"); }
 function openDrawer(){ $("drawer").classList.add("on"); $("drawerBg").classList.add("on"); }
 function closeDrawer(){ $("drawer").classList.remove("on"); $("drawerBg").classList.remove("on"); }
-function closeOverlays(){ ["modalInfo", "modalTopup", "modalCat"].forEach(m => $(m).classList.remove("on")); closeDrawer(); }
+function closeOverlays(){ ["modalInfo", "modalTopup", "modalCat", "modalAcc", "modalTeam"].forEach(m => $(m).classList.remove("on")); closeDrawer(); }
 $("btnDrawer").onclick = openDrawer;
 $("btnDrawerClose").onclick = closeDrawer;
 $("drawerBg").onclick = closeDrawer;
@@ -620,6 +690,11 @@ $("infoTabTerms").onclick = () => openInfo("terms");
 $("infoClose").onclick = closeInfo;
 $("modalInfo").addEventListener("click", ev => { if (ev.target === $("modalInfo")) closeInfo(); });
 document.addEventListener("keydown", ev => { if (ev.key === "Escape") closeOverlays(); });
+document.addEventListener("click", ev => {
+  const o = ev.target.closest("a[data-open]");
+  if (!o) return;
+  if (o.dataset.open === "acc") openAccount(); else openTeam();
+});
 document.addEventListener("click", ev => {
   const a = ev.target.closest("a[data-info]");
   if (!a) return;
@@ -664,14 +739,16 @@ $("formReg").addEventListener("submit", async ev => {
 });
 
 // ---------- Sessione giocatore ----------
-let unsubUser = null, unsubTopup = null, unsubRaces = null, unsubBets = null, unsubLedger = null, unsubBoard = null;
+let unsubUser = null, unsubTopup = null, unsubRaces = null, unsubBets = null, unsubLedger = null, unsubBoard = null, unsubTeams = null, unsubTeam = null;
+let boardTeams = [], boardSub = "players", myTeam = null, curTeamId = "", teamCode = "";
 let me = null, myReq = null, meDoc = null, pendingDisplay = null, pendingTerms = false;
 let races = [], myBets = {}, myBetList = [], ledgerRows = [], draft = {}, expanded = {}, raceTab = "active";
 let videoIds = {}, videoReq = {}, boardRows = [], prevStatus = {};
 
 function stopListeners(){
-  [unsubUser, unsubTopup, unsubRaces, unsubBets, unsubLedger, unsubBoard].forEach(u => { if (u) u(); });
-  unsubUser = unsubTopup = unsubRaces = unsubBets = unsubLedger = unsubBoard = null;
+  [unsubUser, unsubTopup, unsubRaces, unsubBets, unsubLedger, unsubBoard, unsubTeams, unsubTeam].forEach(u => { if (u) u(); });
+  unsubUser = unsubTopup = unsubRaces = unsubBets = unsubLedger = unsubBoard = unsubTeams = unsubTeam = null;
+  myTeam = null; curTeamId = ""; teamCode = ""; boardTeams = [];
 }
 
 onAuthStateChanged(auth, async user => {
@@ -708,6 +785,9 @@ onAuthStateChanged(auth, async user => {
     unsubLedger = onSnapshot(query(collection(db, "ledger"), where("uid", "==", user.uid)),
       s => { ledgerRows = s.docs.map(d => d.data()); if (raceTab === "moves") renderRaces(); },
       () => {});
+    unsubTeams = onSnapshot(query(collection(db, "teams"), orderBy("stats.net", "desc"), limit(30)),
+      s => { boardTeams = s.docs.map(d => ({ id: d.id, ...d.data() })); if (raceTab === "board") renderRaces(); },
+      () => {});
     unsubBoard = onSnapshot(query(collection(db, "leaderboard"), orderBy("net", "desc"), limit(50)),
       s => { boardRows = s.docs.map(d => ({ id: d.id, ...d.data() })); if (raceTab === "board") renderRaces(); },
       () => {});
@@ -724,6 +804,8 @@ function renderHome(name, d){
   $("hName").textContent = d.username || name;
   $("hBal").textContent = d.balance;
   $("hBal2").textContent = d.balance;
+  $("hMarble").innerHTML = marbleSvg(d.marble, 34);
+  syncTeam();
   const b = $("hBadge");
   b.textContent = d.active ? "Account attivo" : "In attesa di attivazione";
   b.className = "badge " + (d.active ? "ok" : "wait");
@@ -779,12 +861,14 @@ function raceParts(r){
     else if (b.status === "lost") res = `<span class="res-lost">Persa</span>`;
     else if (b.status === "refunded") res = `<span class="mut">Rimborsata: +${esc(b.payout)} crediti</span>`;
     else res = `<span class="mut">In attesa del risultato</span>`;
-    foot = `<div class="betbox mut">La tua puntata: <b>${esc(b.amount)}</b> crediti su <b>${esc((r.runners || [])[b.runner] ?? "?")}</b> — ${res}</div>`;
+    foot = `<div class="betbox mut">${marbleSvg(meDoc && meDoc.marble, 18)} La tua puntata: <b>${esc(b.amount)}</b> crediti su <b>${esc((r.runners || [])[b.runner] ?? "?")}</b> — ${res}</div>`;
   } else if (r.status === "ready") {
     const pl = d.players !== undefined ? d.players : "";
     foot = meDoc && meDoc.active
       ? `<div class="betbox"><label>Quanti giocatori partecipano?</label>
       <input type="number" step="1" min="2" max="20" inputmode="numeric" placeholder="Da 2 a 20" data-players value="${esc(pl)}">
+      <label>Modalità gara</label>
+      <select data-teammode><option value="0">Singolo (Tutti contro tutti)</option><option value="1" ${d.teamMode === "1" ? "selected" : ""}>Sfida a Squadre</option></select>
       <button class="full" data-act="start" type="button">Avvia gara</button>
       <div class="mut" style="margin-top:6px">Una volta avviata, il numero non si può più cambiare: la gara si chiude da sola all'ultima puntata.</div></div>`
       : `<div class="betbox mut">Account da attivare per poter avviare la gara.</div>`;
@@ -792,11 +876,12 @@ function raceParts(r){
     foot = `<div class="betbox mut">Account da attivare per poter scommettere.</div>`;
   }
 
+  if (r.teamMode && canBet) foot = `<div class="mut" style="margin-top:10px">Sfida a Squadre: ${meDoc && meDoc.teamTag ? "la tua puntata conta per <b>" + esc(meDoc.teamTag) + "</b>" : "senza squadra giochi come <b>Indipendente</b>"}.</div>` + foot;
   const isActive = r.status === "ready" || r.status === "open" || r.status === "closed";
   const isOpen = !isActive || !!expanded[r.id];
   const arrow = isActive ? (isOpen ? " ▲" : " ▼") : "";
-  const head = `<div class="row"><span><b>${esc(r.name)}</b>${r.duration ? `<span class="dur">⏱ ${esc(r.duration)}</span>` : ""}${r.category ? `<span class="tag">${esc(r.category)}</span>` : ""}</span><span class="badge ${STATUS_CLASS[r.status] || "off"}">${STATUS_LABEL[r.status] || esc(r.status)}</span></div>
-      <div class="row mut" style="margin-top:4px"><span>Montepremi: ${esc(total)} crediti · Fee ${esc(fee)}% sul surplus</span><span>${b ? "✓ Hai puntato" : ""}${arrow}</span></div>${r.expectedPlayers ? `<div class="row mut" style="margin-top:4px"><span>Puntate: <b style="color:var(--txt)">${esc(r.betsCount || 0)} / ${esc(r.expectedPlayers)}</b></span></div>` : ""}`;
+  const head = `<div class="row"><span><b>${esc(r.name)}</b>${r.duration ? `<span class="dur">⏱ ${esc(r.duration)}</span>` : ""}${r.category ? `<span class="tag">${esc(r.category)}</span>` : ""}${r.teamMode ? `<span class="tag" style="border-color:#7db0ff;color:#7db0ff">Squadre</span>` : ""}</span><span class="badge ${STATUS_CLASS[r.status] || "off"}">${STATUS_LABEL[r.status] || esc(r.status)}</span></div>
+      <div class="row mut" style="margin-top:4px"><span>Montepremi: ${esc(total)} crediti · Fee ${esc(fee)}% sul surplus</span><span>${b ? marbleSvg(meDoc && meDoc.marble, 16) + " ✓ Hai puntato" : ""}${arrow}</span></div>${r.expectedPlayers ? `<div class="row mut" style="margin-top:4px"><span>Puntate: <b style="color:var(--txt)">${esc(r.betsCount || 0)} / ${esc(r.expectedPlayers)}</b></span></div>` : ""}`;
   const showVideo = isOpen && r.status !== "cancelled" && r.status !== "ready" && (r.status !== "open" || r.youtubeLive === true);
   if (showVideo && r.hasVideo && videoIds[r.id] === undefined && !(videoReq[r.id] > Date.now() - 20000)) fetchVideo(r.id);
   return { head, body: isOpen ? runners + foot : "", yt: showVideo ? (videoIds[r.id] || ytInfo(r.youtubeUrl)) : null, isActive };
@@ -826,11 +911,21 @@ function movesHtml(){
 }
 
 function boardHtml(){
-  if (!boardRows.length) return '<div class="card mut">Nessun risultato ancora: la classifica si aggiorna a ogni gara conclusa.</div>';
-  return '<div class="card">' + boardRows.map((r, i) => {
+  const sub = `<div class="tabs" style="margin-bottom:10px"><button type="button" class="small${boardSub === "players" ? "" : " sec"}" data-bsub="players">Singoli</button><button type="button" class="small${boardSub === "teams" ? "" : " sec"}" data-bsub="teams">Squadre</button></div>`;
+  const netB = n => `<b class="${n >= 0 ? "res-won" : "res-lost"}">${n > 0 ? "+" : ""}${esc(n)}</b>`;
+  if (boardSub === "teams") {
+    const rows = boardTeams.filter(t => (t.stats && t.stats.bets) > 0 || true);
+    if (!rows.length) return sub + '<div class="card mut">Nessuna squadra ancora: creane una da ☰ → La mia Squadra.</div>';
+    return sub + '<div class="card">' + rows.map((t, i) => {
+      const st = t.stats || {}, mine = myTeam && t.id === myTeam.id;
+      return `<div class="urow"><div class="row"><span class="mrow">${i + 1}. ${marbleSvg(t.marble, 24)}<b${mine ? ' style="color:var(--acc)"' : ""}>${esc(t.name || "?")}</b><span class="ttag" style="margin:0">${esc(t.tag || "")}</span></span>${netB(r1(st.net || 0))}</div><div class="mut">Vittorie ${esc(st.wins || 0)} su ${esc(st.bets || 0)} puntate · ${esc((t.members || []).length)} membri</div></div>`;
+    }).join("") + '</div><div class="mut" style="text-align:center">Conta solo la modalità Sfida a Squadre, sulle gare concluse.</div>';
+  }
+  if (!boardRows.length) return sub + '<div class="card mut">Nessun risultato ancora: la classifica si aggiorna a ogni gara conclusa.</div>';
+  return sub + '<div class="card">' + boardRows.map((r, i) => {
     const mine = me && r.id === me.uid;
-    const net = r1(r.net || 0);
-    return `<div class="urow"><div class="row"><span>${i + 1}. <b${mine ? ' style="color:var(--acc)"' : ""}>${esc(r.username || "?")}</b>${mine ? " (tu)" : ""}</span><b class="${net >= 0 ? "res-won" : "res-lost"}">${net > 0 ? "+" : ""}${esc(net)}</b></div><div class="mut">Vittorie ${esc(r.wins || 0)} su ${esc(r.bets || 0)} puntate</div></div>`;
+    const mk = mine && meDoc && meDoc.marble ? meDoc.marble : r.marble;
+    return `<div class="urow"><div class="row"><span class="mrow">${i + 1}. ${marbleSvg(mk, 24)}<b${mine ? ' style="color:var(--acc)"' : ""}>${esc(r.username || "?")}</b>${r.teamTag ? `<span class="ttag" style="margin:0">${esc(r.teamTag)}</span>` : ""}${mine ? " (tu)" : ""}</span>${netB(r1(r.net || 0))}</div><div class="mut">Vittorie ${esc(r.wins || 0)} su ${esc(r.bets || 0)} puntate</div></div>`;
   }).join("") + '</div><div class="mut" style="text-align:center">Guadagno netto = vincite meno puntate, sulle gare concluse.</div>';
 }
 
@@ -893,6 +988,13 @@ $("raceList").addEventListener("click", ev => {
   renderRaces();
 });
 
+$("raceList").addEventListener("click", ev => {
+  const b = ev.target.closest("[data-bsub]");
+  if (!b) return;
+  boardSub = b.dataset.bsub;
+  renderRaces();
+});
+
 $("raceList").addEventListener("input", ev => {
   const c = ev.target.closest(".race");
   if (!c) return;
@@ -901,6 +1003,7 @@ $("raceList").addEventListener("input", ev => {
   if (ev.target.type === "radio") d.runner = ev.target.value;
   if (ev.target.matches("[data-amt]")) d.amount = ev.target.value;
   if (ev.target.matches("[data-players]")) d.players = ev.target.value;
+  if (ev.target.matches("[data-teammode]")) d.teamMode = ev.target.value;
 });
 
 $("raceList").addEventListener("click", async ev => {
@@ -915,7 +1018,7 @@ $("raceList").addEventListener("click", async ev => {
     if (!Number.isInteger(n) || n < 2 || n > 20) { $("homeErr").textContent = "Inserisci un numero intero di giocatori da 2 a 20."; return; }
     await busy(btn, async () => {
       try {
-        await startRace(id, n);
+        await startRace(id, n, d.teamMode === "1");
         delete draft[id];
       } catch (e) { $("homeErr").textContent = msg(e); }
     });
@@ -934,7 +1037,7 @@ $("raceList").addEventListener("click", async ev => {
 });
 
 // Avvio gara da parte di un giocatore attivo: ready -> open, numero partecipanti fissato una sola volta
-async function startRace(raceId, n){
+async function startRace(raceId, n, teamMode){
   const rr = doc(db, "races", raceId);
   const ur = doc(db, "users", me.uid);
   await runTransaction(db, async tx => {
@@ -942,7 +1045,7 @@ async function startRace(raceId, n){
     if (!r.exists()) throw new Error("Gara non trovata.");
     if (r.data().status !== "ready") throw new Error("La gara è già stata avviata da un altro giocatore.");
     if (!u.exists() || !u.data().active) throw new Error("Account non ancora attivo.");
-    tx.update(rr, { status: "open", expectedPlayers: n, betsCount: 0 });
+    tx.update(rr, { status: "open", expectedPlayers: n, betsCount: 0, teamMode: !!teamMode });
   });
 }
 
@@ -963,7 +1066,9 @@ async function placeBet(raceId, runner, amount){
     const pools = { ...(race.pools || {}) };
     pools[key] = r1((pools[key] || 0) + amount);
     tx.update(ur, { balance: r1(u.data().balance - amount) });
-    tx.set(br, { raceId, uid: me.uid, username: me.name, runner, amount, status: "pending", createdAt: serverTimestamp() });
+    const bet = { raceId, uid: me.uid, username: me.name, runner, amount, status: "pending", createdAt: serverTimestamp() };
+    if (race.teamMode && u.data().teamId) { bet.teamId = u.data().teamId; bet.teamTag = u.data().teamTag || ""; }
+    tx.set(br, bet);
     const upd = { pool: r1((race.pool || 0) + amount), pools };
     const exp = race.expectedPlayers || 0;
     if (exp > 0) {
@@ -1039,13 +1144,13 @@ $("btnCat").onclick = async () => {
 $("btnCatCancel").onclick = () => { $("modalCat").classList.remove("on"); };
 $("btnCatReset").onclick = () => {
   $("catCategory").value = ""; $("catRunners").value = ""; $("catDur").value = "";
-  $("catRunner").value = ""; $("catExcl").checked = true;
+  $("catRunner").value = ""; $("catExcl").checked = true; $("catMode").value = "0";
   updateCatInfo();
 };
 $("formCat").addEventListener("change", updateCatInfo);
 $("catRunner").addEventListener("input", updateCatInfo);
 
-async function launchFromCatalog(cid, n, excl){
+async function launchFromCatalog(cid, n, excl, teamMode){
   const cr = doc(db, "catalog", cid), ur = doc(db, "users", me.uid), rr = doc(collection(db, "races"));
   await runTransaction(db, async tx => {
     const skip = () => { const e = new Error("skip"); e.skip = true; return e; };
@@ -1066,7 +1171,7 @@ async function launchFromCatalog(cid, n, excl){
       name: cd.name, runners: cd.runners, status: "open", pool: 0, pools, winner: null, hasVideo: true, youtubeLive: false,
       feePercent: Number.isInteger(k.feePercent) ? k.feePercent : 10,
       minBet: (typeof k.minBet === "number" && k.minBet > 0) ? r1(k.minBet) : 1,
-      createdAt: serverTimestamp(), catalogId: cid, createdBy: me.uid, expectedPlayers: n, betsCount: 0
+      createdAt: serverTimestamp(), catalogId: cid, createdBy: me.uid, expectedPlayers: n, betsCount: 0, teamMode: !!teamMode
     };
     if (cd.duration) data.duration = cd.duration;
     if (cd.category) data.category = cd.category;
@@ -1090,7 +1195,7 @@ $("formCat").addEventListener("submit", async ev => {
       for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
       let newId = null;
       for (const c of pool.slice(0, 20)) {
-        try { newId = await launchFromCatalog(c.id, n, f.excl); break; }
+        try { newId = await launchFromCatalog(c.id, n, f.excl, $("catMode").value === "1"); break; }
         catch (e) { if (!e.skip) throw e; }
       }
       if (!newId) { await loadCatalog(); $("catErr").textContent = "Le gare corrispondenti sono già in corso o già giocate: cambia i filtri o riprova."; return; }
@@ -1100,6 +1205,177 @@ $("formCat").addEventListener("submit", async ev => {
       catAt = 0;
       setRaceTab("active");
     } catch (e) { $("catErr").textContent = msg(e); }
+  });
+});
+
+// ---------- Account & Biglia ----------
+let accDraft = null;
+function openAccount(){
+  accDraft = okMarble(meDoc && meDoc.marble) ? { ...meDoc.marble } : { ...DEF_MARBLE };
+  $("accErr").textContent = "";
+  mountPicker("accPicker", accDraft);
+  $("modalAcc").classList.add("on");
+}
+$("btnAccClose").onclick = () => $("modalAcc").classList.remove("on");
+$("btnAccSave").onclick = async () => {
+  $("accErr").textContent = "";
+  const marble = { color1: accDraft.color1, color2: accDraft.color2, pattern: accDraft.pattern };
+  await busy($("btnAccSave"), async () => {
+    try {
+      await updateDoc(doc(db, "users", me.uid), { marble });
+      try { await updateDoc(doc(db, "leaderboard", me.uid), { marble }); } catch (e) { /* nessun risultato in classifica ancora */ }
+      $("modalAcc").classList.remove("on");
+    } catch (e) { $("accErr").textContent = msg(e); }
+  });
+};
+
+// ---------- Squadre ----------
+let teamDraft = { ...DEF_MARBLE };
+function syncTeam(){
+  const tid = (meDoc && meDoc.teamId) || "";
+  if (tid === curTeamId) return;
+  if (unsubTeam) { unsubTeam(); unsubTeam = null; }
+  curTeamId = tid; myTeam = null; teamCode = "";
+  if (tid) {
+    unsubTeam = onSnapshot(doc(db, "teams", tid), s => { myTeam = s.exists() ? { id: s.id, ...s.data() } : null; renderTeam(); }, () => {});
+    getDoc(doc(db, "teams", tid, "private", "info")).then(d => { teamCode = d.exists() ? d.data().code : ""; renderTeam(); }).catch(() => {});
+  }
+  renderTeam();
+}
+function renderTeam(){
+  if (!$("modalTeam").classList.contains("on")) return;
+  const box = $("teamBody");
+  const tid = meDoc && meDoc.teamId;
+  if (!tid) {
+    if (box.dataset.mode === "none") return;
+    box.dataset.mode = "none";
+    box.innerHTML = `<form id="formTeamCreate">
+        <b>Crea una Squadra</b>
+        <label for="tmName">Nome squadra (3–24 caratteri)</label><input id="tmName" maxlength="24" required>
+        <label for="tmTag">Tag (2–4 caratteri, es. PRO)</label><input id="tmTag" maxlength="4" autocapitalize="characters" required style="text-transform:uppercase">
+        <div id="tmPicker"></div>
+        <button class="full" type="submit">Crea squadra</button>
+      </form>
+      <form id="formTeamJoin" style="margin-top:22px;border-top:1px solid var(--line);padding-top:6px">
+        <b>Unisciti con Codice</b>
+        <label for="tmCode">Codice invito</label><input id="tmCode" maxlength="6" autocapitalize="characters" required style="text-transform:uppercase">
+        <button class="full sec" type="submit">Unisciti</button>
+      </form>
+      <div id="teamErr" class="err"></div>`;
+    mountPicker("tmPicker", teamDraft);
+    return;
+  }
+  box.dataset.mode = "team";
+  if (!myTeam) {
+    box.innerHTML = `<div class="mut">Squadra non trovata (potrebbe essere stata rimossa).</div><button class="full sec" data-tact="orphan" type="button">Esci dalla squadra</button><div id="teamErr" class="err"></div>`;
+    return;
+  }
+  const t = myTeam, cap = t.captainUid === me.uid, alone = (t.members || []).length === 1;
+  const names = t.names || {};
+  box.innerHTML = `<div class="row" style="justify-content:flex-start;gap:14px">${marbleSvg(t.marble, 64)}<div><b style="font-size:20px">${esc(t.name)}</b><span class="ttag">${esc(t.tag)}</span><div class="mut">${esc((t.members || []).length)} / 6 membri</div></div></div>
+    <label>Codice invito (condividilo solo con chi vuoi nella squadra)</label>
+    <div class="row"><b style="font-size:22px;letter-spacing:3px">${esc(teamCode || "…")}</b><button class="small sec" data-tact="copy" type="button">Copia</button></div>
+    <label>Membri</label>
+    ${(t.members || []).map(u => `<div class="urow"><span class="mrow">${u === t.captainUid ? "👑" : "•"} ${esc(names[u] || "?")}${u === me.uid ? " (tu)" : ""}</span></div>`).join("")}
+    ${cap && !alone ? '<div class="mut" style="margin-top:10px">Il capitano può lasciare la squadra solo quando è rimasto da solo (la squadra viene sciolta).</div>' : `<button class="full danger" data-tact="${cap ? "dissolve" : "leave"}" type="button">${cap ? "Sciogli squadra" : "Esci dalla squadra"}</button>`}
+    <div id="teamErr" class="err"></div>`;
+}
+function openTeam(){
+  $("teamBody").dataset.mode = "";
+  $("modalTeam").classList.add("on");
+  renderTeam();
+}
+$("btnTeamClose").onclick = () => $("modalTeam").classList.remove("on");
+function genCode(){
+  const A = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789", r = new Uint32Array(6);
+  crypto.getRandomValues(r);
+  return Array.from(r, x => A[x % A.length]).join("");
+}
+const teamErr = t => { const e = $("teamErr"); if (e) e.textContent = t; };
+$("teamBody").addEventListener("submit", async ev => {
+  ev.preventDefault();
+  teamErr("");
+  const btn = ev.submitter;
+  if (ev.target.id === "formTeamCreate") {
+    const name = $("tmName").value.trim(), tag = $("tmTag").value.trim().toUpperCase();
+    if (name.length < 3 || name.length > 24) { teamErr("Il nome deve avere da 3 a 24 caratteri."); return; }
+    if (!/^[A-Z0-9]{2,4}$/.test(tag)) { teamErr("Il tag deve avere da 2 a 4 caratteri (lettere o numeri)."); return; }
+    await busy(btn, async () => {
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const code = genCode();
+        try {
+          const tr = doc(collection(db, "teams"));
+          const b = writeBatch(db);
+          b.set(tr, { name, tag, captainUid: me.uid, members: [me.uid], names: { [me.uid]: (meDoc && meDoc.username) || me.name },
+            marble: { color1: teamDraft.color1, color2: teamDraft.color2, pattern: teamDraft.pattern },
+            stats: { bets: 0, wins: 0, staked: 0, payout: 0, net: 0 }, createdAt: serverTimestamp() });
+          b.set(doc(db, "teams", tr.id, "private", "info"), { code });
+          b.set(doc(db, "teamCodes", code), { teamId: tr.id });
+          b.update(doc(db, "users", me.uid), { teamId: tr.id, teamTag: tag });
+          await b.commit();
+          teamCode = code;
+          return;
+        } catch (e) {
+          if (attempt === 2 || e.code !== "permission-denied") { teamErr(msg(e)); return; }
+        }
+      }
+    });
+  } else if (ev.target.id === "formTeamJoin") {
+    const code = $("tmCode").value.trim().toUpperCase();
+    if (!/^[A-Z0-9]{6}$/.test(code)) { teamErr("Il codice ha 6 caratteri."); return; }
+    await busy(btn, async () => {
+      try {
+        const cs = await getDoc(doc(db, "teamCodes", code));
+        if (!cs.exists()) { teamErr("Codice non valido."); return; }
+        const tid = cs.data().teamId, tr = doc(db, "teams", tid), ur = doc(db, "users", me.uid);
+        await runTransaction(db, async tx => {
+          const t = await tx.get(tr);
+          if (!t.exists()) throw new Error("Squadra non trovata.");
+          const d = t.data();
+          if ((d.members || []).includes(me.uid)) throw new Error("Fai già parte di questa squadra.");
+          if ((d.members || []).length >= 6) throw new Error("La squadra è al completo (max 6 membri).");
+          tx.update(tr, { members: [...d.members, me.uid], names: { ...(d.names || {}), [me.uid]: (meDoc && meDoc.username) || me.name } });
+          tx.update(ur, { teamId: tid, teamTag: d.tag, joinCode: code });
+        });
+        getDoc(doc(db, "teams", tid, "private", "info")).then(d => { teamCode = d.exists() ? d.data().code : ""; renderTeam(); }).catch(() => {});
+      } catch (e) { teamErr(msg(e)); }
+    });
+  }
+});
+$("teamBody").addEventListener("click", async ev => {
+  const btn = ev.target.closest("[data-tact]");
+  if (!btn) return;
+  teamErr("");
+  const act = btn.dataset.tact, ur = doc(db, "users", me.uid);
+  if (act === "copy") {
+    try { await navigator.clipboard.writeText(teamCode); btn.textContent = "Copiato ✓"; } catch (e) { teamErr("Copia non riuscita: seleziona il codice a mano."); }
+    return;
+  }
+  const clear = { teamId: "", teamTag: "", joinCode: "" };
+  await busy(btn, async () => {
+    try {
+      if (act === "orphan") { await updateDoc(ur, clear); return; }
+      if (!confirm(act === "dissolve" ? "Sciogliere la squadra? Statistiche e codice invito andranno persi." : "Uscire dalla squadra?")) return;
+      if (act === "leave") {
+        const tr = doc(db, "teams", curTeamId);
+        await runTransaction(db, async tx => {
+          const t = await tx.get(tr);
+          if (!t.exists()) { tx.update(ur, clear); return; }
+          const d = t.data(), names = { ...(d.names || {}) };
+          delete names[me.uid];
+          tx.update(tr, { members: (d.members || []).filter(x => x !== me.uid), names });
+          tx.update(ur, clear);
+        });
+      } else {
+        const code = teamCode || (await getDoc(doc(db, "teams", curTeamId, "private", "info"))).data().code;
+        const b = writeBatch(db);
+        b.delete(doc(db, "teams", curTeamId));
+        b.delete(doc(db, "teams", curTeamId, "private", "info"));
+        b.delete(doc(db, "teamCodes", code));
+        b.update(ur, clear);
+        await b.commit();
+      }
+    } catch (e) { teamErr(msg(e)); }
   });
 });
 
@@ -1256,7 +1532,7 @@ $("adminOpts").addEventListener("click", async ev => {
     try {
       if (k === "credits" || k === "all") { await zeroBalances(); await wipeCollection("ledger"); await setDoc(doc(adminDb, "treasury", "main"), { balance: 0, totalFees: 0 }); }
       if (k === "bets" || k === "all") { await wipeCollection("bets"); await wipeCollection("races"); await wipeCollection("videos"); await resetCatalogPlays(); await wipeCollection("leaderboard"); }
-      if (k === "users" || k === "all") { await wipeCollection("users"); await wipeCollection("topupRequests"); await wipeCollection("leaderboard"); }
+      if (k === "users" || k === "all") { await wipeCollection("users"); await wipeCollection("topupRequests"); await wipeCollection("teams"); await wipeCollection("teamCodes"); await wipeCollection("leaderboard"); }
       await loadAdmin();
       $("optMsg").textContent = "Reset eseguito.";
     } catch (e) { $("adminErr").textContent = msg(e); }
@@ -1351,7 +1627,7 @@ $("formRace").addEventListener("submit", async ev => {
       const rRef = doc(collection(adminDb, "races"));
       let videoFail = false;
       await setDoc(rRef, {
-        name, runners, status: $("raceInit").value === "ready" ? "ready" : "open", pool: 0, pools, winner: null, hasVideo: !!yt, youtubeLive: !!yt && $("raceLive").checked, ...(dur ? { duration: dur } : {}),
+        name, runners, status: $("raceInit").value === "ready" ? "ready" : "open", pool: 0, pools, winner: null, hasVideo: !!yt, youtubeLive: !!yt && $("raceLive").checked, teamMode: $("raceTeam").checked, ...(dur ? { duration: dur } : {}),
         feePercent: Number.isInteger(c.feePercent) ? c.feePercent : 10,
         minBet: (typeof c.minBet === "number" && c.minBet > 0) ? r1(c.minBet) : 1,
         createdAt: serverTimestamp()
@@ -1360,7 +1636,7 @@ $("formRace").addEventListener("submit", async ev => {
         try { await setDoc(doc(adminDb, "videos", rRef.id), { url: yt }); }
         catch (e) { videoFail = true; }
       }
-      $("raceName").value = ""; $("raceRunners").value = ""; $("raceYt").value = ""; $("raceDur").value = ""; $("raceLive").checked = false;
+      $("raceName").value = ""; $("raceRunners").value = ""; $("raceYt").value = ""; $("raceDur").value = ""; $("raceLive").checked = false; $("raceTeam").checked = false;
       await loadRaces();
       if (videoFail) $("adminErr").textContent = "Gara creata, ma il link video NON è stato salvato (permission-denied): pubblica le regole Firestore aggiornate (documento regole_firestore.txt) e ricrea la gara.";
       else flashOk("Gara creata.");
@@ -1478,7 +1754,7 @@ function renderAdminRaces(){
       else if (!bl.length) betsHtml = '<div class="mut">Nessuna puntata.</div>';
       else betsHtml = bl.map(b => {
         const nm = (users.find(x => x.id === b.uid) || {}).username || b.username;
-        return `<div class="row" style="margin-top:6px"><span class="mut"><b style="color:var(--txt)">${esc(nm)}</b> · ${esc((r.runners || [])[b.runner] ?? "?")} · ${esc(b.amount)}${b.status !== "pending" ? " · " + esc(b.status) : ""}</span>${b.status === "pending" ? `<button class="small danger" data-act="refund" data-bet="${esc(b.id)}">Rimborsa</button>` : ""}</div>`;
+        return `<div class="row" style="margin-top:6px"><span class="mut"><b style="color:var(--txt)">${esc(nm)}</b>${b.teamTag ? `<span class="ttag">${esc(b.teamTag)}</span>` : ""} · ${esc((r.runners || [])[b.runner] ?? "?")} · ${esc(b.amount)}${b.status !== "pending" ? " · " + esc(b.status) : ""}</span>${b.status === "pending" ? `<button class="small danger" data-act="refund" data-bet="${esc(b.id)}">Rimborsa</button>` : ""}</div>`;
       }).join("");
     }
     return `<div class="urow" data-id="${esc(r.id)}">
@@ -1600,6 +1876,8 @@ async function finalizeRace(raceId, mode, winner){
 
     const uSnaps = await Promise.all(bets.map(b => tx.get(doc(adminDb, "users", b.uid))));
     const lSnaps = refund ? [] : await Promise.all(bets.map(b => tx.get(doc(adminDb, "leaderboard", b.uid))));
+    const teamIds = (race.teamMode && !refund) ? [...new Set(bets.filter(b => b.teamId).map(b => b.teamId))] : [];
+    const tSnaps = await Promise.all(teamIds.map(id => tx.get(doc(adminDb, "teams", id))));
     const t = await tx.get(tr);
 
     bets.forEach((b, i) => {
@@ -1619,11 +1897,21 @@ async function finalizeRace(raceId, mode, winner){
         const payout = r1((lb.payout || 0) + p);
         tx.set(lSnaps[i].ref, {
           username: (us.exists() && us.data().username) || b.username,
+          marble: (us.exists() && us.data().marble) || null,
+          teamTag: (us.exists() && us.data().teamTag) || "",
           bets: (lb.bets || 0) + 1,
           wins: (lb.wins || 0) + (b.runner === winner ? 1 : 0),
           staked, payout, net: r1(payout - staked)
         });
       }
+    });
+    teamIds.forEach((id, i) => {
+      if (!tSnaps[i].exists()) return;
+      const st = tSnaps[i].data().stats || {};
+      const tb = bets.filter(b => b.teamId === id);
+      const staked = r1((st.staked || 0) + tb.reduce((a, b) => a + b.amount, 0));
+      const payout = r1((st.payout || 0) + tb.reduce((a, b) => a + pay[b.ref.id], 0));
+      tx.update(tSnaps[i].ref, { stats: { bets: (st.bets || 0) + tb.length, wins: (st.wins || 0) + tb.filter(b => b.runner === winner).length, staked, payout, net: r1(payout - staked) } });
     });
     if (toTreasury > 0.0001) {
       const td = t.exists() ? t.data() : { balance: 0, totalFees: 0 };
