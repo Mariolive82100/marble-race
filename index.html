@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0f1220">
-<title>Murble Race v2.1</title>
+<title>Murble Race v2.2</title>
 <style>
 :root{--bg:#0f1220;--card:#181c30;--line:#2a3050;--txt:#eef0fa;--mut:#8f96b8;--acc:#ff9f1c;--ok:#2ec27e;--err:#ff5d6c}
 *{box-sizing:border-box}
@@ -75,7 +75,7 @@ details.rsx[open] summary::after{content:"▲"}
 
   <!-- AUTENTICAZIONE -->
   <div id="viewAuth" class="view on">
-    <h1>Murble <span>Race</span> <small class="ver">v2.1</small></h1>
+    <h1>Murble <span>Race</span> <small class="ver">v2.2</small></h1>
     <p class="sub">Scommesse sulle gare di biglie</p>
     <div class="card">
       <div class="tabs">
@@ -106,7 +106,7 @@ details.rsx[open] summary::after{content:"▲"}
   <!-- HOME GIOCATORE -->
   <div id="viewHome" class="view">
     <div class="row">
-      <h1>Murble <span>Race</span> <small class="ver">v2.1</small></h1>
+      <h1>Murble <span>Race</span> <small class="ver">v2.2</small></h1>
       <div class="uactions" style="margin-top:0;flex-wrap:nowrap">
         <label id="wrapAdminQuick" class="sw" style="display:none">Admin<input id="swAdminHome" type="checkbox"><i></i></label>
         <button id="btnLogout" class="sec small" type="button">Esci</button>
@@ -184,6 +184,7 @@ details.rsx[open] summary::after{content:"▲"}
         <textarea id="raceRunners" rows="4" required></textarea>
         <label for="raceYt">Link YouTube (facoltativo, live o registrato)</label>
         <input id="raceYt" inputmode="url" autocapitalize="none" placeholder="https://www.youtube.com/watch?v=...">
+        <label class="rn" style="margin-top:10px"><input id="raceLive" type="checkbox"><span class="nm">Diretta Live (mostra video anche a puntate aperte)</span></label>
         <button class="full" type="submit">Crea gara (puntate aperte)</button>
       </form>
     </div>
@@ -448,7 +449,7 @@ function raceParts(r){
   const arrow = isActive ? (isOpen ? " ▲" : " ▼") : "";
   const head = `<div class="row"><b>${esc(r.name)}</b><span class="badge ${STATUS_CLASS[r.status] || "off"}">${STATUS_LABEL[r.status] || esc(r.status)}</span></div>
       <div class="row mut" style="margin-top:4px"><span>Montepremi: ${esc(total)} crediti · Fee ${esc(fee)}% sul surplus</span><span>${b ? "✓ Hai puntato" : ""}${arrow}</span></div>`;
-  return { head, body: isOpen ? runners + foot : "", yt: isOpen ? ytId(r.youtubeUrl) : null, isActive };
+  return { head, body: isOpen ? runners + foot : "", yt: (isOpen && r.status !== "cancelled" && (r.status !== "open" || r.youtubeLive === true)) ? ytId(r.youtubeUrl) : null, isActive };
 }
 
 function renderRaces(){
@@ -474,7 +475,7 @@ function renderRaces(){
     if (el._body !== parts.body) { body.innerHTML = parts.body; el._body = parts.body; }
     if (parts.yt) {
       if (slot.dataset.id !== parts.yt) {
-        slot.innerHTML = '<div class="yt"><iframe src="https://www.youtube-nocookie.com/embed/' + parts.yt + '?rel=0&playsinline=1" title="Video gara" loading="lazy" allow="accelerometer; autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe></div>';
+        slot.innerHTML = '<div class="yt"><iframe src="https://www.youtube-nocookie.com/embed/' + parts.yt + '?rel=0&modestbranding=1&playsinline=1&iv_load_policy=3&disablekb=1" title="Video gara" loading="lazy" referrerpolicy="no-referrer" sandbox="allow-scripts allow-same-origin allow-presentation" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe></div>';
         slot.dataset.id = parts.yt;
       }
     } else if (slot.dataset.id) { slot.innerHTML = ""; delete slot.dataset.id; }
@@ -772,12 +773,12 @@ $("formRace").addEventListener("submit", async ev => {
       const pools = {};
       runners.forEach((_, i) => { pools[String(i)] = 0; });
       await setDoc(doc(collection(adminDb, "races")), {
-        name, runners, status: "open", pool: 0, pools, winner: null, youtubeUrl: yt,
+        name, runners, status: "open", pool: 0, pools, winner: null, youtubeUrl: yt, youtubeLive: !!yt && $("raceLive").checked,
         feePercent: Number.isInteger(c.feePercent) ? c.feePercent : 10,
         minBet: (typeof c.minBet === "number" && c.minBet > 0) ? r1(c.minBet) : 1,
         createdAt: serverTimestamp()
       });
-      $("raceName").value = ""; $("raceRunners").value = ""; $("raceYt").value = "";
+      $("raceName").value = ""; $("raceRunners").value = ""; $("raceYt").value = ""; $("raceLive").checked = false;
       await loadRaces();
     } catch (e) { $("adminErr").textContent = msg(e); }
   });
