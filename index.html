@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Murble Race">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Murble Race v3.7</title>
+<title>Murble Race v3.8</title>
 <style>
 :root{--bg:#0f1220;--card:#181c30;--line:#2a3050;--txt:#eef0fa;--mut:#8f96b8;--acc:#ff9f1c;--ok:#2ec27e;--err:#ff5d6c}
 *{box-sizing:border-box}
@@ -88,7 +88,7 @@ details.rsx[open] summary::after{content:"▲"}
 
   <!-- AUTENTICAZIONE -->
   <div id="viewAuth" class="view on">
-    <h1>Murble <span>Race</span> <small class="ver">v3.7</small></h1>
+    <h1>Murble <span>Race</span> <small class="ver">v3.8</small></h1>
     <p class="sub">Scommesse sulle gare di biglie</p>
     <div class="card">
       <div class="tabs">
@@ -119,7 +119,7 @@ details.rsx[open] summary::after{content:"▲"}
   <!-- HOME GIOCATORE -->
   <div id="viewHome" class="view">
     <div class="row">
-      <h1>Murble <span>Race</span> <small class="ver">v3.7</small></h1>
+      <h1>Murble <span>Race</span> <small class="ver">v3.8</small></h1>
       <div class="uactions" style="margin-top:0;flex-wrap:nowrap">
         <label id="wrapAdminQuick" class="sw" style="display:none">Admin<input id="swAdminHome" type="checkbox"><i></i></label>
         <button id="btnLogout" class="sec small" type="button">Esci</button>
@@ -162,6 +162,7 @@ details.rsx[open] summary::after{content:"▲"}
         <div id="catInfo" class="mut" style="margin-top:8px"></div>
         <div class="uactions" style="margin-top:12px">
           <button class="small" type="submit">Estrai e Avvia Partita</button>
+          <button class="small sec" id="btnCatReset" type="button">Azzera filtri</button>
           <button class="small sec" id="btnCatCancel" type="button">Annulla</button>
         </div>
         <div id="catErr" class="err"></div>
@@ -244,8 +245,23 @@ details.rsx[open] summary::after{content:"▲"}
       <div id="raceAdminList"></div>
     </div>
     <div class="card">
-      <div class="row"><b>Catalogo</b><button id="btnCatLoad" class="sec small" type="button">Carica</button></div>
+      <div class="row"><b>Gestione Catalogo</b><button id="btnCatLoad" class="sec small" type="button">Carica</button></div>
+      <div class="tabs" id="cadmTabs" style="margin-top:10px;display:none">
+        <button type="button" class="small" data-cf="all">Tutte</button>
+        <button type="button" class="small sec" data-cf="new">Non ancora scommesse</button>
+        <button type="button" class="small sec" data-cf="played">Già scommesse</button>
+        <button type="button" class="small sec" data-cf="susp">Sospese</button>
+      </div>
       <input id="cadmSearch" placeholder="Cerca per nome, categoria o biglia" style="margin-top:10px;display:none">
+      <div id="cadmBar" class="uactions" style="display:none;margin-top:10px">
+        <button class="small sec" type="button" id="cadmAll">Seleziona tutte</button>
+        <span id="cadmSelN" class="mut"></span>
+        <button class="small" type="button" data-bulk="new">Segna "Non ancora scommessa"</button>
+        <button class="small" type="button" data-bulk="played">Segna "Già scommessa"</button>
+        <button class="small sec" type="button" data-bulk="susp">Sospendi</button>
+        <button class="small sec" type="button" data-bulk="unsusp">Riattiva</button>
+        <button class="small danger" type="button" data-bulk="del">Elimina selezionate</button>
+      </div>
       <div id="cadmInfo" class="mut" style="margin-top:8px"></div>
       <div id="cadmList"></div>
     </div>
@@ -743,6 +759,7 @@ function catFilters(){
     runner: $("catRunner").value.trim().toLowerCase(), excl: $("catExcl").checked };
 }
 function catMatches(c, f){
+  if (c.suspended) return false; // voci sospese dall'Admin: mai estratte
   if (f.cat && (c.category || "") !== f.cat) return false;
   const n = c.runnersCount || (c.runners || []).length;
   if (f.nmin && (n < f.nmin || n > f.nmax)) return false;
@@ -797,6 +814,11 @@ $("btnCat").onclick = async () => {
   try { await loadCatalog(); } catch (e) { $("catInfo").textContent = ""; $("catErr").textContent = msg(e); }
 };
 $("btnCatCancel").onclick = () => { $("formCat").style.display = "none"; };
+$("btnCatReset").onclick = () => {
+  $("catCategory").value = ""; $("catRunners").value = ""; $("catDur").value = "";
+  $("catRunner").value = ""; $("catExcl").checked = true;
+  updateCatInfo();
+};
 $("formCat").addEventListener("change", updateCatInfo);
 $("catRunner").addEventListener("input", updateCatInfo);
 
@@ -808,6 +830,7 @@ async function launchFromCatalog(cid, n, excl){
     if (!c.exists()) throw skip();
     if (!u.exists() || !u.data().active) throw new Error("Account non ancora attivo.");
     const cd = c.data();
+    if (cd.suspended) throw skip();
     if (excl && (cd.playedCount || 0) > 0) throw skip();
     if (cd.activeRaceId) {
       const a = await tx.get(doc(db, "races", cd.activeRaceId));
@@ -1401,13 +1424,34 @@ async function openCatAdm(id){
   cadmDet[id] = { url: v.exists() ? v.data().url || "" : "", winner: (c && Number.isInteger(wi) && (c.runners || [])[wi]) || "" };
   renderCatAdm();
 }
-function renderCatAdm(){
+let cadmFilter = "all", cadmSel = new Set();
+function cadmStatus(c){ return c.suspended ? ["Sospesa", "off"] : (c.playedCount || 0) > 0 ? ["Già scommessa", "wait"] : ["Disponibile / Da scommettere", "ok"]; }
+function cadmVisible(){
   const t = $("cadmSearch").value.trim().toLowerCase();
-  const rows = cadm.filter(c => !t || (c.name || "").toLowerCase().includes(t) || (c.category || "").toLowerCase().includes(t) || (c.runners || []).some(r => String(r).toLowerCase().includes(t)));
-  $("cadmInfo").textContent = "Catalogo: " + cadm.length + " gare" + (t ? " · " + rows.length + " trovate" : "") + (rows.length > 100 ? " · mostrate le prime 100, affina la ricerca" : "");
-  $("cadmList").innerHTML = rows.slice(0, 100).map(c => {
+  return cadm.filter(c => {
+    if (cadmFilter === "new" && (c.playedCount || 0) > 0) return false;
+    if (cadmFilter === "played" && !((c.playedCount || 0) > 0)) return false;
+    if (cadmFilter === "susp" && !c.suspended) return false;
+    return !t || (c.name || "").toLowerCase().includes(t) || (c.category || "").toLowerCase().includes(t) || (c.runners || []).some(r => String(r).toLowerCase().includes(t));
+  });
+}
+function cadmBar(){
+  const vis = cadmVisible();
+  const n = vis.filter(c => cadmSel.has(c.id)).length;
+  $("cadmBar").style.display = cadm.length ? "" : "none";
+  $("cadmSelN").textContent = n + " selezionate";
+  $("cadmAll").textContent = vis.length && n === vis.length ? "Deseleziona tutte" : "Seleziona tutte";
+  document.querySelectorAll("#cadmBar [data-bulk]").forEach(b => { b.disabled = n === 0; });
+}
+function renderCatAdm(){
+  document.querySelectorAll("#cadmTabs [data-cf]").forEach(b => b.classList.toggle("sec", b.dataset.cf !== cadmFilter));
+  $("cadmTabs").style.display = "";
+  const rows = cadmVisible();
+  $("cadmInfo").textContent = "Catalogo: " + cadm.length + " gare · " + rows.length + " mostrate";
+  $("cadmList").innerHTML = rows.map(c => {
     const open = cadmOpen === c.id, d = cadmDet[c.id];
     const locked = (c.playedCount || 0) > 0;
+    const st = cadmStatus(c);
     let body = "";
     if (open) {
       body = !d ? '<div class="mut" style="margin-top:8px">Caricamento…</div>' : `<div style="margin-top:8px">
@@ -1420,11 +1464,56 @@ function renderCatAdm(){
         <div class="uactions" style="margin-top:12px"><button class="small" data-act="csave">Salva</button><button class="small danger" data-act="cdel">Elimina</button></div>
       </div>`;
     }
-    return `<div class="urow" data-id="${esc(c.id)}"><div class="rhead" data-tgl>
-      <div class="row"><span><b>${esc(c.name || "?")}</b>${c.duration ? `<span class="dur">⏱ ${esc(c.duration)}</span>` : ""}${c.category ? `<span class="tag">${esc(c.category)}</span>` : ""}</span><span class="mut">${open ? "▲" : "▼"}</span></div>
-      <div class="mut">${esc(c.runnersCount || (c.runners || []).length)} biglie · giocata ${esc(c.playedCount || 0)} volte</div></div>${body}</div>`;
+    return `<div class="urow" data-id="${esc(c.id)}"><div style="display:flex;gap:10px;align-items:flex-start">
+      <input type="checkbox" data-sel ${cadmSel.has(c.id) ? "checked" : ""} style="width:22px;height:22px;flex:none;margin-top:4px">
+      <div class="rhead" data-tgl style="flex:1;min-width:0">
+        <div class="row"><span><b>${esc(c.name || "?")}</b>${c.duration ? `<span class="dur">⏱ ${esc(c.duration)}</span>` : ""}${c.category ? `<span class="tag">${esc(c.category)}</span>` : ""}</span><span class="mut">${open ? "▲" : "▼"}</span></div>
+        <div class="mut">${esc(c.runnersCount || (c.runners || []).length)} biglie · giocata ${esc(c.playedCount || 0)} volte · <span class="badge ${st[1]}">${st[0]}</span></div>
+      </div></div>${body}</div>`;
   }).join("");
+  cadmBar();
 }
+document.querySelectorAll("#cadmTabs [data-cf]").forEach(b => { b.onclick = () => { cadmFilter = b.dataset.cf; renderCatAdm(); }; });
+$("cadmAll").onclick = () => {
+  const vis = cadmVisible();
+  const all = vis.length && vis.every(c => cadmSel.has(c.id));
+  vis.forEach(c => { if (all) cadmSel.delete(c.id); else cadmSel.add(c.id); });
+  renderCatAdm();
+};
+$("cadmBar").addEventListener("click", async ev => {
+  const btn = ev.target.closest("button[data-bulk]");
+  if (!btn) return;
+  const kind = btn.dataset.bulk;
+  const ids = cadm.filter(c => cadmSel.has(c.id)).map(c => c.id);
+  if (!ids.length) return;
+  if (kind === "del" && !confirm("Eliminare " + ids.length + " gare dal catalogo? Operazione definitiva.")) return;
+  $("adminErr").textContent = "";
+  await busy(btn, async () => {
+    try {
+      const size = kind === "del" ? 150 : 400;
+      for (let i = 0; i < ids.length; i += size) {
+        const b = writeBatch(adminDb);
+        ids.slice(i, i + size).forEach(id => {
+          const r = doc(adminDb, "catalog", id);
+          if (kind === "new") b.update(r, { playedCount: 0 });
+          else if (kind === "played") b.update(r, { playedCount: 1 });
+          else if (kind === "susp") b.update(r, { suspended: true });
+          else if (kind === "unsusp") b.update(r, { suspended: deleteField() });
+          else { b.delete(r); b.delete(doc(adminDb, "catalog_v", id)); b.delete(doc(adminDb, "catalog_w", id)); }
+        });
+        await b.commit();
+      }
+      if (kind === "del") { cadm = cadm.filter(c => !cadmSel.has(c.id)); cadmSel.clear(); cadmOpen = null; }
+      else cadm.forEach(c => {
+        if (!cadmSel.has(c.id)) return;
+        if (kind === "new") c.playedCount = 0; else if (kind === "played") c.playedCount = 1;
+        else if (kind === "susp") c.suspended = true; else delete c.suspended;
+      });
+      renderCatAdm();
+      flashOk("Operazione eseguita su " + ids.length + (ids.length === 1 ? " gara." : " gare."));
+    } catch (e) { $("adminErr").textContent = msg(e); }
+  });
+});
 $("btnCatLoad").onclick = async () => {
   $("adminErr").textContent = "";
   await busy($("btnCatLoad"), async () => { try { await loadCatAdm(); } catch (e) { $("adminErr").textContent = msg(e); } });
@@ -1434,6 +1523,11 @@ $("cadmList").addEventListener("click", async ev => {
   const row = ev.target.closest(".urow");
   if (!row) return;
   const id = row.dataset.id;
+  if (ev.target.matches("[data-sel]")) {
+    if (ev.target.checked) cadmSel.add(id); else cadmSel.delete(id);
+    cadmBar();
+    return;
+  }
   const btn = ev.target.closest("button[data-act]");
   if (!btn) {
     if (!ev.target.closest("[data-tgl]")) return;
@@ -1451,7 +1545,7 @@ $("cadmList").addEventListener("click", async ev => {
         const b = writeBatch(adminDb);
         b.delete(doc(adminDb, "catalog", id)); b.delete(doc(adminDb, "catalog_v", id)); b.delete(doc(adminDb, "catalog_w", id));
         await b.commit();
-        cadm = cadm.filter(x => x.id !== id); delete cadmDet[id]; cadmOpen = null;
+        cadm = cadm.filter(x => x.id !== id); delete cadmDet[id]; cadmSel.delete(id); cadmOpen = null;
         renderCatAdm(); flashOk("Gara eliminata dal catalogo.");
         return;
       }
