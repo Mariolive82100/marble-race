@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Murble Race">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Murble Race v3.26</title>
+<title>Murble Race v3.27</title>
 <style>
 :root{--bg:#0f1220;--card:#181c30;--line:#2a3050;--txt:#eef0fa;--mut:#8f96b8;--acc:#ff9f1c;--ok:#2ec27e;--err:#ff5d6c}
 *{box-sizing:border-box}
@@ -183,7 +183,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
 
   <!-- AUTENTICAZIONE -->
   <div id="viewAuth" class="view on">
-    <h1>Murble <span>Race</span> <small class="ver">v3.26</small></h1>
+    <h1>Murble <span>Race</span> <small class="ver">v3.27</small></h1>
     <p class="sub">Pronostici a punti sulle gare di biglie</p>
     <div class="card">
       <div class="tabs">
@@ -217,7 +217,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
     <div class="topbar">
       <div class="tleft">
         <button id="btnDrawer" class="ibtn" type="button" aria-label="Menu">☰</button>
-        <div class="ttl">Murble <span>Race</span> <small class="ver">v3.26</small></div>
+        <div class="ttl">Murble <span>Race</span> <small class="ver">v3.27</small></div>
       </div>
       <button id="balPill" class="pill" type="button" aria-label="Punti totali: apri la classifica"><span id="hPts">0</span> <small>PT</small></button>
     </div>
@@ -495,6 +495,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
           <li>Nelle Sfide a Squadre i punti (e le vittorie del 1° posto) di tutti i membri si sommano <b>anche al punteggio della squadra</b>.</li>
           <li>Se la gara viene <b>annullata</b> dall'Admin, i pronostici sono annullati e non assegnano punti. L'Admin può annullare anche un singolo pronostico.</li>
         </ul>
+        <p>Quando il video termina compare il <b>Risultato Ufficiale della Gara</b> con tre pulsanti. <b>Podio corretto</b> conferma subito il podio, chiude la gara e accredita i punti. Il tasto <b>↻</b> rivede la gara dall'inizio della batteria. <b>Podio non corretto</b> permette di proporre un altro podio (1°, 2° e 3° posto con biglie diverse): finché la proposta non è accettata non viene assegnato alcun punto. La proposta può essere accettata (<b>Podio proposto corretto</b>) solo da un partecipante avversario, o da un membro di un'altra squadra nelle Sfide a Squadre, oppure rifiutata (<b>Rifiuta modifica</b>) tornando al podio originale; chi l'ha inviata, o i suoi compagni di squadra, possono ritirarla con <b>Annulla proposta</b>.</p>
         <h3>5. Classifica e Storico Punti</h3>
         <p>La <b>Classifica Squadre</b> ordina le squadre per punti totali; la <b>Classifica Individuale</b> (MVP) ordina i singoli giocatori, con il tag della loro squadra. In <b>Storico Punti</b> vedi i punti ottenuti in ogni gara. L'Admin può azzerare i punti per iniziare una <b>nuova stagione</b>.</p>
         <h3>6. Biglia personale e Squadre</h3>
@@ -554,7 +555,7 @@ const DOMAIN = "@murblerace.app";
 const ADMIN_EMAIL = "admin" + DOMAIN;
 const RESERVED = ["admin"];
 const MAX_BETS_SETTLE = 100;
-const TERMS_VERSION = 7; // incrementare per far riaccettare Regolamento e Termini a tutti
+const TERMS_VERSION = 8; // incrementare per far riaccettare Regolamento e Termini a tutti
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
@@ -730,7 +731,7 @@ let unsubUser = null, unsubTopup = null, unsubRaces = null, unsubBets = null, un
 let boardTeams = [], boardSub = "teams", myTeam = null, curTeamId = "", teamCode = "";
 let me = null, myReq = null, meDoc = null, pendingDisplay = null, pendingTerms = false;
 let races = [], myBets = {}, myBetList = [], ledgerRows = [], draft = {}, expanded = {}, raceTab = "active";
-let ytPlayers = {}, ytCur = {}, showRes = {}, presetPod = {}, podReq = {};
+let ytPlayers = {}, ytCur = {}, showRes = {}, presetPod = {}, podReq = {}, editPod = {};
 let videoIds = {}, videoReq = {}, boardRows = [], prevStatus = {};
 
 function stopListeners(){
@@ -940,9 +941,28 @@ function raceParts(r){
   if (r.status === "closed" && b && r.catalogId && presetPod[r.id] === undefined && !(podReq[r.id] > Date.now() - 20000)) fetchPodium(r);
   let resHtml = "";
   const podSet = presetPod[r.id];
-  if (r.status === "closed" && b && showRes[r.id] && Array.isArray(podSet) && podSet.length) {
-    resHtml = `<div class="betbox" style="border:1px solid var(--acc);border-radius:12px;padding:12px;margin-top:10px"><b>Risultato Ufficiale della Gara</b>${podSet.map((i, p) => `<div class="row" style="margin-top:6px"><span>${MEDALS[p]} <b>${p + 1}° Posto:</b> ${esc((r.runners || [])[i] ?? "?")}</span><span class="res-won">+${esc(pp[p])} PT</span></div>`).join("")}
-      <div style="display:flex;gap:8px;margin-top:12px"><button class="full" data-act="confirmpod" type="button" style="flex:1;margin-top:0">Clicca qui per confermare</button><button class="full sec" data-act="replay" type="button" style="flex:1;margin-top:0">Rivedi questa gara ↻</button></div></div>`;
+  const pr = (r.status === "closed" && b && Array.isArray(r.proposedPodium) && r.proposedPodium.length === 3) ? r.proposedPodium : null;
+  const podList = arr => arr.map((i, p) => `<div class="row" style="margin-top:6px"><span>${MEDALS[p]} <b>${p + 1}° Posto:</b> ${esc((r.runners || [])[i] ?? "?")}</span><span class="res-won">+${esc(pp[p])} PT</span></div>`).join("");
+  const bar = (l, c, rr) => `<div style="display:flex;gap:8px;align-items:center;margin-top:12px">${l}${c}${rr}</div>`;
+  const bL = (act, t) => `<button class="full" data-act="${act}" type="button" style="flex:1;margin-top:0">${t}</button>`;
+  const bR = (act, t) => `<button class="full sec" data-act="${act}" type="button" style="flex:1;margin-top:0">${t}</button>`;
+  const bC = `<button class="full sec" data-act="replay" type="button" title="Rivedi questa gara" aria-label="Rivedi questa gara" style="width:44px;flex:none;margin-top:0;padding-left:0;padding-right:0">↻</button>`;
+  const boxS = '<div class="betbox" style="border:1px solid var(--acc);border-radius:12px;padding:12px;margin-top:10px">';
+  if (pr) {
+    const myT = (b && b.teamId) || (meDoc && meDoc.teamId) || "";
+    const mine = r.proposedBy === (me && me.uid) || (r.gameMode === "team" && r.proposedByTeam && r.proposedByTeam === myT);
+    const opp = r.gameMode === "team" ? (!!myT && myT !== r.proposedByTeam) : r.proposedBy !== (me && me.uid);
+    resHtml = boxS + `<b>Podio Proposto</b><div class="mut" style="margin-top:4px">Proposto da ${esc(r.proposedByName || "?")}</div>${podList(pr)}`
+      + (mine ? `<div class="mut" style="margin-top:10px">In attesa che un avversario (o un membro dell'altra squadra) confermi la modifica.</div><div style="margin-top:8px">${bR("cancelprop", "Annulla proposta")}</div>`
+        : opp ? bar(bL("acceptprop", "Podio proposto corretto"), bC, bR("rejectprop", "Rifiuta modifica")) : "") + '</div>';
+  } else if (r.status === "closed" && b && showRes[r.id] && Array.isArray(podSet) && podSet.length) {
+    const ep = editPod[r.id];
+    let tail;
+    if (ep) {
+      const sel = k => `<label>${k + 1}° Posto</label><select data-pp="${k}"><option value="">Seleziona…</option>${(r.runners || []).map((n, i) => `<option value="${i}" ${String(ep.v[k]) === String(i) ? "selected" : ""}>${esc(n)}</option>`).join("")}</select>`;
+      tail = `<div style="margin-top:10px">${sel(0)}${sel(1)}${sel(2)}</div><div style="display:flex;gap:8px;margin-top:12px">${bL("sendpod", "Invia proposta podio")}${bR("cancelform", "Annulla")}</div>`;
+    } else tail = bar(bL("confirmpod", "Podio corretto"), bC, bR("editpod", "Podio non corretto"));
+    resHtml = boxS + `<b>Risultato Ufficiale della Gara</b>${podList(podSet)}${tail}</div>`;
   }
   return { head, res: resHtml, body: isOpen ? runners + foot : "", yt: showVideo ? withDur(videoIds[r.id] || ytInfo(r.youtubeUrl), r) : null, isActive };
 }
@@ -1118,7 +1138,7 @@ function modeFields(mode, k, nRunners, size){
   return { gameMode: "team", teamsCount: k, teamSize: size, expectedPlayers: tot, picksPerPlayer: nRunners / tot };
 }
 $("raceList").addEventListener("click", async ev => {
-  const y = ev.target.closest("[data-yt]"), pb = ev.target.closest("button[data-act='replay'], button[data-act='confirmpod']");
+  const y = ev.target.closest("[data-yt]"), pb = ev.target.closest("button[data-act='replay'], button[data-act='confirmpod'], button[data-act='editpod'], button[data-act='cancelform'], button[data-act='sendpod'], button[data-act='cancelprop'], button[data-act='acceptprop'], button[data-act='rejectprop']");
   if (!y && !pb) return;
   ev.preventDefault();
   const id = ev.target.closest(".race").dataset.id;
@@ -1131,24 +1151,51 @@ $("raceList").addEventListener("click", async ev => {
     const rc = races.find(x => x.id === id);
     if (!rc || rc.status !== "closed" || !myBets[id] || !Array.isArray(presetPod[id])) { $("homeErr").textContent = "Risultato non ancora disponibile per questa gara."; return; }
     showRes[id] = true; renderRaces();
-  } else if (kind === "confirmpod") {
+  } else if (kind === "confirmpod" || kind === "acceptprop") {
     await busy(pb, async () => {
-      try { await confirmRacePodium(id); showRes[id] = false; }
+      try { await confirmRacePodium(id, kind === "acceptprop"); showRes[id] = false; }
+      catch (e) { $("homeErr").textContent = msg(e); }
+    });
+  } else if (kind === "editpod") { editPod[id] = { v: ["", "", ""] }; renderRaces();
+  } else if (kind === "cancelform") { delete editPod[id]; renderRaces();
+  } else if (kind === "sendpod") {
+    await busy(pb, async () => {
+      try { await proposeRacePodium(id); delete editPod[id]; }
+      catch (e) { $("homeErr").textContent = msg(e); }
+    });
+  } else if (kind === "cancelprop" || kind === "rejectprop") {
+    await busy(pb, async () => {
+      try { await updateDoc(doc(db, "races", id), { proposedPodium: deleteField(), proposedBy: deleteField(), proposedByName: deleteField(), proposedByTeam: deleteField() }); }
       catch (e) { $("homeErr").textContent = msg(e); }
     });
   }
 });
 
+$("raceList").addEventListener("change", ev => {
+  if (!ev.target.matches("select[data-pp]")) return;
+  const id = ev.target.closest(".race").dataset.id;
+  if (editPod[id]) editPod[id].v[Number(ev.target.dataset.pp)] = ev.target.value;
+});
+// Proposta di rettifica del podio: resta in attesa dell'approvazione di un avversario
+async function proposeRacePodium(raceId){
+  const ep = editPod[raceId], rc = races.find(x => x.id === raceId);
+  if (!ep || !rc) throw new Error("Gara non trovata.");
+  const v = ep.v.map(x => x === "" ? NaN : Number(x));
+  if (v.some(x => !Number.isInteger(x) || x < 0 || x >= (rc.runners || []).length) || new Set(v).size !== 3) throw new Error("Scegli 3 biglie diverse per 1°, 2° e 3° posto.");
+  const b = myBets[raceId];
+  await updateDoc(doc(db, "races", raceId), { proposedPodium: v, proposedBy: me.uid, proposedByName: (meDoc && meDoc.username) || me.name, proposedByTeam: (b && b.teamId) || "" });
+}
 // Conferma del podio ufficiale da parte di un partecipante: chiude la gara e accredita i punti in un'unica transazione
-async function confirmRacePodium(raceId){
-  const pod = presetPod[raceId];
-  if (!Array.isArray(pod) || !pod.length) throw new Error("Risultato non disponibile.");
+async function confirmRacePodium(raceId, useProposed){
+  let pod = presetPod[raceId];
+  if (!useProposed && (!Array.isArray(pod) || !pod.length)) throw new Error("Risultato non disponibile.");
   const rr = doc(db, "races", raceId);
   await runTransaction(db, async tx => {
     const rs = await tx.get(rr);
     if (!rs.exists()) throw new Error("Gara non trovata.");
     const race = rs.data();
     if (race.status !== "closed") throw new Error("La gara è già stata confermata.");
+    if (useProposed) { pod = race.proposedPodium; if (!Array.isArray(pod) || pod.length !== 3) throw new Error("La proposta è stata ritirata."); }
     if (pod.some(i => !Number.isInteger(i) || i < 0 || i >= race.runners.length) || new Set(pod).size !== pod.length) throw new Error("Podio non valido.");
     const pp = podiumPts(race), isTeam = race.gameMode === "team";
     const players = {};
