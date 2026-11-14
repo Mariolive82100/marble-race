@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Murble Race">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Murble Race v3.6</title>
+<title>Murble Race v3.7</title>
 <style>
 :root{--bg:#0f1220;--card:#181c30;--line:#2a3050;--txt:#eef0fa;--mut:#8f96b8;--acc:#ff9f1c;--ok:#2ec27e;--err:#ff5d6c}
 *{box-sizing:border-box}
@@ -88,7 +88,7 @@ details.rsx[open] summary::after{content:"▲"}
 
   <!-- AUTENTICAZIONE -->
   <div id="viewAuth" class="view on">
-    <h1>Murble <span>Race</span> <small class="ver">v3.6</small></h1>
+    <h1>Murble <span>Race</span> <small class="ver">v3.7</small></h1>
     <p class="sub">Scommesse sulle gare di biglie</p>
     <div class="card">
       <div class="tabs">
@@ -119,7 +119,7 @@ details.rsx[open] summary::after{content:"▲"}
   <!-- HOME GIOCATORE -->
   <div id="viewHome" class="view">
     <div class="row">
-      <h1>Murble <span>Race</span> <small class="ver">v3.6</small></h1>
+      <h1>Murble <span>Race</span> <small class="ver">v3.7</small></h1>
       <div class="uactions" style="margin-top:0;flex-wrap:nowrap">
         <label id="wrapAdminQuick" class="sw" style="display:none">Admin<input id="swAdminHome" type="checkbox"><i></i></label>
         <button id="btnLogout" class="sec small" type="button">Esci</button>
@@ -751,7 +751,34 @@ function catMatches(c, f){
   if (f.excl && (c.playedCount || 0) > 0) return false;
   return true;
 }
+// Mostra solo le opzioni che, combinate con gli altri filtri, danno almeno una gara
+function setCatOpts(id, opts){
+  const sel = $(id), cur = sel.value;
+  const label = sel.previousElementSibling;
+  const first = sel.options[0] ? sel.options[0].outerHTML : "";
+  sel.innerHTML = first + opts.map(o => `<option value="${esc(o[0])}">${esc(o[1])}</option>`).join("");
+  sel.value = opts.some(o => o[0] === cur) ? cur : "";
+  const hide = opts.length === 0;
+  sel.style.display = hide ? "none" : "";
+  if (label && label.tagName === "LABEL") label.style.display = hide ? "none" : "";
+}
+function refreshCatFilters(){
+  const RANGES = [["2-4", "2 – 4"], ["5-8", "5 – 8"], ["9-12", "9 – 12"]];
+  const DURS = [["120", "Sotto i 2 min"], ["240", "Sotto i 4 min"]];
+  for (let k = 0; k < 3; k++) {
+    const before = [$("catCategory").value, $("catRunners").value, $("catDur").value].join("|");
+    const f = catFilters();
+    const rows = over => catRows.filter(c => catMatches(c, { ...f, ...over }));
+    setCatOpts("catCategory", [...new Set(rows({ cat: "" }).map(c => c.category).filter(Boolean))].sort((a, b) => a.localeCompare(b)).map(c => [c, c]));
+    const rr = rows({ nmin: 0, nmax: 0 });
+    setCatOpts("catRunners", RANGES.filter(r => { const [a, b] = r[0].split("-").map(Number); return rr.some(c => { const n = c.runnersCount || (c.runners || []).length; return n >= a && n <= b; }); }));
+    const dr = rows({ maxSec: 0 });
+    setCatOpts("catDur", DURS.filter(d => dr.some(c => c.durationSec > 0 && c.durationSec < Number(d[0]))));
+    if ([$("catCategory").value, $("catRunners").value, $("catDur").value].join("|") === before) break;
+  }
+}
 function updateCatInfo(){
+  refreshCatFilters();
   const f = catFilters();
   const n = catRows.filter(c => catMatches(c, f)).length;
   $("catInfo").textContent = n + (n === 1 ? " gara corrisponde ai filtri" : " gare corrispondono ai filtri") + " (catalogo: " + catRows.length + ").";
@@ -760,10 +787,6 @@ async function loadCatalog(){
   const s = await getDocs(query(collection(db, "catalog"), limit(500)));
   catRows = s.docs.map(d => ({ id: d.id, ...d.data() }));
   catAt = Date.now();
-  const cats = [...new Set(catRows.map(c => c.category).filter(Boolean))].sort((a, b) => a.localeCompare(b));
-  const cur = $("catCategory").value;
-  $("catCategory").innerHTML = '<option value="">Tutte</option>' + cats.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join("");
-  $("catCategory").value = cats.includes(cur) ? cur : "";
   updateCatInfo();
 }
 $("btnCat").onclick = async () => {
