@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Murble Race">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Murble Race v3.27</title>
+<title>Murble Race v3.28</title>
 <style>
 :root{--bg:#0f1220;--card:#181c30;--line:#2a3050;--txt:#eef0fa;--mut:#8f96b8;--acc:#ff9f1c;--ok:#2ec27e;--err:#ff5d6c}
 *{box-sizing:border-box}
@@ -183,7 +183,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
 
   <!-- AUTENTICAZIONE -->
   <div id="viewAuth" class="view on">
-    <h1>Murble <span>Race</span> <small class="ver">v3.27</small></h1>
+    <h1>Murble <span>Race</span> <small class="ver">v3.28</small></h1>
     <p class="sub">Pronostici a punti sulle gare di biglie</p>
     <div class="card">
       <div class="tabs">
@@ -217,7 +217,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
     <div class="topbar">
       <div class="tleft">
         <button id="btnDrawer" class="ibtn" type="button" aria-label="Menu">☰</button>
-        <div class="ttl">Murble <span>Race</span> <small class="ver">v3.27</small></div>
+        <div class="ttl">Murble <span>Race</span> <small class="ver">v3.28</small></div>
       </div>
       <button id="balPill" class="pill" type="button" aria-label="Punti totali: apri la classifica"><span id="hPts">0</span> <small>PT</small></button>
     </div>
@@ -1231,6 +1231,8 @@ async function confirmRacePodium(raceId, useProposed){
       tx.update(tSnaps[i].ref, { stats: { picks: (st.picks || 0) + a.picks, wins: (st.wins || 0) + a.wins, points: (st.points || 0) + a.points }, creditRace: raceId });
     });
     tx.update(rr, { status: "settled", winner: pod[0], podium: pod, settledAt: serverTimestamp() });
+    // podio rettificato e approvato: resta salvato anche in archivio per le stagioni future
+    if (useProposed && race.catalogId) tx.set(doc(db, "catalog_w", race.catalogId), { presetPodium: pod });
   });
 }
 
