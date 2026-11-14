@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Murble Race">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Murble Race v3.30</title>
+<title>Murble Race v3.31</title>
 <style>
 :root{--bg:#090b10;--card:#121622;--line:#232b40;--txt:#eef0fa;--mut:#8f96b8;--acc:#ffb300;--ok:#00e676;--err:#ff3b5c}
 *{box-sizing:border-box}
@@ -201,7 +201,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
 
   <!-- AUTENTICAZIONE -->
   <div id="viewAuth" class="view on">
-    <h1>Murble <span>Race</span> <small class="ver">v3.30</small></h1>
+    <h1>Murble <span>Race</span> <small class="ver">v3.31</small></h1>
     <p class="sub">Pronostici a punti sulle gare di biglie</p>
     <div class="card">
       <div class="tabs">
@@ -235,11 +235,10 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
     <div class="topbar">
       <div class="tleft">
         <button id="btnDrawer" class="ibtn" type="button" aria-label="Menu">☰</button>
-        <div class="ttl">Murble <span>Race</span> <small class="ver">v3.30</small></div>
+        <div class="ttl">Murble <span>Race</span> <small class="ver">v3.31</small></div>
       </div>
       <button id="balPill" class="pill" type="button" aria-label="Punti totali: apri la classifica"><span id="hPts">0</span> <small>PT</small></button>
     </div>
-    <div id="hTeam" class="banner" style="display:none">Per le Sfide a Squadre devi far parte di una Squadra. <button id="btnNeedTeam" class="small" type="button" style="margin-top:8px">Crea o unisciti a una Squadra</button></div>
     <div id="hWait" class="banner" style="display:none">Account in attesa di attivazione da parte dell'admin: per ora non puoi ancora giocare.</div>
     <div class="pgbody">
       <nav class="bnav" id="raceTabs">
@@ -836,7 +835,6 @@ function renderHome(name, d){
   $("modalTermsUpd").classList.toggle("on", d.termsVersion !== TERMS_VERSION);
   $("hMarble").innerHTML = marbleSvg(d.marble, 34);
   syncTeam();
-  $("hTeam").style.display = (d.active && !d.teamId) ? "block" : "none";
   const b = $("hBadge");
   b.textContent = d.active ? "Account attivo" : "In attesa di attivazione";
   b.className = "badge " + (d.active ? "ok" : "wait");
@@ -1550,7 +1548,6 @@ function openTeam(){
   renderTeam();
 }
 $("btnTeamClose").onclick = () => $("modalTeam").classList.remove("on");
-$("btnNeedTeam").onclick = openTeam;
 function genCode(){
   const A = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789", r = new Uint32Array(6);
   crypto.getRandomValues(r);
