@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Murble Race">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Murble Race v3.8</title>
+<title>Murble Race v3.9</title>
 <style>
 :root{--bg:#0f1220;--card:#181c30;--line:#2a3050;--txt:#eef0fa;--mut:#8f96b8;--acc:#ff9f1c;--ok:#2ec27e;--err:#ff5d6c}
 *{box-sizing:border-box}
@@ -81,6 +81,34 @@ details.rsx[open] summary::after{content:"▲"}
 #adminOk:not(:empty){border-color:var(--ok);color:var(--ok);margin-top:10px;font-size:14px}
 .res-won{color:var(--ok);font-weight:600}
 .res-lost{color:var(--err);font-weight:600}
+
+/* ===== Versione desktop (schermi larghi): due colonne, schede più ampie ===== */
+@media (min-width:1000px){
+  .wrap{max-width:1240px;padding-left:32px;padding-right:32px}
+  #viewAuth,#viewAdminLogin{max-width:460px;margin-left:auto;margin-right:auto}
+  h1{font-size:34px}
+  .dcols{display:grid;grid-template-columns:360px minmax(0,1fr);gap:28px;align-items:start}
+  .dside{position:sticky;top:16px;max-height:calc(100vh - 32px);overflow-y:auto;padding-right:2px}
+  #raceList{display:grid;grid-template-columns:repeat(auto-fill,minmax(440px,1fr));gap:16px;align-items:start}
+  #raceList>.card{margin-bottom:0}
+  #raceList>.card.mut{grid-column:1/-1}
+  #raceTabs{margin-bottom:14px}
+  #raceTabs button{flex:none;padding:10px 22px}
+  .acols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 28px;align-items:start}
+  #adminOpts{max-width:720px}
+  .card{padding:20px}
+  .rhead:hover{opacity:.92}
+  .rn:hover{border-color:var(--acc)}
+  #cadmBar{position:sticky;top:0;background:var(--card);padding:8px 0;z-index:3}
+}
+@media (hover:hover){
+  button:not(:disabled):hover{filter:brightness(1.12)}
+  button.sec:not(:disabled):hover,button.danger:not(:disabled):hover{background:rgba(255,255,255,.06);filter:none}
+}
+@media (min-width:1500px){
+  .wrap{max-width:1400px}
+  #raceList{grid-template-columns:repeat(auto-fill,minmax(480px,1fr))}
+}
 </style>
 </head>
 <body>
@@ -88,7 +116,7 @@ details.rsx[open] summary::after{content:"▲"}
 
   <!-- AUTENTICAZIONE -->
   <div id="viewAuth" class="view on">
-    <h1>Murble <span>Race</span> <small class="ver">v3.8</small></h1>
+    <h1>Murble <span>Race</span> <small class="ver">v3.9</small></h1>
     <p class="sub">Scommesse sulle gare di biglie</p>
     <div class="card">
       <div class="tabs">
@@ -119,13 +147,14 @@ details.rsx[open] summary::after{content:"▲"}
   <!-- HOME GIOCATORE -->
   <div id="viewHome" class="view">
     <div class="row">
-      <h1>Murble <span>Race</span> <small class="ver">v3.8</small></h1>
+      <h1>Murble <span>Race</span> <small class="ver">v3.9</small></h1>
       <div class="uactions" style="margin-top:0;flex-wrap:nowrap">
         <label id="wrapAdminQuick" class="sw" style="display:none">Admin<input id="swAdminHome" type="checkbox"><i></i></label>
         <button id="btnLogout" class="sec small" type="button">Esci</button>
       </div>
     </div>
     <p class="sub">Ciao, <b id="hName"></b></p>
+    <div class="dcols"><div class="dside">
     <div class="card">
       <div class="mut">Il tuo saldo</div>
       <div class="bal"><span id="hBal">0</span> <span class="mut" style="font-size:18px">crediti</span></div>
@@ -168,6 +197,7 @@ details.rsx[open] summary::after{content:"▲"}
         <div id="catErr" class="err"></div>
       </form>
     </div>
+    </div><div class="dmain">
     <div class="tabs" id="raceTabs">
       <button id="tabActive" type="button">Gare Attive</button>
       <button id="tabHistory" type="button" class="sec">Storico / Esiti</button>
@@ -176,6 +206,7 @@ details.rsx[open] summary::after{content:"▲"}
     </div>
     <div id="raceList"></div>
     <div id="homeErr" class="err"></div>
+    </div></div>
     <div class="foot"><a id="lnkAdmin">Accesso Admin</a></div>
   </div>
 
@@ -209,6 +240,7 @@ details.rsx[open] summary::after{content:"▲"}
     </div>
     <div id="adminMain">
     <p id="adminInfo" class="sub" style="color:var(--ok);min-height:20px"></p>
+    <div class="acols"><div class="acol">
     <div class="card">
       <div class="mut">Tesoreria (fee trattenute)</div>
       <div class="bal" style="font-size:32px"><span id="tBal">0</span> <span class="mut" style="font-size:16px">crediti</span></div>
@@ -244,6 +276,7 @@ details.rsx[open] summary::after{content:"▲"}
       <div class="row"><b>Gare</b></div>
       <div id="raceAdminList"></div>
     </div>
+    </div><div class="acol">
     <div class="card">
       <div class="row"><b>Gestione Catalogo</b><button id="btnCatLoad" class="sec small" type="button">Carica</button></div>
       <div class="tabs" id="cadmTabs" style="margin-top:10px;display:none">
@@ -273,6 +306,7 @@ details.rsx[open] summary::after{content:"▲"}
       <div class="row"><b>Giocatori</b><button id="btnReload" class="sec small" type="button">Aggiorna</button></div>
       <div id="userList"></div>
     </div>
+    </div></div>
     </div>
     <div id="adminOpts" style="display:none">
       <div class="card">
