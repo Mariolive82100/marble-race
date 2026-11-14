@@ -1,0 +1,126 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+    function isAdmin() {
+      return signedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+    function uname() {
+      return request.auth.token.email.split('@')[0];
+    }
+
+    // ---- Admin ----
+    match /admins/{id} {
+      allow read: if signedIn() && request.auth.uid == id;
+      allow write: if false;
+    }
+
+    // ---- Configurazione e Tesoreria ----
+    match /config/{id} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+    match /treasury/{id} {
+      allow read, write: if isAdmin();
+    }
+
+    // ---- Registro movimenti ----
+    match /ledger/{id} {
+      allow read: if isAdmin() || (signedIn() && resource.data.uid == request.auth.uid);
+      allow write: if isAdmin();
+    }
+
+    // ---- Giocatori ----
+    match /users/{uid} {
+      allow read: if signedIn() && (request.auth.uid == uid || isAdmin());
+      allow create: if signedIn() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['username', 'balance', 'active', 'createdAt'])
+        && request.resource.data.username == uname()
+        && request.resource.data.balance == 0
+        && request.resource.data.active == false
+        && request.resource.data.createdAt == request.time;
+      allow update: if isAdmin() || (
+        signedIn() && request.auth.uid == uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['balance'])
+        && request.resource.data.balance is int
+        && request.resource.data.balance >= 0
+        && request.resource.data.balance < resource.data.balance
+      );
+    }
+
+    // ---- Richieste di ricarica ----
+    function validTopup(uid) {
+      let d = request.resource.data;
+      return signedIn() && request.auth.uid == uid
+        && d.keys().hasOnly(['uid', 'username', 'amount', 'status', 'createdAt'])
+        && d.uid == uid
+        && d.username == uname()
+        && d.status == 'pending'
+        && d.amount is int && d.amount >= 1 && d.amount <= 100000;
+    }
+    match /topupRequests/{uid} {
+      allow read: if isAdmin() || (signedIn() && request.auth.uid == uid);
+      allow create: if validTopup(uid);
+      allow update: if isAdmin() || (validTopup(uid) && resource.data.status != 'pending');
+      allow delete: if isAdmin();
+    }
+
+    // ---- Gare ----
+    function betAfter(raceId) {
+      return getAfter(/databases/$(database)/documents/bets/$(raceId + '_' + request.auth.uid)).data;
+    }
+    function betExistsBefore(raceId) {
+      return exists(/databases/$(database)/documents/bets/$(raceId + '_' + request.auth.uid));
+    }
+    function betExistsAfter(raceId) {
+      return existsAfter(/databases/$(database)/documents/bets/$(raceId + '_' + request.auth.uid));
+    }
+    function validPoolIncrease(raceId) {
+      let b = betAfter(raceId);
+      let k = string(b.runner);
+      return b.raceId == raceId
+        && request.resource.data.pool == resource.data.pool + b.amount
+        && request.resource.data.pools.diff(resource.data.pools).affectedKeys().hasOnly([k])
+        && request.resource.data.pools[k] == resource.data.pools[k] + b.amount;
+    }
+
+    match /races/{raceId} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+      allow update: if signedIn()
+        && resource.data.status == 'open'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['pool', 'pools'])
+        && !betExistsBefore(raceId)
+        && betExistsAfter(raceId)
+        && validPoolIncrease(raceId);
+    }
+
+    // ---- Puntate ----
+    function validBet(betId) {
+      let d = request.resource.data;
+      let race = get(/databases/$(database)/documents/races/$(d.raceId)).data;
+      let uPath = /databases/$(database)/documents/users/$(request.auth.uid);
+      return betId == d.raceId + '_' + request.auth.uid
+        && d.keys().hasOnly(['raceId', 'uid', 'username', 'runner', 'amount', 'status', 'createdAt'])
+        && d.uid == request.auth.uid
+        && d.username == uname()
+        && d.status == 'pending'
+        && d.createdAt == request.time
+        && d.amount is int && d.amount >= race.minBet && d.amount <= 1000000
+        && d.runner is int && d.runner >= 0 && d.runner < race.runners.size()
+        && race.status == 'open'
+        && get(uPath).data.active == true
+        && getAfter(uPath).data.balance == get(uPath).data.balance - d.amount
+        && getAfter(uPath).data.balance >= 0;
+    }
+
+    match /bets/{betId} {
+      allow read: if isAdmin() || (signedIn() && (resource == null || resource.data.uid == request.auth.uid));
+      allow create: if signedIn() && validBet(betId);
+      allow write: if isAdmin();
+    }
+  }
+}
