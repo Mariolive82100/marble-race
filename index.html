@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Murble Race">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Murble Race v3.13</title>
+<title>Murble Race v3.14</title>
 <style>
 :root{--bg:#0f1220;--card:#181c30;--line:#2a3050;--txt:#eef0fa;--mut:#8f96b8;--acc:#ff9f1c;--ok:#2ec27e;--err:#ff5d6c}
 *{box-sizing:border-box}
@@ -84,7 +84,7 @@ details.rsx[open] summary::after{content:"▲"}
 .res-lost{color:var(--err);font-weight:600}
 
 /* ===== Versione desktop (schermi larghi): due colonne, schede più ampie ===== */
-@media (min-width:1000px){
+@media (min-width:900px){
   .wrap{max-width:none;padding-left:28px;padding-right:28px}
   body{font-size:14.5px}
   input,select,textarea{font-size:14px;padding:9px 11px}
@@ -99,14 +99,11 @@ details.rsx[open] summary::after{content:"▲"}
   .sub{margin-bottom:16px}
   #viewAuth,#viewAdminLogin{max-width:460px;margin-left:auto;margin-right:auto}
   h1{font-size:28px}
-  .dcols{display:grid;grid-template-columns:330px minmax(0,1fr);gap:24px;align-items:start}
-  .dside{position:sticky;top:16px;max-height:calc(100vh - 32px);overflow-y:auto;padding-right:2px}
   #raceList{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:14px;align-items:start}
   #raceList>.card{margin-bottom:0}
   #raceList>.card.mut{grid-column:1/-1}
-  #raceTabs{margin-bottom:14px}
-  #raceTabs button{flex:none;padding:10px 22px}
-  .acols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 24px;align-items:start}
+  #adminColRaces,#adminColPlayers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 24px;align-items:start}
+  #adminColPlayers>.card:last-child{grid-column:1/-1}
   #adminOpts{max-width:720px}
   #cadmList{display:grid;grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:0 24px;align-items:start}
   .card{padding:16px;margin-bottom:12px}
@@ -119,7 +116,6 @@ details.rsx[open] summary::after{content:"▲"}
   button.sec:not(:disabled):hover,button.danger:not(:disabled):hover{background:rgba(255,255,255,.06);filter:none}
 }
 @media (min-width:1700px){
-  .acols{grid-template-columns:repeat(2,minmax(0,1fr))}
   #raceList{grid-template-columns:repeat(auto-fill,minmax(420px,1fr))}
 }
 .modal{position:fixed;inset:0;background:rgba(5,7,15,.72);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
@@ -133,6 +129,44 @@ details.rsx[open] summary::after{content:"▲"}
 .mbody li{margin:5px 0}
 .mbody .note{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:10px 0;color:var(--mut)}
 a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
+
+/* ===== Navigazione: top bar, bottom bar / sidebar, drawer ===== */
+.topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:10px;background:rgba(15,18,32,.94);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);margin:-28px -16px 14px;padding:max(10px,env(safe-area-inset-top)) 16px 10px}
+.topbar .ttl{font-size:20px;font-weight:700;letter-spacing:.3px;white-space:nowrap}
+.topbar .ttl span{color:var(--acc)}
+.topbar .ttl .ver{font-size:11px;font-weight:600;color:var(--mut);letter-spacing:0}
+.tleft{display:flex;align-items:center;gap:10px;min-width:0}
+.ibtn{background:transparent;color:var(--txt);border:1px solid var(--line);width:40px;height:40px;padding:0;font-size:20px;line-height:1;border-radius:10px;flex:none}
+.pill{display:inline-flex;align-items:center;gap:6px;background:var(--card);color:var(--txt);border:1px solid var(--line);border-radius:99px;padding:5px 6px 5px 14px;font-size:15px;font-weight:700;white-space:nowrap}
+.pill small{font-size:12px;font-weight:500;color:var(--mut)}
+.pill b{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--acc);color:#1b1300;font-size:16px}
+.banner{background:rgba(255,159,28,.12);border:1px solid rgba(255,159,28,.4);color:var(--acc);border-radius:10px;padding:8px 12px;font-size:13px;margin-bottom:12px}
+#viewHome{padding-bottom:84px}
+.bnav{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+.bnav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:transparent;color:var(--mut);border:0;border-radius:0;padding:9px 4px 8px;font-size:11px;font-weight:600}
+.bnav button svg{width:22px;height:22px}
+.bnav button.on{color:var(--acc)}
+.catbtn{margin-bottom:12px}
+.dbg{position:fixed;inset:0;background:rgba(5,7,15,.62);z-index:60;display:none}
+.dbg.on{display:block}
+.drawer{position:fixed;top:0;left:0;bottom:0;width:min(320px,86vw);background:var(--card);border-right:1px solid var(--line);z-index:61;transform:translateX(-104%);transition:transform .2s;display:flex;flex-direction:column;gap:12px;padding:max(18px,env(safe-area-inset-top)) 18px max(18px,env(safe-area-inset-bottom));overflow-y:auto}
+.drawer.on{transform:none}
+.drawer .prof{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:14px}
+.dlinks a,.dadmin a{display:block;padding:12px 4px;border-bottom:1px solid var(--line);color:var(--txt);cursor:pointer;text-decoration:none;font-size:15px}
+.dadmin{display:flex;flex-direction:column}
+.dadmin .sw{padding:12px 4px;border-bottom:1px solid var(--line);justify-content:space-between;color:var(--txt);font-size:15px}
+.atabs{display:flex;gap:6px;overflow-x:auto;margin:0 0 14px;padding-bottom:2px}
+.atabs button{flex:none;background:transparent;color:var(--mut);border:1px solid var(--line);padding:8px 16px;font-size:14px}
+.atabs button.on{background:var(--acc);color:#1b1300;border-color:var(--acc)}
+@media (min-width:900px){
+  .topbar{margin:-28px -28px 18px;padding:12px 28px}
+  #viewHome{padding-bottom:0}
+  #viewHome .pgbody{display:grid;grid-template-columns:190px minmax(0,1fr);gap:24px;align-items:start}
+  .bnav{position:sticky;top:76px;left:auto;right:auto;bottom:auto;flex-direction:column;gap:4px;border:1px solid var(--line);border-radius:14px;padding:8px;z-index:1}
+  .bnav button{flex:none;flex-direction:row;gap:12px;font-size:14px;padding:11px 12px;border-radius:10px;justify-content:flex-start}
+  .bnav button.on{background:rgba(255,159,28,.12)}
+  .catbtn{width:auto}
+}
 </style>
 </head>
 <body>
@@ -140,7 +174,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
 
   <!-- AUTENTICAZIONE -->
   <div id="viewAuth" class="view on">
-    <h1>Murble <span>Race</span> <small class="ver">v3.13</small></h1>
+    <h1>Murble <span>Race</span> <small class="ver">v3.14</small></h1>
     <p class="sub">Scommesse sulle gare di biglie</p>
     <div class="card">
       <div class="tabs">
@@ -171,68 +205,27 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
 
   <!-- HOME GIOCATORE -->
   <div id="viewHome" class="view">
-    <div class="row">
-      <h1>Murble <span>Race</span> <small class="ver">v3.13</small></h1>
-      <div class="uactions" style="margin-top:0;flex-wrap:nowrap">
-        <label id="wrapAdminQuick" class="sw" style="display:none">Admin<input id="swAdminHome" type="checkbox"><i></i></label>
-        <button id="btnLogout" class="sec small" type="button">Esci</button>
+    <div class="topbar">
+      <div class="tleft">
+        <button id="btnDrawer" class="ibtn" type="button" aria-label="Menu">☰</button>
+        <div class="ttl">Murble <span>Race</span> <small class="ver">v3.14</small></div>
       </div>
+      <button id="balPill" class="pill" type="button" aria-label="Ricarica crediti"><span id="hBal">0</span> <small>crediti</small> <b>+</b></button>
     </div>
-    <p class="sub">Ciao, <b id="hName"></b></p>
-    <div class="dcols"><div class="dside">
-    <div class="card">
-      <div class="mut">Il tuo saldo</div>
-      <div class="bal"><span id="hBal">0</span> <span class="mut" style="font-size:18px">crediti</span></div>
-      <div style="margin-top:10px"><span id="hBadge" class="badge wait"></span></div>
+    <div id="hWait" class="banner" style="display:none">Account in attesa di attivazione da parte dell'admin: per ora non puoi scommettere.</div>
+    <div class="pgbody">
+      <nav class="bnav" id="raceTabs">
+        <button id="tabActive" type="button" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg>Gare</button>
+        <button id="tabHistory" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h9"/></svg>Esiti</button>
+        <button id="tabBoard" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4zM17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg>Classifica</button>
+        <button id="tabMoves" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h12l-3-3M17 17H5l3 3"/></svg>Movimenti</button>
+      </nav>
+      <main>
+        <div id="catCard" style="display:none"><button id="btnCat" class="full catbtn" type="button" style="margin-top:0">Crea Partita dal Catalogo</button></div>
+        <div id="raceList"></div>
+        <div id="homeErr" class="err"></div>
+      </main>
     </div>
-    <div class="card">
-      <div class="row"><b>Crediti</b><button id="btnTopup" class="small" type="button">Ricarica crediti</button></div>
-      <form id="topupForm" style="display:none">
-        <label for="tAmt">Quanti crediti vuoi richiedere?</label>
-        <input id="tAmt" type="number" step="1" min="1" inputmode="numeric" required>
-        <div class="uactions" style="margin-top:12px">
-          <button class="small" type="submit">Invia richiesta</button>
-          <button class="small sec" id="btnTopupCancel" type="button">Annulla</button>
-        </div>
-        <div id="topupErr" class="err"></div>
-      </form>
-      <div id="topupStatus" class="mut" style="margin-top:10px"></div>
-    </div>
-    <div id="hWait" class="card mut" style="display:none">Il tuo account deve essere attivato dall'admin prima di poter scommettere.</div>
-    <div class="card" id="catCard" style="display:none">
-      <button id="btnCat" class="full" type="button">Crea Partita dal Catalogo</button>
-      <form id="formCat" style="display:none">
-        <label for="catCategory">Categoria</label>
-        <select id="catCategory"><option value="">Tutte</option></select>
-        <label for="catRunners">Numero di biglie</label>
-        <select id="catRunners"><option value="">Qualsiasi</option><option value="2-4">2 – 4</option><option value="5-8">5 – 8</option><option value="9-12">9 – 12</option></select>
-        <label for="catDur">Durata massima</label>
-        <select id="catDur"><option value="">Qualsiasi</option><option value="120">Sotto i 2 min</option><option value="240">Sotto i 4 min</option></select>
-        <label for="catRunner">Biglia partecipante (facoltativa)</label>
-        <input id="catRunner" maxlength="30" placeholder="es. Italy" autocapitalize="none">
-        <label class="rn" style="margin-top:10px"><input id="catExcl" type="checkbox" checked><span class="nm">Escludi gare già giocate</span></label>
-        <label for="catPlayers">Numero di giocatori partecipanti (2–20)</label>
-        <input id="catPlayers" type="number" step="1" min="2" max="20" inputmode="numeric" placeholder="es. 4" required>
-        <div id="catInfo" class="mut" style="margin-top:8px"></div>
-        <div class="uactions" style="margin-top:12px">
-          <button class="small" type="submit">Estrai e Avvia Partita</button>
-          <button class="small sec" id="btnCatReset" type="button">Azzera filtri</button>
-          <button class="small sec" id="btnCatCancel" type="button">Annulla</button>
-        </div>
-        <div id="catErr" class="err"></div>
-      </form>
-    </div>
-    </div><div class="dmain">
-    <div class="tabs" id="raceTabs">
-      <button id="tabActive" type="button">Gare Attive</button>
-      <button id="tabHistory" type="button" class="sec">Storico / Esiti</button>
-      <button id="tabMoves" type="button" class="sec">Movimenti</button>
-      <button id="tabBoard" type="button" class="sec">Classifica</button>
-    </div>
-    <div id="raceList"></div>
-    <div id="homeErr" class="err"></div>
-    </div></div>
-    <div class="foot"><a data-info="rules">Regolamento</a> &nbsp;·&nbsp; <a data-info="terms">Termini e Condizioni</a> &nbsp;·&nbsp; <a id="lnkAdmin">Accesso Admin</a></div>
   </div>
 
   <!-- LOGIN ADMIN -->
@@ -252,25 +245,22 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
 
   <!-- PANNELLO ADMIN -->
   <div id="viewAdmin" class="view">
-    <div class="row" style="position:relative">
-      <h1>Pannello <span>Admin</span></h1>
-      <div class="uactions" style="margin-top:0;flex-wrap:nowrap">
+    <div class="topbar">
+      <div class="ttl">Pannello <span>Admin</span></div>
+      <div class="uactions" style="margin:0;flex-wrap:nowrap">
         <label class="sw">Admin<input id="swAdminPanel" type="checkbox" checked><i></i></label>
         <button id="btnAdminExit" class="sec small" type="button">Esci</button>
-        <button id="btnMenu" class="sec small" type="button" aria-label="Menu">☰</button>
       </div>
-      <div id="adminMenu" class="menu" style="display:none">
-        <button type="button" data-sec="cat">Catalogo</button>
-        <button type="button" data-sec="opts">Impostazioni</button>
-      </div>
+    </div>
+    <div class="atabs" id="adminTabs">
+      <button type="button" data-sec="races" class="on">Gare</button>
+      <button type="button" data-sec="players">Giocatori</button>
+      <button type="button" data-sec="cat">Catalogo</button>
+      <button type="button" data-sec="opts">Impostazioni</button>
     </div>
     <div id="adminMain">
     <p id="adminInfo" class="sub" style="color:var(--ok);min-height:20px"></p>
-    <div class="acols"><div class="acol">
-    <div class="card">
-      <div class="mut">Tesoreria (fee trattenute)</div>
-      <div class="bal" style="font-size:32px"><span id="tBal">0</span> <span class="mut" style="font-size:16px">crediti</span></div>
-    </div>
+    <div id="adminColRaces">
     <div class="card">
       <b>Nuova gara</b>
       <div class="tabs" style="margin-top:10px">
@@ -302,7 +292,12 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
       <div class="row"><b>Gare</b></div>
       <div id="raceAdminList"></div>
     </div>
-    </div><div class="acol">
+    </div>
+    <div id="adminColPlayers" style="display:none">
+    <div class="card">
+      <div class="mut">Tesoreria (fee trattenute)</div>
+      <div class="bal" style="font-size:32px"><span id="tBal">0</span> <span class="mut" style="font-size:16px">crediti</span></div>
+    </div>
     <div class="card">
       <b>Richieste di ricarica</b>
       <div id="reqList"></div>
@@ -311,11 +306,11 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
       <div class="row"><b>Giocatori</b><button id="btnReload" class="sec small" type="button">Aggiorna</button></div>
       <div id="userList"></div>
     </div>
-    </div></div>
+    </div>
     </div>
     <div id="adminOpts" style="display:none">
       <div class="card">
-        <div class="row"><b>Impostazioni</b><button class="sec small" type="button" data-sec="main">← Pannello</button></div>
+        <div class="row"><b>Impostazioni</b></div>
         <form id="formCfg" style="margin-top:12px">
           <label for="sFee">Fee sulle gare (%)</label>
           <input id="sFee" type="number" step="1" min="0" max="100" inputmode="numeric" required>
@@ -354,7 +349,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
     </div>
     <div id="adminCat" style="display:none">
     <div class="card">
-      <div class="row"><b>Gestione Catalogo</b><span class="uactions" style="margin:0"><button id="btnCatLoad" class="sec small" type="button">Aggiorna</button><button class="sec small" type="button" data-sec="main">← Pannello</button></span></div>
+      <div class="row"><b>Gestione Catalogo</b><span class="uactions" style="margin:0"><button id="btnCatLoad" class="sec small" type="button">Aggiorna</button></span></div>
       <div class="tabs" id="cadmTabs" style="margin-top:10px;display:none">
         <button type="button" class="small" data-cf="all">Tutte</button>
         <button type="button" class="small sec" data-cf="new">Non ancora scommesse</button>
@@ -379,6 +374,76 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
     <div id="adminErr" class="err"></div>
   </div>
 
+</div>
+
+<!-- DRAWER (menu a panino) -->
+<div id="drawerBg" class="dbg"></div>
+<aside id="drawer" class="drawer" aria-label="Menu">
+  <div class="row"><b style="font-size:20px">Murble <span style="color:var(--acc)">Race</span></b><button id="btnDrawerClose" class="ibtn" type="button" aria-label="Chiudi">✕</button></div>
+  <div class="prof">
+    <div class="mut">Giocatore</div>
+    <b id="hName" style="font-size:19px"></b>
+    <div style="margin-top:8px"><span id="hBadge" class="badge wait"></span></div>
+    <div class="mut" style="margin-top:12px">Saldo</div>
+    <div style="font-size:26px;font-weight:700"><span id="hBal2">0</span> <span class="mut">crediti</span></div>
+  </div>
+  <button id="btnTopup" class="full" type="button" style="margin-top:0">Ricarica crediti</button>
+  <nav class="dlinks">
+    <a data-info="rules">Regolamento di Gioco</a>
+    <a data-info="terms">Termini e Condizioni</a>
+  </nav>
+  <div class="dadmin">
+    <label id="wrapAdminQuick" class="sw" style="display:none">Pannello Admin<input id="swAdminHome" type="checkbox"><i></i></label>
+    <a id="lnkAdmin">Accesso Admin</a>
+  </div>
+  <button id="btnLogout" class="sec full" type="button" style="margin-top:auto">Esci</button>
+</aside>
+
+<!-- RICARICA CREDITI -->
+<div id="modalTopup" class="modal" role="dialog" aria-modal="true">
+  <div class="mbox" style="max-width:420px">
+    <b style="font-size:18px">Ricarica crediti</b>
+    <form id="topupForm" style="margin-top:4px">
+      <label for="tAmt">Quanti crediti vuoi richiedere?</label>
+      <input id="tAmt" type="number" step="1" min="1" inputmode="numeric" required>
+      <div class="uactions" style="margin-top:12px">
+        <button class="small" type="submit">Invia richiesta</button>
+        <button class="small sec" id="btnTopupCancel" type="button">Annulla</button>
+      </div>
+      <div id="topupErr" class="err"></div>
+    </form>
+    <div id="topupStatus" class="mut" style="margin-top:10px"></div>
+    <button id="btnTopupClose" class="sec full" type="button">Chiudi</button>
+  </div>
+</div>
+
+<!-- CREA PARTITA DAL CATALOGO -->
+<div id="modalCat" class="modal" role="dialog" aria-modal="true">
+  <div class="mbox">
+    <b style="font-size:18px">Crea Partita dal Catalogo</b>
+    <div class="mbody">
+      <form id="formCat">
+        <label for="catCategory">Categoria</label>
+        <select id="catCategory"><option value="">Tutte</option></select>
+        <label for="catRunners">Numero di biglie</label>
+        <select id="catRunners"><option value="">Qualsiasi</option><option value="2-4">2 – 4</option><option value="5-8">5 – 8</option><option value="9-12">9 – 12</option></select>
+        <label for="catDur">Durata massima</label>
+        <select id="catDur"><option value="">Qualsiasi</option><option value="120">Sotto i 2 min</option><option value="240">Sotto i 4 min</option></select>
+        <label for="catRunner">Biglia partecipante (facoltativa)</label>
+        <input id="catRunner" maxlength="30" placeholder="es. Italy" autocapitalize="none">
+        <label class="rn" style="margin-top:10px"><input id="catExcl" type="checkbox" checked><span class="nm">Escludi gare già giocate</span></label>
+        <label for="catPlayers">Numero di giocatori partecipanti (2–20)</label>
+        <input id="catPlayers" type="number" step="1" min="2" max="20" inputmode="numeric" placeholder="es. 4" required>
+        <div id="catInfo" class="mut" style="margin-top:8px"></div>
+        <div class="uactions" style="margin-top:12px">
+          <button class="small" type="submit">Estrai e Avvia Partita</button>
+          <button class="small sec" id="btnCatReset" type="button">Azzera filtri</button>
+          <button class="small sec" id="btnCatCancel" type="button">Annulla</button>
+        </div>
+        <div id="catErr" class="err"></div>
+      </form>
+    </div>
+  </div>
 </div>
 
 <!-- FINESTRA REGOLAMENTO / TERMINI -->
@@ -506,6 +571,7 @@ const validName = n => /^[a-z0-9._-]{3,20}$/.test(n) && !RESERVED.includes(n);
 const toEmail = n => n + DOMAIN;
 
 function show(id){
+  closeOverlays();
   document.querySelectorAll(".view").forEach(v => v.classList.remove("on"));
   $(id).classList.add("on");
   window.scrollTo(0, 0);
@@ -542,11 +608,18 @@ function openInfo(tab){
   document.querySelector("#modalInfo .mbody").scrollTop = 0;
 }
 function closeInfo(){ $("modalInfo").classList.remove("on"); }
+function openDrawer(){ $("drawer").classList.add("on"); $("drawerBg").classList.add("on"); }
+function closeDrawer(){ $("drawer").classList.remove("on"); $("drawerBg").classList.remove("on"); }
+function closeOverlays(){ ["modalInfo", "modalTopup", "modalCat"].forEach(m => $(m).classList.remove("on")); closeDrawer(); }
+$("btnDrawer").onclick = openDrawer;
+$("btnDrawerClose").onclick = closeDrawer;
+$("drawerBg").onclick = closeDrawer;
+$("drawer").addEventListener("click", ev => { if (ev.target.closest("button, a")) closeDrawer(); });
 $("infoTabRules").onclick = () => openInfo("rules");
 $("infoTabTerms").onclick = () => openInfo("terms");
 $("infoClose").onclick = closeInfo;
 $("modalInfo").addEventListener("click", ev => { if (ev.target === $("modalInfo")) closeInfo(); });
-document.addEventListener("keydown", ev => { if (ev.key === "Escape") closeInfo(); });
+document.addEventListener("keydown", ev => { if (ev.key === "Escape") closeOverlays(); });
 document.addEventListener("click", ev => {
   const a = ev.target.closest("a[data-info]");
   if (!a) return;
@@ -645,15 +718,17 @@ onAuthStateChanged(auth, async user => {
   }
 });
 
+function updateCatBtn(){ $("catCard").style.display = (meDoc && meDoc.active && raceTab === "active") ? "" : "none"; }
 function renderHome(name, d){
   meDoc = d;
   $("hName").textContent = d.username || name;
   $("hBal").textContent = d.balance;
+  $("hBal2").textContent = d.balance;
   const b = $("hBadge");
   b.textContent = d.active ? "Account attivo" : "In attesa di attivazione";
   b.className = "badge " + (d.active ? "ok" : "wait");
   $("hWait").style.display = d.active ? "none" : "block";
-  $("catCard").style.display = d.active ? "" : "none";
+  updateCatBtn();
   renderRaces();
 }
 $("btnLogout").onclick = () => signOut(auth);
@@ -797,11 +872,13 @@ function renderRaces(){
 
 function setRaceTab(t){
   raceTab = t;
-  $("tabActive").classList.toggle("sec", t !== "active");
-  $("tabHistory").classList.toggle("sec", t !== "history");
-  $("tabMoves").classList.toggle("sec", t !== "moves");
-  $("tabBoard").classList.toggle("sec", t !== "board");
+  $("tabActive").classList.toggle("on", t === "active");
+  $("tabHistory").classList.toggle("on", t === "history");
+  $("tabMoves").classList.toggle("on", t === "moves");
+  $("tabBoard").classList.toggle("on", t === "board");
+  updateCatBtn();
   renderRaces();
+  window.scrollTo(0, 0);
 }
 $("tabActive").onclick = () => setRaceTab("active");
 $("tabHistory").onclick = () => setRaceTab("history");
@@ -955,13 +1032,11 @@ async function loadCatalog(){
   updateCatInfo();
 }
 $("btnCat").onclick = async () => {
-  const f = $("formCat");
-  if (f.style.display !== "none") { f.style.display = "none"; return; }
-  f.style.display = "block";
+  $("modalCat").classList.add("on");
   $("catErr").textContent = ""; $("catInfo").textContent = "Caricamento catalogo…";
   try { await loadCatalog(); } catch (e) { $("catInfo").textContent = ""; $("catErr").textContent = msg(e); }
 };
-$("btnCatCancel").onclick = () => { $("formCat").style.display = "none"; };
+$("btnCatCancel").onclick = () => { $("modalCat").classList.remove("on"); };
 $("btnCatReset").onclick = () => {
   $("catCategory").value = ""; $("catRunners").value = ""; $("catDur").value = "";
   $("catRunner").value = ""; $("catExcl").checked = true;
@@ -1020,7 +1095,7 @@ $("formCat").addEventListener("submit", async ev => {
       }
       if (!newId) { await loadCatalog(); $("catErr").textContent = "Le gare corrispondenti sono già in corso o già giocate: cambia i filtri o riprova."; return; }
       expanded[newId] = true;
-      $("formCat").style.display = "none";
+      $("modalCat").classList.remove("on");
       $("catPlayers").value = "";
       catAt = 0;
       setRaceTab("active");
@@ -1032,20 +1107,24 @@ $("formCat").addEventListener("submit", async ev => {
 function renderTopup(r){
   myReq = r;
   const pending = !!r && r.status === "pending";
-  $("btnTopup").disabled = pending;
   const st = $("topupStatus");
   if (!r) st.textContent = "";
   else if (pending) st.textContent = "Richiesta di " + r.amount + " crediti in attesa di risposta dall'admin.";
   else if (r.status === "approved") st.textContent = "Ultima richiesta approvata: +" + (r.approvedAmount ?? r.amount) + " crediti.";
   else st.textContent = "Ultima richiesta rifiutata dall'admin.";
 }
-$("btnTopup").onclick = () => {
-  $("topupForm").style.display = "block";
+function openTopup(){
+  const pending = !!myReq && myReq.status === "pending";
+  $("topupForm").style.display = pending ? "none" : "block";
   $("tAmt").value = "";
   $("topupErr").textContent = "";
-  $("tAmt").focus();
-};
-$("btnTopupCancel").onclick = () => { $("topupForm").style.display = "none"; };
+  $("modalTopup").classList.add("on");
+  if (!pending) $("tAmt").focus();
+}
+$("btnTopup").onclick = openTopup;
+$("balPill").onclick = openTopup;
+$("btnTopupCancel").onclick = () => { $("modalTopup").classList.remove("on"); };
+$("btnTopupClose").onclick = () => { $("modalTopup").classList.remove("on"); };
 $("topupForm").addEventListener("submit", async ev => {
   ev.preventDefault();
   $("topupErr").textContent = "";
@@ -1105,16 +1184,18 @@ $("btnReload").onclick = () => loadAdmin();
 
 // ---------- Admin: menu e opzioni ----------
 function showAdminSec(n){
-  $("adminMain").style.display = n === "main" ? "" : "none";
+  if (n === "main") n = "races";
+  $("adminMain").style.display = (n === "races" || n === "players") ? "" : "none";
+  $("adminColRaces").style.display = n === "races" ? "" : "none";
+  $("adminColPlayers").style.display = n === "players" ? "" : "none";
   $("adminOpts").style.display = n === "opts" ? "" : "none";
   $("adminCat").style.display = n === "cat" ? "" : "none";
+  document.querySelectorAll("#adminTabs button").forEach(b => b.classList.toggle("on", b.dataset.sec === n));
   if (n === "cat" && !cadm.length) loadCatAdm().catch(e => { $("adminErr").textContent = msg(e); });
   $("optMsg").textContent = "";
   $("cfgMsg").textContent = "";
   $("adminErr").textContent = "";
 }
-$("btnMenu").onclick = ev => { ev.stopPropagation(); const m = $("adminMenu"); m.style.display = m.style.display === "none" ? "block" : "none"; };
-document.addEventListener("click", () => { $("adminMenu").style.display = "none"; });
 document.addEventListener("click", ev => {
   const b = ev.target.closest("button[data-sec]");
   if (b) showAdminSec(b.dataset.sec);
