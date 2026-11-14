@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Murble Race">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Murble Race v3.21</title>
+<title>Murble Race v3.22</title>
 <style>
 :root{--bg:#0f1220;--card:#181c30;--line:#2a3050;--txt:#eef0fa;--mut:#8f96b8;--acc:#ff9f1c;--ok:#2ec27e;--err:#ff5d6c}
 *{box-sizing:border-box}
@@ -183,7 +183,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
 
   <!-- AUTENTICAZIONE -->
   <div id="viewAuth" class="view on">
-    <h1>Murble <span>Race</span> <small class="ver">v3.21</small></h1>
+    <h1>Murble <span>Race</span> <small class="ver">v3.22</small></h1>
     <p class="sub">Pronostici a punti sulle gare di biglie</p>
     <div class="card">
       <div class="tabs">
@@ -217,7 +217,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
     <div class="topbar">
       <div class="tleft">
         <button id="btnDrawer" class="ibtn" type="button" aria-label="Menu">☰</button>
-        <div class="ttl">Murble <span>Race</span> <small class="ver">v3.21</small></div>
+        <div class="ttl">Murble <span>Race</span> <small class="ver">v3.22</small></div>
       </div>
       <button id="balPill" class="pill" type="button" aria-label="Punti totali: apri la classifica"><span id="hPts">0</span> <small>PT</small></button>
     </div>
@@ -525,7 +525,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp, collection, getDocs, runTransaction, query, where, orderBy, limit, writeBatch, deleteField, deleteDoc }
+import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp, collection, getDocs, runTransaction, query, where, orderBy, limit, writeBatch, deleteField, deleteDoc, increment }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -725,6 +725,7 @@ let unsubUser = null, unsubTopup = null, unsubRaces = null, unsubBets = null, un
 let boardTeams = [], boardSub = "teams", myTeam = null, curTeamId = "", teamCode = "";
 let me = null, myReq = null, meDoc = null, pendingDisplay = null, pendingTerms = false;
 let races = [], myBets = {}, myBetList = [], ledgerRows = [], draft = {}, expanded = {}, raceTab = "active";
+let ytPlayers = {}, ytCur = {}, showRes = {}, presetPod = {}, podReq = {};
 let videoIds = {}, videoReq = {}, boardRows = [], prevStatus = {};
 
 function stopListeners(){
@@ -812,6 +813,41 @@ async function fetchVideo(id){
 
 const macroCat = c => { const x = String(c || "").trim().toLowerCase(); return (x === "diecast" || x === "street race") ? "Street race" : "Murble race"; };
 const withDur = (y, r) => y ? { ...y, dur: Number.isInteger(r.durationSec) && r.durationSec > 0 ? r.durationSec : (parseDur(r.duration || "") || 0) } : y;
+let ytApiP = null;
+function loadYtApi(){
+  if (window.YT && window.YT.Player) return Promise.resolve();
+  if (!ytApiP) ytApiP = new Promise(res => {
+    const prev = window.onYouTubeIframeAPIReady;
+    window.onYouTubeIframeAPIReady = () => { if (prev) prev(); res(); };
+    if (!document.querySelector('script[src="https://www.youtube.com/iframe_api"]')) {
+      const t = document.createElement("script"); t.src = "https://www.youtube.com/iframe_api"; document.head.appendChild(t);
+    }
+  });
+  return ytApiP;
+}
+function ytSrc(y, autoplay){
+  const st = y.start > 0 ? y.start : 0;
+  return "https://www.youtube.com/embed/" + y.id + "?rel=0&modestbranding=1&playsinline=1" + (st ? "&start=" + st : "") + (y.dur > 0 ? "&end=" + (st + y.dur) : "") + (autoplay ? "&autoplay=1" : "") + "&enablejsapi=1&origin=" + encodeURIComponent(location.origin);
+}
+// A fine batteria (ENDED) mostra il riquadro con il risultato ufficiale
+function attachYt(raceId, iframe){
+  loadYtApi().then(() => {
+    try { ytPlayers[raceId] = new YT.Player(iframe, { events: { onStateChange: ev => { if (ev.data === 0) { showRes[raceId] = true; renderRaces(); } } } }); } catch (e) {}
+  });
+}
+// Podio preimpostato (catalog_w): le regole lo rendono leggibile solo a pronostici chiusi e solo ai partecipanti
+async function fetchPodium(r){
+  podReq[r.id] = Date.now();
+  try {
+    const d = await getDoc(doc(db, "catalog_w", r.catalogId));
+    const wd = d.exists() ? d.data() : {};
+    const n = (r.runners || []).length;
+    const arr = Array.isArray(wd.presetPodium) ? wd.presetPodium : (Number.isInteger(wd.presetWinner) ? [wd.presetWinner] : []);
+    const ok = arr.filter(x => Number.isInteger(x) && x >= 0 && x < n);
+    presetPod[r.id] = ok.length && new Set(ok).size === ok.length ? ok : null;
+    renderRaces();
+  } catch (e) { /* nuovo tentativo al prossimo aggiornamento */ }
+}
 const PODIUM_DEF = [100, 50, 25];
 const MEDALS = ["🥇", "🥈", "🥉"];
 const podiumPts = r => (Array.isArray(r.podiumPts) && r.podiumPts.length === 3) ? r.podiumPts : PODIUM_DEF;
@@ -842,7 +878,7 @@ function raceParts(r){
     const control = canBet ? `<input type="${is1v1 ? "checkbox" : "radio"}" name="rn_${esc(r.id)}" value="${i}" ${lock ? "disabled" : ""} ${sel.includes(String(i)) && !lock ? "checked" : ""}>` : "";
     let cnt = "";
     if (!is1v1) { const c = Object.keys(taken).filter(k => k.endsWith("_" + i)).length; cnt = c + (c === 1 ? " giocatore" : " giocatori"); }
-    const info = [cnt, place >= 0 ? "+" + pp[place] + " PT" : "", tk !== undefined ? "🔒 " + tk : ""].filter(Boolean).join(" · ");
+    const info = [cnt, place >= 0 ? "+" + pp[place] + " PT" : "", tk !== undefined ? "🔒 " + (typeof tk === "object" ? tk.n : tk) : ""].filter(Boolean).join(" · ");
     return `<label class="rn ${place === 0 ? "win" : ""}"${lock ? ' style="opacity:.55"' : ""}>${control}<span class="nm">${esc(n)}${myPick ? " ★" : ""}${place >= 0 ? " " + MEDALS[place] : ""}</span><span class="mut">${esc(info)}</span></label>`;
   }).join("");
   const needTeam = `<div class="betbox"><div class="mut" style="margin-bottom:8px">Per le Sfide a Squadre devi far parte di una Squadra.</div><button class="full" data-act="goteam" type="button">Crea o unisciti a una Squadra</button></div>`;
@@ -886,7 +922,14 @@ function raceParts(r){
       <div class="row mut" style="margin-top:4px"><span>Podio: 🥇${esc(pp[0])} · 🥈${esc(pp[1])} · 🥉${esc(pp[2])} PT</span><span>${b ? marbleSvg(meDoc && meDoc.marble, 16) + " ✓ Pronostico fatto" : ""}${arrow}</span></div>${r.expectedPlayers ? `<div class="row mut" style="margin-top:4px"><span>Giocatori: <b style="color:var(--txt)">${esc(r.betsCount || 0)} / ${esc(r.expectedPlayers)}</b>${teamsPart}</span></div>` : ""}`;
   const showVideo = isOpen && r.status !== "cancelled" && r.status !== "ready" && (r.status !== "open" || r.youtubeLive === true);
   if (showVideo && r.hasVideo && videoIds[r.id] === undefined && !(videoReq[r.id] > Date.now() - 20000)) fetchVideo(r.id);
-  return { head, body: isOpen ? runners + foot : "", yt: showVideo ? withDur(videoIds[r.id] || ytInfo(r.youtubeUrl), r) : null, isActive };
+  if (r.status === "closed" && b && r.catalogId && presetPod[r.id] === undefined && !(podReq[r.id] > Date.now() - 20000)) fetchPodium(r);
+  let resHtml = "";
+  const podSet = presetPod[r.id];
+  if (r.status === "closed" && b && showRes[r.id] && Array.isArray(podSet) && podSet.length) {
+    resHtml = `<div class="betbox" style="border:1px solid var(--acc);border-radius:12px;padding:12px;margin-top:10px"><b>Risultato Ufficiale della Gara</b>${podSet.map((i, p) => `<div class="row" style="margin-top:6px"><span>${MEDALS[p]} <b>${p + 1}° Posto:</b> ${esc((r.runners || [])[i] ?? "?")}</span><span class="res-won">+${esc(pp[p])} PT</span></div>`).join("")}
+      <div style="display:flex;gap:8px;margin-top:12px"><button class="full" data-act="confirmpod" type="button" style="flex:1;margin-top:0">Clicca qui per confermare</button><button class="full sec" data-act="replay" type="button" style="flex:1;margin-top:0">Rivedi questa gara ↻</button></div></div>`;
+  }
+  return { head, res: resHtml, body: isOpen ? runners + foot : "", yt: showVideo ? withDur(videoIds[r.id] || ytInfo(r.youtubeUrl), r) : null, isActive };
 }
 
 function movesHtml(){
@@ -942,18 +985,21 @@ function renderRaces(){
       el = document.createElement("div");
       el.className = "card race";
       el.dataset.id = r.id;
-      el.innerHTML = '<div class="rhead"></div><div class="yt-slot"></div><div class="rbody"></div>';
+      el.innerHTML = '<div class="rhead"></div><div class="yt-slot"></div><div class="res-slot"></div><div class="rbody"></div>';
     }
-    const [head, slot, body] = el.children;
+    const [head, slot, resSlot, body] = el.children;
     head.className = "rhead" + (parts.isActive ? "" : " static");
     if (parts.isActive) head.setAttribute("data-toggle", ""); else head.removeAttribute("data-toggle");
     if (el._head !== parts.head) { head.innerHTML = parts.head; el._head = parts.head; }
+    if (el._res !== parts.res) { resSlot.innerHTML = parts.res; el._res = parts.res; }
     if (el._body !== parts.body) { body.innerHTML = parts.body; el._body = parts.body; }
     if (parts.yt) {
       const key = parts.yt.id + ":" + parts.yt.start + ":" + (parts.yt.dur || 0);
       if (slot.dataset.id !== key) {
         const st = parts.yt.start > 0 ? parts.yt.start : 0;
-        slot.innerHTML = '<div class="yt"><iframe src="https://www.youtube.com/embed/' + parts.yt.id + '?rel=0&modestbranding=1&playsinline=1' + (st ? '&start=' + st : '') + (parts.yt.dur > 0 ? '&end=' + (st + parts.yt.dur) : '') + '" title="Video gara" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div><div class="mut" style="margin-top:6px;font-size:13px"><a href="https://www.youtube.com/watch?v=' + parts.yt.id + (st ? '&t=' + st + 's' : '') + '" target="_blank" rel="noopener noreferrer" style="color:var(--mut)">Apri su YouTube ↗</a></div>';
+        ytCur[r.id] = parts.yt;
+        slot.innerHTML = '<div class="yt"><iframe src="' + ytSrc(parts.yt, false) + '" title="Video gara" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div><div class="mut" style="margin-top:6px;font-size:13px"><a href="https://www.youtube.com/watch?v=' + parts.yt.id + (st ? '&t=' + st + 's' : '') + '" target="_blank" rel="noopener noreferrer" style="color:var(--mut)">Apri su YouTube ↗</a> · <button class="small sec" type="button" data-yt="replay" style="margin:0 0 0 4px">Rivedi questa gara ↻</button></div><div class="mut" style="margin-top:4px;font-size:12px"><a href="#" data-yt="showres" style="color:var(--mut)">Video già terminato? Mostra risultato</a></div>';
+        attachYt(r.id, slot.querySelector("iframe"));
         slot.dataset.id = key;
       }
     } else if (slot.dataset.id) { slot.innerHTML = ""; delete slot.dataset.id; }
@@ -1052,6 +1098,76 @@ function modeFields(mode, k, nRunners, size){
   if (nRunners < size) throw new Error("Gara con meno biglie dei giocatori di una squadra.");
   return { gameMode: "team", teamsCount: k, teamSize: size, expectedPlayers: k * size, picksPerPlayer: 1 };
 }
+$("raceList").addEventListener("click", async ev => {
+  const y = ev.target.closest("[data-yt]"), pb = ev.target.closest("button[data-act='replay'], button[data-act='confirmpod']");
+  if (!y && !pb) return;
+  ev.preventDefault();
+  const id = ev.target.closest(".race").dataset.id;
+  const kind = y ? y.dataset.yt : pb.dataset.act;
+  $("homeErr").textContent = "";
+  if (kind === "replay") {
+    const iframe = ev.target.closest(".race").querySelector(".yt iframe"), cur = ytCur[id];
+    if (iframe && cur) { showRes[id] = false; iframe.src = ytSrc(cur, true); attachYt(id, iframe); renderRaces(); }
+  } else if (kind === "showres") {
+    const rc = races.find(x => x.id === id);
+    if (!rc || rc.status !== "closed" || !myBets[id] || !Array.isArray(presetPod[id])) { $("homeErr").textContent = "Risultato non ancora disponibile per questa gara."; return; }
+    showRes[id] = true; renderRaces();
+  } else if (kind === "confirmpod") {
+    await busy(pb, async () => {
+      try { await confirmRacePodium(id); showRes[id] = false; }
+      catch (e) { $("homeErr").textContent = msg(e); }
+    });
+  }
+});
+
+// Conferma del podio ufficiale da parte di un partecipante: chiude la gara e accredita i punti in un'unica transazione
+async function confirmRacePodium(raceId){
+  const pod = presetPod[raceId];
+  if (!Array.isArray(pod) || !pod.length) throw new Error("Risultato non disponibile.");
+  const rr = doc(db, "races", raceId);
+  await runTransaction(db, async tx => {
+    const rs = await tx.get(rr);
+    if (!rs.exists()) throw new Error("Gara non trovata.");
+    const race = rs.data();
+    if (race.status !== "closed") throw new Error("La gara è già stata confermata.");
+    if (pod.some(i => !Number.isInteger(i) || i < 0 || i >= race.runners.length) || new Set(pod).size !== pod.length) throw new Error("Podio non valido.");
+    const pp = podiumPts(race), isTeam = race.gameMode === "team";
+    const players = {};
+    for (const [key, val] of Object.entries(race.taken || {})) {
+      if (!val || typeof val !== "object" || !val.u) throw new Error("Gara creata con una versione precedente: la conferma spetta all'Admin.");
+      const kp = isTeam ? key.split("_") : ["", key];
+      const pl = players[val.u] || (players[val.u] = { runners: [], name: val.n || "", tid: isTeam ? kp[0] : "" });
+      pl.runners.push(Number(kp[1]));
+    }
+    const uids = Object.keys(players);
+    const tids = [...new Set(uids.map(u => players[u].tid).filter(Boolean))];
+    const lbSnaps = await Promise.all(uids.map(u => tx.get(doc(db, "leaderboard", u))));
+    const tSnaps = await Promise.all(tids.map(t => tx.get(doc(db, "teams", t))));
+    const tAgg = {};
+    uids.forEach((uid, i) => {
+      const pl = players[uid];
+      let pts = 0, first = 0;
+      pl.runners.forEach(k => { const p = pod.indexOf(k); if (p >= 0) { pts += pp[p]; if (p === 0) first++; } });
+      tx.update(doc(db, "bets", raceId + "_" + uid), { status: pts > 0 ? "won" : "lost", points: pts });
+      if (pts > 0) tx.update(doc(db, "users", uid), { points: increment(pts), creditRace: raceId });
+      const lb = lbSnaps[i].exists() ? lbSnaps[i].data() : {};
+      const td = pl.tid ? tSnaps[tids.indexOf(pl.tid)] : null;
+      tx.set(lbSnaps[i].ref, {
+        username: lb.username || pl.name, marble: lb.marble || null,
+        teamTag: lb.teamTag !== undefined ? lb.teamTag : (td && td.exists() ? td.data().tag || "" : ""),
+        picks: (lb.picks || 0) + 1, wins: (lb.wins || 0) + (first > 0 ? 1 : 0), points: (lb.points || 0) + pts, creditRace: raceId
+      });
+      if (pl.tid) { const a = tAgg[pl.tid] || (tAgg[pl.tid] = { picks: 0, wins: 0, points: 0 }); a.picks++; a.wins += first; a.points += pts; }
+    });
+    tids.forEach((t, i) => {
+      if (!tSnaps[i].exists()) return;
+      const st = tSnaps[i].data().stats || {}, a = tAgg[t];
+      tx.update(tSnaps[i].ref, { stats: { picks: (st.picks || 0) + a.picks, wins: (st.wins || 0) + a.wins, points: (st.points || 0) + a.points }, creditRace: raceId });
+    });
+    tx.update(rr, { status: "settled", winner: pod[0], podium: pod, settledAt: serverTimestamp() });
+  });
+}
+
 // Avvio gara da parte di un giocatore attivo: ready -> open, modalità fissata una sola volta
 async function startRace(raceId, mode, k){
   const rr = doc(db, "races", raceId);
@@ -1098,13 +1214,13 @@ async function placeBet(raceId, keys){
       if (!(tid in counts) && Object.keys(counts).length >= race.teamsCount) throw new Error("La gara ha già tutte le squadre.");
       const tk = tid + "_" + keys[0];
       if (taken[tk] !== undefined) throw new Error("Questa biglia è già stata scelta da un compagno di squadra.");
-      taken[tk] = nm; counts[tid] = (counts[tid] || 0) + 1;
+      taken[tk] = { u: me.uid, n: nm }; counts[tid] = (counts[tid] || 0) + 1;
       upd.teamCounts = counts;
       bet.teamId = tid; bet.teamTag = u.data().teamTag || "";
     } else {
       if (keys.length !== race.picksPerPlayer) throw new Error("Scegli esattamente " + race.picksPerPlayer + " biglie.");
       if (keys.some(k => taken[k] !== undefined)) throw new Error("Una delle biglie è già stata scelta dall'avversario: scegline altre.");
-      keys.forEach(k => { taken[k] = nm; });
+      keys.forEach(k => { taken[k] = { u: me.uid, n: nm }; });
     }
     upd.taken = taken;
     const cnt = (race.betsCount || 0) + 1;
