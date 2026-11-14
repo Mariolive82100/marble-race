@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Murble Race">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Murble Race v3.22</title>
+<title>Murble Race v3.23</title>
 <style>
 :root{--bg:#0f1220;--card:#181c30;--line:#2a3050;--txt:#eef0fa;--mut:#8f96b8;--acc:#ff9f1c;--ok:#2ec27e;--err:#ff5d6c}
 *{box-sizing:border-box}
@@ -183,7 +183,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
 
   <!-- AUTENTICAZIONE -->
   <div id="viewAuth" class="view on">
-    <h1>Murble <span>Race</span> <small class="ver">v3.22</small></h1>
+    <h1>Murble <span>Race</span> <small class="ver">v3.23</small></h1>
     <p class="sub">Pronostici a punti sulle gare di biglie</p>
     <div class="card">
       <div class="tabs">
@@ -217,7 +217,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
     <div class="topbar">
       <div class="tleft">
         <button id="btnDrawer" class="ibtn" type="button" aria-label="Menu">☰</button>
-        <div class="ttl">Murble <span>Race</span> <small class="ver">v3.22</small></div>
+        <div class="ttl">Murble <span>Race</span> <small class="ver">v3.23</small></div>
       </div>
       <button id="balPill" class="pill" type="button" aria-label="Punti totali: apri la classifica"><span id="hPts">0</span> <small>PT</small></button>
     </div>
@@ -825,9 +825,12 @@ function loadYtApi(){
   });
   return ytApiP;
 }
+// Margini di sicurezza: parte 8 s prima del marker e si ferma 12 s dopo la fine prevista
+const safeStartOf = y => Math.max(0, (y.start > 0 ? y.start : 0) - 8);
+const safeEndOf = y => y.dur > 0 ? (y.start > 0 ? y.start : 0) + y.dur + 12 : 0;
 function ytSrc(y, autoplay){
-  const st = y.start > 0 ? y.start : 0;
-  return "https://www.youtube.com/embed/" + y.id + "?rel=0&modestbranding=1&playsinline=1" + (st ? "&start=" + st : "") + (y.dur > 0 ? "&end=" + (st + y.dur) : "") + (autoplay ? "&autoplay=1" : "") + "&enablejsapi=1&origin=" + encodeURIComponent(location.origin);
+  const st = safeStartOf(y), en = safeEndOf(y);
+  return "https://www.youtube.com/embed/" + y.id + "?rel=0&modestbranding=1&playsinline=1" + (st ? "&start=" + st : "") + (en ? "&end=" + en : "") + (autoplay ? "&autoplay=1" : "") + "&enablejsapi=1&origin=" + encodeURIComponent(location.origin);
 }
 // A fine batteria (ENDED) mostra il riquadro con il risultato ufficiale
 function attachYt(raceId, iframe){
@@ -996,7 +999,7 @@ function renderRaces(){
     if (parts.yt) {
       const key = parts.yt.id + ":" + parts.yt.start + ":" + (parts.yt.dur || 0);
       if (slot.dataset.id !== key) {
-        const st = parts.yt.start > 0 ? parts.yt.start : 0;
+        const st = safeStartOf(parts.yt);
         ytCur[r.id] = parts.yt;
         slot.innerHTML = '<div class="yt"><iframe src="' + ytSrc(parts.yt, false) + '" title="Video gara" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div><div class="mut" style="margin-top:6px;font-size:13px"><a href="https://www.youtube.com/watch?v=' + parts.yt.id + (st ? '&t=' + st + 's' : '') + '" target="_blank" rel="noopener noreferrer" style="color:var(--mut)">Apri su YouTube ↗</a> · <button class="small sec" type="button" data-yt="replay" style="margin:0 0 0 4px">Rivedi questa gara ↻</button></div><div class="mut" style="margin-top:4px;font-size:12px"><a href="#" data-yt="showres" style="color:var(--mut)">Video già terminato? Mostra risultato</a></div>';
         attachYt(r.id, slot.querySelector("iframe"));
@@ -2059,7 +2062,10 @@ function renderCatAdm(){
       body = !d ? '<div class="mut" style="margin-top:8px">Caricamento…</div>' : `<div style="margin-top:8px">
         <label>Nome gara</label><input data-f="name" maxlength="60" value="${esc(c.name || "")}">
         <label>Categoria</label><select data-f="category"><option value="Murble race" ${macroCat(c.category) === "Murble race" ? "selected" : ""}>Murble race</option><option value="Street race" ${macroCat(c.category) === "Street race" ? "selected" : ""}>Street race</option></select>
-        <label>Durata (MM:SS, facoltativa)</label><input data-f="duration" maxlength="20" value="${esc(c.duration || "")}">
+        <label>Secondo di inizio (startSec)</label>
+        <div class="row" style="gap:6px;margin:0"><button class="small sec" type="button" data-step="-5" data-for="startSec" style="margin:0">-5s</button><input data-f="startSec" data-orig="${ytStart(d.url)}" type="number" min="0" max="86399" step="1" inputmode="numeric" value="${ytStart(d.url)}" style="flex:1;margin:0"><button class="small sec" type="button" data-step="5" data-for="startSec" style="margin:0">+5s</button></div>
+        <label>Durata in secondi (durationSec, facoltativa)</label>
+        <div class="row" style="gap:6px;margin:0"><button class="small sec" type="button" data-step="-5" data-for="durationSec" style="margin:0">-5s</button><input data-f="durationSec" type="number" min="0" max="3600" step="1" inputmode="numeric" value="${(Number.isInteger(c.durationSec) && c.durationSec > 0) ? c.durationSec : (parseDur(c.duration || "") || "")}" style="flex:1;margin:0"><button class="small sec" type="button" data-step="5" data-for="durationSec" style="margin:0">+5s</button></div>
         <label>Link YouTube</label><input data-f="url" inputmode="url" autocapitalize="none" value="${esc(d.url)}">
         <label>Biglie (una per riga)${locked ? " — bloccate: la gara è già stata giocata" : ""}</label><textarea data-f="runners" rows="5" ${locked ? "readonly" : ""}>${esc((c.runners || []).join("\n"))}</textarea>
         <label>Podio segreto: 1°, 2°, 3° separati da virgola (vuoto = nessuno)</label><input data-f="winner" value="${esc(d.winner)}">
@@ -2131,6 +2137,11 @@ $("cadmList").addEventListener("click", async ev => {
     cadmBar();
     return;
   }
+  if (ev.target.matches("button[data-step]")) {
+    const inp = row.querySelector('[data-f="' + ev.target.dataset.for + '"]');
+    if (inp) inp.value = Math.max(0, (parseInt(inp.value, 10) || 0) + parseInt(ev.target.dataset.step, 10));
+    return;
+  }
   const btn = ev.target.closest("button[data-act]");
   if (!btn) {
     if (!ev.target.closest("[data-tgl]")) return;
@@ -2153,8 +2164,8 @@ $("cadmList").addEventListener("click", async ev => {
         return;
       }
       const f = k => row.querySelector('[data-f="' + k + '"]');
-      const name = f("name").value.trim(), category = f("category").value.trim(), durTxt = f("duration").value.trim();
-      const url = f("url").value.trim(), winner = f("winner").value.trim();
+      const name = f("name").value.trim(), category = f("category").value.trim(), durTxt = f("durationSec").value.trim();
+      let url = f("url").value.trim(); const winner = f("winner").value.trim();
       const runners = (c.playedCount || 0) > 0 ? (c.runners || []) : f("runners").value.split("\n").map(x => x.trim()).filter(Boolean);
       if (!name || name.length > 60) { $("adminErr").textContent = "Nome gara obbligatorio (max 60 caratteri)."; return; }
       if (category.length > 30) { $("adminErr").textContent = "Categoria troppo lunga (max 30)."; return; }
@@ -2162,7 +2173,15 @@ $("cadmList").addEventListener("click", async ev => {
       if (runners.length < 2 || runners.length > 12) { $("adminErr").textContent = "Servono da 2 a 12 biglie."; return; }
       if (new Set(runners.map(r => r.toLowerCase())).size !== runners.length) { $("adminErr").textContent = "I nomi delle biglie devono essere diversi."; return; }
       let sec = null;
-      if (durTxt) { sec = parseDur(durTxt); if (!sec || sec <= 0) { $("adminErr").textContent = "Durata non valida (usa MM:SS, es. 2:51)."; return; } }
+      if (durTxt) { sec = /^\d+$/.test(durTxt) ? parseInt(durTxt, 10) : 0; if (!sec || sec <= 0 || sec > 3600) { $("adminErr").textContent = "Durata non valida (secondi, da 1 a 3600)."; return; } }
+      const stTxt = f("startSec").value.trim(), stOrig = f("startSec").dataset.orig;
+      if (stTxt !== stOrig) {
+        if (!/^\d+$/.test(stTxt) || parseInt(stTxt, 10) > 86399) { $("adminErr").textContent = "Secondo di inizio non valido (numero intero >= 0)."; return; }
+        const u = new URL(url), n = parseInt(stTxt, 10);
+        u.searchParams.delete("start");
+        if (n > 0) u.searchParams.set("t", String(n)); else u.searchParams.delete("t");
+        url = u.toString();
+      }
       let pod = [];
       if (winner) {
         const names = winner.split(",").map(x => x.trim()).filter(Boolean);
