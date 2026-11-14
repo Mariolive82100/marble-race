@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Murble Race">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Murble Race v3.2</title>
+<title>Murble Race v3.3</title>
 <style>
 :root{--bg:#0f1220;--card:#181c30;--line:#2a3050;--txt:#eef0fa;--mut:#8f96b8;--acc:#ff9f1c;--ok:#2ec27e;--err:#ff5d6c}
 *{box-sizing:border-box}
@@ -86,7 +86,7 @@ details.rsx[open] summary::after{content:"▲"}
 
   <!-- AUTENTICAZIONE -->
   <div id="viewAuth" class="view on">
-    <h1>Murble <span>Race</span> <small class="ver">v3.2</small></h1>
+    <h1>Murble <span>Race</span> <small class="ver">v3.3</small></h1>
     <p class="sub">Scommesse sulle gare di biglie</p>
     <div class="card">
       <div class="tabs">
@@ -117,7 +117,7 @@ details.rsx[open] summary::after{content:"▲"}
   <!-- HOME GIOCATORE -->
   <div id="viewHome" class="view">
     <div class="row">
-      <h1>Murble <span>Race</span> <small class="ver">v3.2</small></h1>
+      <h1>Murble <span>Race</span> <small class="ver">v3.3</small></h1>
       <div class="uactions" style="margin-top:0;flex-wrap:nowrap">
         <label id="wrapAdminQuick" class="sw" style="display:none">Admin<input id="swAdminHome" type="checkbox"><i></i></label>
         <button id="btnLogout" class="sec small" type="button">Esci</button>
@@ -202,14 +202,16 @@ details.rsx[open] summary::after{content:"▲"}
         <label for="raceYt">Link YouTube (facoltativo, live o registrato)</label>
         <input id="raceYt" inputmode="url" autocapitalize="none" placeholder="https://www.youtube.com/watch?v=...">
         <label class="rn" style="margin-top:10px"><input id="raceLive" type="checkbox"><span class="nm">Diretta Live (mostra video anche a puntate aperte)</span></label>
+        <label for="raceDur">Durata gara (facoltativa, es. 2:51 o 3 min)</label>
+        <input id="raceDur" maxlength="20" placeholder="2:51">
         <label for="raceInit">Stato iniziale</label>
         <select id="raceInit"><option value="open" selected>Puntate aperte subito</option><option value="ready">Pronta da avviare (la avvia il gruppo)</option></select>
         <button class="full" type="submit">Crea gara</button>
       </form>
       <form id="formBulk" style="display:none">
         <label for="bulkText">Incolla le gare: blocchi separati da una riga vuota</label>
-        <textarea id="bulkText" rows="10" placeholder="Nome gara 1&#10;https://youtu.be/XXXXXXXXXXX?t=90&#10;Vincitore: Biglia B&#10;Biglia A&#10;Biglia B&#10;Biglia C&#10;&#10;Nome gara 2&#10;https://youtu.be/XXXXXXXXXXX?t=450&#10;Biglia D&#10;Biglia E"></textarea>
-        <div class="mut" style="margin-top:6px">Riga 1: nome gara · Riga 2: link YouTube (anche con minutaggio ?t=...) · Riga facoltativa "Vincitore: NomeBiglia" (resta segreta, solo Admin) · Poi una biglia per riga. Massimo 20 gare.</div>
+        <textarea id="bulkText" rows="10" placeholder="Nome gara 1&#10;https://youtu.be/XXXXXXXXXXX?t=90&#10;Vincitore: Biglia B&#10;Durata: 2:51&#10;Biglia A&#10;Biglia B&#10;Biglia C&#10;&#10;Nome gara 2&#10;https://youtu.be/XXXXXXXXXXX?t=450&#10;Biglia D&#10;Biglia E"></textarea>
+        <div class="mut" style="margin-top:6px">Riga 1: nome gara · Riga 2: link YouTube (anche con minutaggio ?t=...) · Righe facoltative (in qualsiasi ordine dopo il link) "Vincitore: NomeBiglia" (resta segreta, solo Admin) e "Durata: 2:51" · Poi una biglia per riga. Massimo 20 gare.</div>
         <label class="rn" style="margin-top:10px"><input id="bulkLive" type="checkbox"><span class="nm">Diretta Live (mostra video anche a puntate aperte)</span></label>
         <label for="bulkInit">Stato iniziale</label>
         <select id="bulkInit"><option value="ready" selected>Pronte da avviare (consigliato: le avvia il gruppo)</option><option value="open">Puntate aperte subito</option></select>
@@ -526,7 +528,7 @@ function raceParts(r){
   const isOpen = !isActive || !!expanded[r.id];
   const arrow = isActive ? (isOpen ? " ▲" : " ▼") : "";
   const head = `<div class="row"><b>${esc(r.name)}</b><span class="badge ${STATUS_CLASS[r.status] || "off"}">${STATUS_LABEL[r.status] || esc(r.status)}</span></div>
-      <div class="row mut" style="margin-top:4px"><span>Montepremi: ${esc(total)} crediti · Fee ${esc(fee)}% sul surplus</span><span>${b ? "✓ Hai puntato" : ""}${arrow}</span></div>${r.expectedPlayers ? `<div class="row mut" style="margin-top:4px"><span>Puntate: <b style="color:var(--txt)">${esc(r.betsCount || 0)} / ${esc(r.expectedPlayers)}</b></span></div>` : ""}`;
+      <div class="row mut" style="margin-top:4px"><span>Montepremi: ${esc(total)} crediti · Fee ${esc(fee)}%${r.duration ? " · Durata: " + esc(r.duration) : " sul surplus"}</span><span>${b ? "✓ Hai puntato" : ""}${arrow}</span></div>${r.expectedPlayers ? `<div class="row mut" style="margin-top:4px"><span>Puntate: <b style="color:var(--txt)">${esc(r.betsCount || 0)} / ${esc(r.expectedPlayers)}</b></span></div>` : ""}`;
   const showVideo = isOpen && r.status !== "cancelled" && r.status !== "ready" && (r.status !== "open" || r.youtubeLive === true);
   if (showVideo && r.hasVideo && videoIds[r.id] === undefined && !(videoReq[r.id] > Date.now() - 20000)) fetchVideo(r.id);
   return { head, body: isOpen ? runners + foot : "", yt: showVideo ? (videoIds[r.id] || ytInfo(r.youtubeUrl)) : null, isActive };
@@ -924,6 +926,7 @@ $("formRace").addEventListener("submit", async ev => {
   if (runners.length < 2 || runners.length > 12) { $("adminErr").textContent = "Servono da 2 a 12 biglie."; return; }
   if (new Set(runners.map(r => r.toLowerCase())).size !== runners.length) { $("adminErr").textContent = "I nomi delle biglie devono essere diversi."; return; }
   const yt = $("raceYt").value.trim();
+  const dur = $("raceDur").value.trim();
   if (yt && !ytId(yt)) { $("adminErr").textContent = "Link YouTube non valido."; return; }
   await busy(ev.submitter, async () => {
     try {
@@ -934,7 +937,7 @@ $("formRace").addEventListener("submit", async ev => {
       const rRef = doc(collection(adminDb, "races"));
       let videoFail = false;
       await setDoc(rRef, {
-        name, runners, status: $("raceInit").value === "ready" ? "ready" : "open", pool: 0, pools, winner: null, hasVideo: !!yt, youtubeLive: !!yt && $("raceLive").checked,
+        name, runners, status: $("raceInit").value === "ready" ? "ready" : "open", pool: 0, pools, winner: null, hasVideo: !!yt, youtubeLive: !!yt && $("raceLive").checked, ...(dur ? { duration: dur } : {}),
         feePercent: Number.isInteger(c.feePercent) ? c.feePercent : 10,
         minBet: (typeof c.minBet === "number" && c.minBet > 0) ? r1(c.minBet) : 1,
         createdAt: serverTimestamp()
@@ -943,7 +946,7 @@ $("formRace").addEventListener("submit", async ev => {
         try { await setDoc(doc(adminDb, "videos", rRef.id), { url: yt }); }
         catch (e) { videoFail = true; }
       }
-      $("raceName").value = ""; $("raceRunners").value = ""; $("raceYt").value = ""; $("raceLive").checked = false;
+      $("raceName").value = ""; $("raceRunners").value = ""; $("raceYt").value = ""; $("raceDur").value = ""; $("raceLive").checked = false;
       await loadRaces();
       if (videoFail) $("adminErr").textContent = "Gara creata, ma il link video NON è stato salvato (permission-denied): pubblica le regole Firestore aggiornate (documento regole_firestore.txt) e ricrea la gara.";
       else flashOk("Gara creata.");
@@ -971,10 +974,14 @@ $("formBulk").addEventListener("submit", async ev => {
   const errs = [];
   const parsed = blocks.map((b, i) => {
     const n = i + 1, name = b[0], url = b[1] || "";
-    let rest = b.slice(2), winnerName = null;
-    const wm = rest.length ? rest[0].match(/^vincitore\s*:\s*(.+)$/i) : null;
-    if (wm) { winnerName = wm[1].trim(); rest = rest.slice(1); }
+    let rest = b.slice(2), winnerName = null, duration = "";
+    while (rest.length) {
+      const wm = rest[0].match(/^vincitore\s*:\s*(.+)$/i), dm = rest[0].match(/^durata\s*:\s*(.+)$/i);
+      if (wm) winnerName = wm[1].trim(); else if (dm) duration = dm[1].trim(); else break;
+      rest = rest.slice(1);
+    }
     const runners = rest;
+    if (duration.length > 20) errs.push("Gara " + n + " (" + name + "): durata troppo lunga (max 20 caratteri).");
     if (name.length > 60) errs.push("Gara " + n + ": nome troppo lungo (max 60).");
     if (!ytId(url)) errs.push("Gara " + n + " (" + name + "): link YouTube mancante o non valido.");
     if (runners.length < 2 || runners.length > 12) errs.push("Gara " + n + " (" + name + "): servono da 2 a 12 biglie.");
@@ -985,7 +992,7 @@ $("formBulk").addEventListener("submit", async ev => {
       if (k < 0) errs.push("Gara " + n + " (" + name + "): il vincitore \"" + winnerName + "\" non è tra le biglie.");
       else presetWinner = k;
     }
-    return { name, url, runners, presetWinner };
+    return { name, url, runners, presetWinner, duration };
   });
   if (errs.length) { $("adminErr").textContent = errs.slice(0, 3).join(" ") + (errs.length > 3 ? " (+ altri " + (errs.length - 3) + " errori)" : ""); return; }
   const live = $("bulkLive").checked;
@@ -1004,7 +1011,7 @@ $("formBulk").addEventListener("submit", async ev => {
         g.runners.forEach((_, k) => { pools[String(k)] = 0; });
         batch.set(rRef, {
           name: g.name, runners: g.runners, status: initStatus, pool: 0, pools, winner: null,
-          hasVideo: true, youtubeLive: live, feePercent, minBet,
+          hasVideo: true, youtubeLive: live, feePercent, minBet, ...(g.duration ? { duration: g.duration } : {}),
           createdAt: new Date(base + (parsed.length - 1 - i)) // la prima gara incollata resta in cima alla lista
         });
         batch.set(doc(adminDb, "videos", rRef.id), { url: g.url });
@@ -1057,7 +1064,7 @@ function renderAdminRaces(){
     return `<div class="urow" data-id="${esc(r.id)}">
       <div class="rhead" data-tgl>
         <div class="row"><b>${esc(r.name)}</b><span><span class="badge ${STATUS_CLASS[r.status] || "off"}">${STATUS_LABEL[r.status] || esc(r.status)}</span> <span class="mut">${open ? "▲" : "▼"}</span></span></div>
-        <div class="mut">Montepremi: ${esc(r.pool || 0)} · Fee ${esc(r.feePercent || 0)}%${r.expectedPlayers ? " · Puntate: " + esc(r.betsCount || 0) + " / " + esc(r.expectedPlayers) : ""}</div>
+        <div class="mut">Montepremi: ${esc(r.pool || 0)} · Fee ${esc(r.feePercent || 0)}%${r.duration ? " · Durata: " + esc(r.duration) : ""}${r.expectedPlayers ? " · Puntate: " + esc(r.betsCount || 0) + " / " + esc(r.expectedPlayers) : ""}</div>
       </div>
       ${open ? `<div class="mut" style="margin-top:6px">${list}</div>${betsHtml ? `<div style="margin-top:8px"><b style="font-size:14px">Puntate</b>${betsHtml}</div>` : ""}<div class="uactions">${actions}</div>` : ""}
     </div>`;
