@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Murble Race">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Murble Race v3.4</title>
+<title>Murble Race v3.5</title>
 <style>
 :root{--bg:#0f1220;--card:#181c30;--line:#2a3050;--txt:#eef0fa;--mut:#8f96b8;--acc:#ff9f1c;--ok:#2ec27e;--err:#ff5d6c}
 *{box-sizing:border-box}
@@ -54,6 +54,7 @@ button:disabled{opacity:.5;cursor:default}
 .rn .nm{flex:1}
 .rn.win{border-color:var(--ok)}
 .dur{display:inline-block;margin-left:8px;padding:2px 10px;border-radius:999px;background:var(--acc);color:#0b0d14;font-weight:700;font-size:14px;white-space:nowrap;vertical-align:middle}
+.tag{display:inline-block;margin-left:6px;padding:2px 9px;border-radius:999px;border:1px solid var(--acc);color:var(--acc);font-size:13px;white-space:nowrap;vertical-align:middle}
 .betbox{margin-top:12px}
 .betbox input[type=number]{margin-top:8px}
 .sw{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--mut);margin:0;cursor:pointer;user-select:none}
@@ -87,7 +88,7 @@ details.rsx[open] summary::after{content:"▲"}
 
   <!-- AUTENTICAZIONE -->
   <div id="viewAuth" class="view on">
-    <h1>Murble <span>Race</span> <small class="ver">v3.4</small></h1>
+    <h1>Murble <span>Race</span> <small class="ver">v3.5</small></h1>
     <p class="sub">Scommesse sulle gare di biglie</p>
     <div class="card">
       <div class="tabs">
@@ -118,7 +119,7 @@ details.rsx[open] summary::after{content:"▲"}
   <!-- HOME GIOCATORE -->
   <div id="viewHome" class="view">
     <div class="row">
-      <h1>Murble <span>Race</span> <small class="ver">v3.4</small></h1>
+      <h1>Murble <span>Race</span> <small class="ver">v3.5</small></h1>
       <div class="uactions" style="margin-top:0;flex-wrap:nowrap">
         <label id="wrapAdminQuick" class="sw" style="display:none">Admin<input id="swAdminHome" type="checkbox"><i></i></label>
         <button id="btnLogout" class="sec small" type="button">Esci</button>
@@ -144,6 +145,28 @@ details.rsx[open] summary::after{content:"▲"}
       <div id="topupStatus" class="mut" style="margin-top:10px"></div>
     </div>
     <div id="hWait" class="card mut" style="display:none">Il tuo account deve essere attivato dall'admin prima di poter scommettere.</div>
+    <div class="card" id="catCard" style="display:none">
+      <button id="btnCat" class="full" type="button">Crea Partita dal Catalogo</button>
+      <form id="formCat" style="display:none">
+        <label for="catCategory">Categoria</label>
+        <select id="catCategory"><option value="">Tutte</option></select>
+        <label for="catRunners">Numero di biglie</label>
+        <select id="catRunners"><option value="">Qualsiasi</option><option value="2-4">2 – 4</option><option value="5-8">5 – 8</option><option value="9-12">9 – 12</option></select>
+        <label for="catDur">Durata massima</label>
+        <select id="catDur"><option value="">Qualsiasi</option><option value="120">Sotto i 2 min</option><option value="240">Sotto i 4 min</option></select>
+        <label for="catRunner">Biglia partecipante (facoltativa)</label>
+        <input id="catRunner" maxlength="30" placeholder="es. Italy" autocapitalize="none">
+        <label class="rn" style="margin-top:10px"><input id="catExcl" type="checkbox" checked><span class="nm">Escludi gare già giocate</span></label>
+        <label for="catPlayers">Numero di giocatori partecipanti (2–20)</label>
+        <input id="catPlayers" type="number" step="1" min="2" max="20" inputmode="numeric" placeholder="es. 4" required>
+        <div id="catInfo" class="mut" style="margin-top:8px"></div>
+        <div class="uactions" style="margin-top:12px">
+          <button class="small" type="submit">Estrai e Avvia Partita</button>
+          <button class="small sec" id="btnCatCancel" type="button">Annulla</button>
+        </div>
+        <div id="catErr" class="err"></div>
+      </form>
+    </div>
     <div class="tabs" id="raceTabs">
       <button id="tabActive" type="button">Gare Attive</button>
       <button id="tabHistory" type="button" class="sec">Storico / Esiti</button>
@@ -211,12 +234,9 @@ details.rsx[open] summary::after{content:"▲"}
       </form>
       <form id="formBulk" style="display:none">
         <label for="bulkText">Incolla le gare: blocchi separati da una riga vuota</label>
-        <textarea id="bulkText" rows="10" placeholder="Nome gara 1&#10;https://youtu.be/XXXXXXXXXXX?t=90&#10;Vincitore: Biglia B&#10;Durata: 2:51&#10;Biglia A&#10;Biglia B&#10;Biglia C&#10;&#10;Nome gara 2&#10;https://youtu.be/XXXXXXXXXXX?t=450&#10;Biglia D&#10;Biglia E"></textarea>
-        <div class="mut" style="margin-top:6px">Riga 1: nome gara · Riga 2: link YouTube (anche con minutaggio ?t=...) · Righe facoltative (in qualsiasi ordine dopo il link) "Vincitore: NomeBiglia" (resta segreta, solo Admin) e "Durata: 2:51" · Poi una biglia per riga. Massimo 20 gare.</div>
-        <label class="rn" style="margin-top:10px"><input id="bulkLive" type="checkbox"><span class="nm">Diretta Live (mostra video anche a puntate aperte)</span></label>
-        <label for="bulkInit">Stato iniziale</label>
-        <select id="bulkInit"><option value="ready" selected>Pronte da avviare (consigliato: le avvia il gruppo)</option><option value="open">Puntate aperte subito</option></select>
-        <button class="full" type="submit">Crea tutte le gare</button>
+        <textarea id="bulkText" rows="10" placeholder="Nome gara 1&#10;https://youtu.be/XXXXXXXXXXX?t=90&#10;Vincitore: Biglia B&#10;Durata: 2:51&#10;Categoria: Nazioni&#10;Biglia A&#10;Biglia B&#10;Biglia C&#10;&#10;Nome gara 2&#10;https://youtu.be/XXXXXXXXXXX?t=450&#10;Biglia D&#10;Biglia E"></textarea>
+        <div class="mut" style="margin-top:6px">Riga 1: nome gara · Riga 2: link YouTube (anche con minutaggio ?t=...) · Righe facoltative (in qualsiasi ordine dopo il link): "Vincitore: NomeBiglia" (segreta, solo Admin), "Durata: 2:51", "Categoria: Nazioni" · Poi una biglia per riga. Le gare vanno nel Catalogo: sono i giocatori a estrarle e avviarle. Massimo 150 gare per volta.</div>
+        <button class="full" type="submit">Importa nel catalogo</button>
       </form>
     </div>
     <div class="card">
@@ -281,7 +301,7 @@ details.rsx[open] summary::after{content:"▲"}
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp, collection, getDocs, runTransaction, query, where, orderBy, limit, writeBatch }
+import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp, collection, getDocs, runTransaction, query, where, orderBy, limit, writeBatch, deleteField }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -463,6 +483,7 @@ function renderHome(name, d){
   b.textContent = d.active ? "Account attivo" : "In attesa di attivazione";
   b.className = "badge " + (d.active ? "ok" : "wait");
   $("hWait").style.display = d.active ? "none" : "block";
+  $("catCard").style.display = d.active ? "" : "none";
   renderRaces();
 }
 $("btnLogout").onclick = () => signOut(auth);
@@ -475,7 +496,8 @@ const STATUS_CLASS = { ready: "wait", open: "ok", closed: "wait", settled: "off"
 async function fetchVideo(id){
   videoReq[id] = Date.now();
   try {
-    const d = await getDoc(doc(db, "videos", id));
+    const rc = races.find(x => x.id === id);
+    const d = await getDoc(rc && rc.catalogId ? doc(db, "catalog_v", rc.catalogId) : doc(db, "videos", id));
     videoIds[id] = d.exists() ? ytInfo(d.data().url) : null;
     renderRaces();
   } catch (e) { /* nuovo tentativo al prossimo aggiornamento */ }
@@ -528,7 +550,7 @@ function raceParts(r){
   const isActive = r.status === "ready" || r.status === "open" || r.status === "closed";
   const isOpen = !isActive || !!expanded[r.id];
   const arrow = isActive ? (isOpen ? " ▲" : " ▼") : "";
-  const head = `<div class="row"><span><b>${esc(r.name)}</b>${r.duration ? `<span class="dur">⏱ ${esc(r.duration)}</span>` : ""}</span><span class="badge ${STATUS_CLASS[r.status] || "off"}">${STATUS_LABEL[r.status] || esc(r.status)}</span></div>
+  const head = `<div class="row"><span><b>${esc(r.name)}</b>${r.duration ? `<span class="dur">⏱ ${esc(r.duration)}</span>` : ""}${r.category ? `<span class="tag">${esc(r.category)}</span>` : ""}</span><span class="badge ${STATUS_CLASS[r.status] || "off"}">${STATUS_LABEL[r.status] || esc(r.status)}</span></div>
       <div class="row mut" style="margin-top:4px"><span>Montepremi: ${esc(total)} crediti · Fee ${esc(fee)}% sul surplus</span><span>${b ? "✓ Hai puntato" : ""}${arrow}</span></div>${r.expectedPlayers ? `<div class="row mut" style="margin-top:4px"><span>Puntate: <b style="color:var(--txt)">${esc(r.betsCount || 0)} / ${esc(r.expectedPlayers)}</b></span></div>` : ""}`;
   const showVideo = isOpen && r.status !== "cancelled" && r.status !== "ready" && (r.status !== "open" || r.youtubeLive === true);
   if (showVideo && r.hasVideo && videoIds[r.id] === undefined && !(videoReq[r.id] > Date.now() - 20000)) fetchVideo(r.id);
@@ -706,6 +728,106 @@ async function placeBet(raceId, runner, amount){
   });
 }
 
+// ---------- Catalogo Gare (giocatore) ----------
+let catRows = [], catAt = 0;
+function catFilters(){
+  const rg = $("catRunners").value;
+  const [nmin, nmax] = rg ? rg.split("-").map(Number) : [0, 0];
+  return { cat: $("catCategory").value, nmin, nmax, maxSec: Number($("catDur").value) || 0,
+    runner: $("catRunner").value.trim().toLowerCase(), excl: $("catExcl").checked };
+}
+function catMatches(c, f){
+  if (f.cat && (c.category || "") !== f.cat) return false;
+  const n = c.runnersCount || (c.runners || []).length;
+  if (f.nmin && (n < f.nmin || n > f.nmax)) return false;
+  if (f.maxSec && !(c.durationSec > 0 && c.durationSec < f.maxSec)) return false;
+  if (f.runner && !(c.runners || []).some(x => String(x).toLowerCase().includes(f.runner))) return false;
+  if (f.excl && (c.playedCount || 0) > 0) return false;
+  return true;
+}
+function updateCatInfo(){
+  const f = catFilters();
+  const n = catRows.filter(c => catMatches(c, f)).length;
+  $("catInfo").textContent = n + (n === 1 ? " gara corrisponde ai filtri" : " gare corrispondono ai filtri") + " (catalogo: " + catRows.length + ").";
+}
+async function loadCatalog(){
+  const s = await getDocs(query(collection(db, "catalog"), limit(500)));
+  catRows = s.docs.map(d => ({ id: d.id, ...d.data() }));
+  catAt = Date.now();
+  const cats = [...new Set(catRows.map(c => c.category).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  const cur = $("catCategory").value;
+  $("catCategory").innerHTML = '<option value="">Tutte</option>' + cats.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join("");
+  $("catCategory").value = cats.includes(cur) ? cur : "";
+  updateCatInfo();
+}
+$("btnCat").onclick = async () => {
+  const f = $("formCat");
+  if (f.style.display !== "none") { f.style.display = "none"; return; }
+  f.style.display = "block";
+  $("catErr").textContent = ""; $("catInfo").textContent = "Caricamento catalogo…";
+  try { await loadCatalog(); } catch (e) { $("catInfo").textContent = ""; $("catErr").textContent = msg(e); }
+};
+$("btnCatCancel").onclick = () => { $("formCat").style.display = "none"; };
+$("formCat").addEventListener("change", updateCatInfo);
+$("catRunner").addEventListener("input", updateCatInfo);
+
+async function launchFromCatalog(cid, n, excl){
+  const cr = doc(db, "catalog", cid), ur = doc(db, "users", me.uid), rr = doc(collection(db, "races"));
+  await runTransaction(db, async tx => {
+    const skip = () => { const e = new Error("skip"); e.skip = true; return e; };
+    const [c, u, cfg] = await Promise.all([tx.get(cr), tx.get(ur), tx.get(doc(db, "config", "app"))]);
+    if (!c.exists()) throw skip();
+    if (!u.exists() || !u.data().active) throw new Error("Account non ancora attivo.");
+    const cd = c.data();
+    if (excl && (cd.playedCount || 0) > 0) throw skip();
+    if (cd.activeRaceId) {
+      const a = await tx.get(doc(db, "races", cd.activeRaceId));
+      if (a.exists() && !["settled", "cancelled"].includes(a.data().status)) throw skip();
+    }
+    const k = cfg.exists() ? cfg.data() : {};
+    const pools = {};
+    cd.runners.forEach((_, i) => { pools[String(i)] = 0; });
+    const data = {
+      name: cd.name, runners: cd.runners, status: "open", pool: 0, pools, winner: null, hasVideo: true, youtubeLive: false,
+      feePercent: Number.isInteger(k.feePercent) ? k.feePercent : 10,
+      minBet: (typeof k.minBet === "number" && k.minBet > 0) ? r1(k.minBet) : 1,
+      createdAt: serverTimestamp(), catalogId: cid, createdBy: me.uid, expectedPlayers: n, betsCount: 0
+    };
+    if (cd.duration) data.duration = cd.duration;
+    if (cd.category) data.category = cd.category;
+    tx.set(rr, data);
+    tx.update(cr, { playedCount: (cd.playedCount || 0) + 1, activeRaceId: rr.id });
+  });
+  return rr.id;
+}
+
+$("formCat").addEventListener("submit", async ev => {
+  ev.preventDefault();
+  $("catErr").textContent = "";
+  const n = Number($("catPlayers").value);
+  if (!Number.isInteger(n) || n < 2 || n > 20) { $("catErr").textContent = "Inserisci un numero intero di giocatori da 2 a 20."; return; }
+  await busy(ev.submitter, async () => {
+    try {
+      if (Date.now() - catAt > 60000) await loadCatalog();
+      const f = catFilters();
+      const pool = catRows.filter(c => catMatches(c, f));
+      if (!pool.length) { $("catErr").textContent = "Nessuna gara corrisponde ai filtri scelti."; return; }
+      for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+      let newId = null;
+      for (const c of pool.slice(0, 20)) {
+        try { newId = await launchFromCatalog(c.id, n, f.excl); break; }
+        catch (e) { if (!e.skip) throw e; }
+      }
+      if (!newId) { await loadCatalog(); $("catErr").textContent = "Le gare corrispondenti sono già in corso o già giocate: cambia i filtri o riprova."; return; }
+      expanded[newId] = true;
+      $("formCat").style.display = "none";
+      $("catPlayers").value = "";
+      catAt = 0;
+      setRaceTab("active");
+    } catch (e) { $("catErr").textContent = msg(e); }
+  });
+});
+
 // ---------- Richiesta ricarica crediti ----------
 function renderTopup(r){
   myReq = r;
@@ -810,6 +932,14 @@ $("formCfg").addEventListener("submit", async ev => {
   });
 });
 
+async function resetCatalogPlays(){
+  const qs = await getDocs(collection(adminDb, "catalog"));
+  for (let i = 0; i < qs.docs.length; i += 400) {
+    const b = writeBatch(adminDb);
+    qs.docs.slice(i, i + 400).forEach(d => b.update(d.ref, { playedCount: 0, activeRaceId: deleteField() }));
+    await b.commit();
+  }
+}
 async function wipeCollection(name){
   const qs = await getDocs(collection(adminDb, name));
   for (let i = 0; i < qs.docs.length; i += 400) {
@@ -842,7 +972,7 @@ $("adminOpts").addEventListener("click", async ev => {
   await busy(btn, async () => {
     try {
       if (k === "credits" || k === "all") { await zeroBalances(); await wipeCollection("ledger"); await setDoc(doc(adminDb, "treasury", "main"), { balance: 0, totalFees: 0 }); }
-      if (k === "bets" || k === "all") { await wipeCollection("bets"); await wipeCollection("races"); await wipeCollection("videos"); await wipeCollection("leaderboard"); }
+      if (k === "bets" || k === "all") { await wipeCollection("bets"); await wipeCollection("races"); await wipeCollection("videos"); await resetCatalogPlays(); await wipeCollection("leaderboard"); }
       if (k === "users" || k === "all") { await wipeCollection("users"); await wipeCollection("topupRequests"); await wipeCollection("leaderboard"); }
       await loadAdmin();
       $("optMsg").textContent = "Reset eseguito.";
@@ -889,7 +1019,7 @@ async function loadRaces(){
   adminRaces = rs.docs.map(d => ({ id: d.id, ...d.data() }));
   await Promise.all(adminRaces.filter(r => r.status === "closed" && !(r.id in adminPreset)).map(async r => {
     try {
-      const d = await getDoc(doc(adminDb, "videos", r.id + "_w"));
+      const d = await getDoc(r.catalogId ? doc(adminDb, "catalog_w", r.catalogId) : doc(adminDb, "videos", r.id + "_w"));
       const w = d.exists() ? d.data().presetWinner : null;
       adminPreset[r.id] = (Number.isInteger(w) && w >= 0 && w < (r.runners || []).length) ? w : null;
     } catch (e) { adminPreset[r.id] = null; }
@@ -965,64 +1095,69 @@ function setRaceMode(bulk){
 $("modeSingle").onclick = () => setRaceMode(false);
 $("modeBulk").onclick = () => setRaceMode(true);
 
+function parseDur(t){
+  t = String(t).trim().toLowerCase();
+  let m = t.match(/^(\d{1,2}):([0-5]\d)(?::([0-5]\d))?$/);
+  if (m) return m[3] !== undefined ? (+m[1]) * 3600 + (+m[2]) * 60 + (+m[3]) : (+m[1]) * 60 + (+m[2]);
+  m = t.match(/^(\d+(?:[.,]\d+)?)\s*(?:min|m|minuti)$/);
+  if (m) return Math.round(parseFloat(m[1].replace(",", ".")) * 60);
+  m = t.match(/^(\d+)\s*(?:s|sec)$/);
+  return m ? +m[1] : null;
+}
+const fmtDur = sec => Math.floor(sec / 60) + ":" + String(sec % 60).padStart(2, "0");
+
+// Importa blocco gare -> Catalogo (catalog) + link video (catalog_v) + vincitore segreto (catalog_w, solo Admin)
 $("formBulk").addEventListener("submit", async ev => {
   ev.preventDefault();
   $("adminErr").textContent = "";
   const blocks = $("bulkText").value.replace(/\r/g, "").split(/\n\s*\n/)
     .map(b => b.split("\n").map(l => l.trim()).filter(Boolean)).filter(b => b.length);
   if (!blocks.length) { $("adminErr").textContent = "Incolla almeno una gara."; return; }
-  if (blocks.length > 20) { $("adminErr").textContent = "Massimo 20 gare per volta."; return; }
+  if (blocks.length > 150) { $("adminErr").textContent = "Massimo 150 gare per volta."; return; }
   const errs = [];
   const parsed = blocks.map((b, i) => {
     const n = i + 1, name = b[0], url = b[1] || "";
-    let rest = b.slice(2), winnerName = null, duration = "";
+    let rest = b.slice(2), winnerName = null, durTxt = null, category = "";
     while (rest.length) {
-      const wm = rest[0].match(/^vincitore\s*:\s*(.+)$/i), dm = rest[0].match(/^durata\s*:\s*(.+)$/i);
-      if (wm) winnerName = wm[1].trim(); else if (dm) duration = dm[1].trim(); else break;
+      const wm = rest[0].match(/^vincitore\s*:\s*(.+)$/i), dm = rest[0].match(/^durata\s*:\s*(.+)$/i), cm = rest[0].match(/^categoria\s*:\s*(.+)$/i);
+      if (wm) winnerName = wm[1].trim(); else if (dm) durTxt = dm[1].trim(); else if (cm) category = cm[1].trim(); else break;
       rest = rest.slice(1);
     }
     const runners = rest;
-    if (duration.length > 20) errs.push("Gara " + n + " (" + name + "): durata troppo lunga (max 20 caratteri).");
     if (name.length > 60) errs.push("Gara " + n + ": nome troppo lungo (max 60).");
+    if (category.length > 30) errs.push("Gara " + n + " (" + name + "): categoria troppo lunga (max 30).");
     if (!ytId(url)) errs.push("Gara " + n + " (" + name + "): link YouTube mancante o non valido.");
     if (runners.length < 2 || runners.length > 12) errs.push("Gara " + n + " (" + name + "): servono da 2 a 12 biglie.");
     else if (new Set(runners.map(r => r.toLowerCase())).size !== runners.length) errs.push("Gara " + n + " (" + name + "): nomi biglie duplicati.");
+    let durationSec = null;
+    if (durTxt !== null) {
+      durationSec = parseDur(durTxt);
+      if (durationSec === null || durationSec <= 0) { errs.push("Gara " + n + " (" + name + "): durata non valida (usa MM:SS, es. 2:51)."); durationSec = null; }
+    }
     let presetWinner = null;
     if (winnerName !== null) {
       const k = runners.findIndex(r => r.toLowerCase() === winnerName.toLowerCase());
       if (k < 0) errs.push("Gara " + n + " (" + name + "): il vincitore \"" + winnerName + "\" non è tra le biglie.");
       else presetWinner = k;
     }
-    return { name, url, runners, presetWinner, duration };
+    return { name, url, runners, presetWinner, durationSec, category };
   });
   if (errs.length) { $("adminErr").textContent = errs.slice(0, 3).join(" ") + (errs.length > 3 ? " (+ altri " + (errs.length - 3) + " errori)" : ""); return; }
-  const live = $("bulkLive").checked;
-  const initStatus = $("bulkInit").value === "open" ? "open" : "ready";
   await busy(ev.submitter, async () => {
     try {
-      const cfg = await getDoc(doc(adminDb, "config", "app"));
-      const c = cfg.exists() ? cfg.data() : {};
-      const feePercent = Number.isInteger(c.feePercent) ? c.feePercent : 10;
-      const minBet = (typeof c.minBet === "number" && c.minBet > 0) ? r1(c.minBet) : 1;
-      const base = Date.now();
       const batch = writeBatch(adminDb);
-      parsed.forEach((g, i) => {
-        const rRef = doc(collection(adminDb, "races"));
-        const pools = {};
-        g.runners.forEach((_, k) => { pools[String(k)] = 0; });
-        batch.set(rRef, {
-          name: g.name, runners: g.runners, status: initStatus, pool: 0, pools, winner: null,
-          hasVideo: true, youtubeLive: live, feePercent, minBet, ...(g.duration ? { duration: g.duration } : {}),
-          createdAt: new Date(base + (parsed.length - 1 - i)) // la prima gara incollata resta in cima alla lista
-        });
-        batch.set(doc(adminDb, "videos", rRef.id), { url: g.url });
-        // il vincitore preimpostato sta in un documento a parte (id con suffisso _w) che i giocatori non possono mai leggere
-        if (g.presetWinner !== null) batch.set(doc(adminDb, "videos", rRef.id + "_w"), { presetWinner: g.presetWinner });
+      parsed.forEach(g => {
+        const cRef = doc(collection(adminDb, "catalog"));
+        const d = { name: g.name, runners: g.runners, runnersCount: g.runners.length, playedCount: 0, createdAt: serverTimestamp() };
+        if (g.category) d.category = g.category;
+        if (g.durationSec) { d.durationSec = g.durationSec; d.duration = fmtDur(g.durationSec); }
+        batch.set(cRef, d);
+        batch.set(doc(adminDb, "catalog_v", cRef.id), { url: g.url });
+        if (g.presetWinner !== null) batch.set(doc(adminDb, "catalog_w", cRef.id), { presetWinner: g.presetWinner });
       });
       await batch.commit();
-      $("bulkText").value = ""; $("bulkLive").checked = false;
-      await loadRaces();
-      flashOk(parsed.length + (parsed.length === 1 ? " gara creata." : " gare create."));
+      $("bulkText").value = "";
+      flashOk(parsed.length + (parsed.length === 1 ? " gara aggiunta al catalogo." : " gare aggiunte al catalogo."));
     } catch (e) { $("adminErr").textContent = msg(e); }
   });
 });
@@ -1064,7 +1199,7 @@ function renderAdminRaces(){
     }
     return `<div class="urow" data-id="${esc(r.id)}">
       <div class="rhead" data-tgl>
-        <div class="row"><span><b>${esc(r.name)}</b>${r.duration ? `<span class="dur">⏱ ${esc(r.duration)}</span>` : ""}</span><span><span class="badge ${STATUS_CLASS[r.status] || "off"}">${STATUS_LABEL[r.status] || esc(r.status)}</span> <span class="mut">${open ? "▲" : "▼"}</span></span></div>
+        <div class="row"><span><b>${esc(r.name)}</b>${r.duration ? `<span class="dur">⏱ ${esc(r.duration)}</span>` : ""}${r.category ? `<span class="tag">${esc(r.category)}</span>` : ""}</span><span><span class="badge ${STATUS_CLASS[r.status] || "off"}">${STATUS_LABEL[r.status] || esc(r.status)}</span> <span class="mut">${open ? "▲" : "▼"}</span></span></div>
         <div class="mut">Montepremi: ${esc(r.pool || 0)} · Fee ${esc(r.feePercent || 0)}%${r.expectedPlayers ? " · Puntate: " + esc(r.betsCount || 0) + " / " + esc(r.expectedPlayers) : ""}</div>
       </div>
       ${open ? `<div class="mut" style="margin-top:6px">${list}</div>${betsHtml ? `<div style="margin-top:8px"><b style="font-size:14px">Puntate</b>${betsHtml}</div>` : ""}<div class="uactions">${actions}</div>` : ""}
