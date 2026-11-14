@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Murble Race">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Murble Race v3.20</title>
+<title>Murble Race v3.21</title>
 <style>
 :root{--bg:#0f1220;--card:#181c30;--line:#2a3050;--txt:#eef0fa;--mut:#8f96b8;--acc:#ff9f1c;--ok:#2ec27e;--err:#ff5d6c}
 *{box-sizing:border-box}
@@ -183,7 +183,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
 
   <!-- AUTENTICAZIONE -->
   <div id="viewAuth" class="view on">
-    <h1>Murble <span>Race</span> <small class="ver">v3.20</small></h1>
+    <h1>Murble <span>Race</span> <small class="ver">v3.21</small></h1>
     <p class="sub">Pronostici a punti sulle gare di biglie</p>
     <div class="card">
       <div class="tabs">
@@ -217,7 +217,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
     <div class="topbar">
       <div class="tleft">
         <button id="btnDrawer" class="ibtn" type="button" aria-label="Menu">☰</button>
-        <div class="ttl">Murble <span>Race</span> <small class="ver">v3.20</small></div>
+        <div class="ttl">Murble <span>Race</span> <small class="ver">v3.21</small></div>
       </div>
       <button id="balPill" class="pill" type="button" aria-label="Punti totali: apri la classifica"><span id="hPts">0</span> <small>PT</small></button>
     </div>
@@ -231,7 +231,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
         <button id="tabMoves" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h12l-3-3M17 17H5l3 3"/></svg>Storico Punti</button>
       </nav>
       <main>
-        <div id="catCard" style="display:none"><label for="playCategory" style="margin-top:0">Categoria</label><select id="playCategory"><option value="">Tutte le categorie</option><option value="Murble race">Murble race</option><option value="Street race">Street race</option></select><div style="display:flex;gap:8px;margin-top:8px"><button id="btnPlay1v1" class="full catbtn" type="button" style="margin-top:0;flex:1">Gioca 1 vs 1</button><button id="btnPlayTeam" class="full catbtn" type="button" style="margin-top:0;flex:1">Sfida a Squadre</button></div></div>
+        <div id="catCard" style="display:none"><div style="display:flex;gap:8px"><button id="btnPlay1v1" class="full catbtn" type="button" style="margin-top:0;flex:1">Gioca 1 vs 1</button><button id="btnPlayTeam" class="full catbtn" type="button" style="margin-top:0;flex:1">Sfida a Squadre</button></div></div>
         <div id="raceList"></div>
         <div id="homeErr" class="err"></div>
       </main>
@@ -436,14 +436,18 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
 <!-- CREA PARTITA DAL CATALOGO -->
 <div id="modalCat" class="modal" role="dialog" aria-modal="true">
   <div class="mbox" style="max-width:420px">
-    <b style="font-size:18px">Sfida a Squadre</b>
+    <b id="catTitle" style="font-size:18px">Avvia Partita</b>
     <div class="mbody">
       <form id="formCat">
         <div id="catInfo" class="mut" style="margin-top:8px"></div>
-        <label for="catTeams">Quante squadre si sfidano? (minimo 2)</label>
-        <input id="catTeams" type="number" step="1" min="2" max="6" inputmode="numeric" placeholder="es. 2" required>
+        <label for="playCategory">Categoria</label>
+        <select id="playCategory" required><option value="" disabled selected>Seleziona la categoria...</option><option value="Murble race">Murble race</option><option value="Street race">Street race</option></select>
+        <div id="catTeamsBox" style="display:none">
+          <label for="catTeams">Numero di squadre partecipanti (minimo 2)</label>
+          <input id="catTeams" type="number" step="1" min="2" max="6" inputmode="numeric" placeholder="es. 2">
+        </div>
         <div class="uactions" style="margin-top:12px">
-          <button class="small" type="submit">Avvia Partita Casuale</button>
+          <button class="small" type="submit">Estrai e Avvia Partita</button>
           <button class="small sec" id="btnCatCancel" type="button">Annulla</button>
         </div>
         <div id="catErr" class="err"></div>
@@ -462,7 +466,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
     <div class="mbody">
       <div id="infoRules">
         <h3>1. Come si avvia una partita</h3>
-        <p>Ogni gara è una corsa di biglie trasmessa su YouTube. Partecipare è <b>gratuito</b>: non ci sono saldi, ricariche o importi da indicare. Nella Home trovi due pulsanti: <b>Gioca 1 vs 1</b> e <b>Sfida a Squadre</b>. Non ci sono filtri: la partita viene <b>pescata a caso</b> tra le gare del catalogo non ancora giocate.</p>
+        <p>Ogni gara è una corsa di biglie trasmessa su YouTube. Partecipare è <b>gratuito</b>: non ci sono saldi, ricariche o importi da indicare. Nella Home trovi due pulsanti: <b>Gioca 1 vs 1</b> e <b>Sfida a Squadre</b>. Alla pressione di uno dei due pulsanti devi <b>selezionare la categoria</b> (<b>Murble race</b> o <b>Street race</b>): senza categoria la partita non parte. Per le Sfide a Squadre indichi anche il numero di squadre. La partita viene poi <b>pescata a caso</b> tra le gare di quella categoria non ancora giocate.</p>
         <ul>
           <li>L'account deve essere <b>attivo</b>. Hai <b>un solo pronostico per gara</b>: una volta confermato non si modifica e non si annulla (può annullarlo solo l'Admin).</li>
           <li>Le gare compaiono in <b>Gare Attive</b>. Alcune gare caricate dall'Admin sono "da avviare": un giocatore attivo le avvia scegliendo la modalità.</li>
@@ -545,7 +549,7 @@ const DOMAIN = "@murblerace.app";
 const ADMIN_EMAIL = "admin" + DOMAIN;
 const RESERVED = ["admin"];
 const MAX_BETS_SETTLE = 100;
-const TERMS_VERSION = 4; // incrementare per far riaccettare Regolamento e Termini a tutti
+const TERMS_VERSION = 5; // incrementare per far riaccettare Regolamento e Termini a tutti
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
@@ -1133,18 +1137,25 @@ async function playRandom(mode, k){
   catAt = 0;
   setRaceTab("active");
 }
-$("btnPlay1v1").onclick = async () => {
+let playMode = "1v1";
+function openPlay(mode, info){
+  playMode = mode;
+  $("catErr").textContent = ""; $("playCategory").value = ""; $("catTeams").value = "";
+  $("catTitle").textContent = mode === "team" ? "Sfida a Squadre" : "Gioca 1 vs 1";
+  $("catTeamsBox").style.display = mode === "team" ? "" : "none";
+  $("catInfo").textContent = info;
+  $("modalCat").classList.add("on");
+}
+$("btnPlay1v1").onclick = () => {
   $("homeErr").textContent = "";
-  await busy($("btnPlay1v1"), async () => { try { await playRandom("1v1", 0); } catch (e) { $("homeErr").textContent = msg(e); } });
+  openPlay("1v1", "Scegli la categoria: verrà estratta a caso una gara non ancora giocata. In 1 vs 1 ognuno dei 2 giocatori sceglie metà delle biglie.");
 };
 $("btnPlayTeam").onclick = () => {
   $("homeErr").textContent = "";
   if (!meDoc || !meDoc.teamId) { $("homeErr").textContent = "Per le Sfide a Squadre devi far parte di una Squadra."; openTeam(); return; }
   const size = myTeam ? (myTeam.members || []).length : 0;
   if (size < 2 || size > 4) { $("homeErr").textContent = "Per la sfida a squadre la tua squadra deve avere da 2 a 4 giocatori."; return; }
-  $("catErr").textContent = ""; $("catTeams").value = "";
-  $("catInfo").textContent = "La tua squadra ha " + size + " giocatori: partecipano solo squadre da " + size + " giocatori. Ognuno sceglie 1 biglia.";
-  $("modalCat").classList.add("on");
+  openPlay("team", "La tua squadra ha " + size + " giocatori: partecipano solo squadre da " + size + " giocatori. Ognuno sceglie 1 biglia.");
 };
 $("btnCatCancel").onclick = () => { $("modalCat").classList.remove("on"); };
 
@@ -1187,10 +1198,14 @@ async function launchFromCatalog(cid, mode, k){
 $("formCat").addEventListener("submit", async ev => {
   ev.preventDefault();
   $("catErr").textContent = "";
-  const k = Number($("catTeams").value);
-  if (!Number.isInteger(k) || k < 2 || k > 6) { $("catErr").textContent = "Indica quante squadre si sfidano (da 2 a 6)."; return; }
+  if (!$("playCategory").value) { $("catErr").textContent = "Seleziona la categoria prima di avviare la partita."; return; }
+  let k = 0;
+  if (playMode === "team") {
+    k = Number($("catTeams").value);
+    if (!Number.isInteger(k) || k < 2 || k > 6) { $("catErr").textContent = "Indica quante squadre si sfidano (da 2 a 6)."; return; }
+  }
   await busy(ev.submitter, async () => {
-    try { await playRandom("team", k); $("modalCat").classList.remove("on"); }
+    try { await playRandom(playMode, k); $("modalCat").classList.remove("on"); }
     catch (e) { $("catErr").textContent = msg(e); }
   });
 });
