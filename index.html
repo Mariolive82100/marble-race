@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Murble Race">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Murble Race v3.19</title>
+<title>Murble Race v3.20</title>
 <style>
 :root{--bg:#0f1220;--card:#181c30;--line:#2a3050;--txt:#eef0fa;--mut:#8f96b8;--acc:#ff9f1c;--ok:#2ec27e;--err:#ff5d6c}
 *{box-sizing:border-box}
@@ -183,7 +183,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
 
   <!-- AUTENTICAZIONE -->
   <div id="viewAuth" class="view on">
-    <h1>Murble <span>Race</span> <small class="ver">v3.19</small></h1>
+    <h1>Murble <span>Race</span> <small class="ver">v3.20</small></h1>
     <p class="sub">Pronostici a punti sulle gare di biglie</p>
     <div class="card">
       <div class="tabs">
@@ -217,7 +217,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
     <div class="topbar">
       <div class="tleft">
         <button id="btnDrawer" class="ibtn" type="button" aria-label="Menu">☰</button>
-        <div class="ttl">Murble <span>Race</span> <small class="ver">v3.19</small></div>
+        <div class="ttl">Murble <span>Race</span> <small class="ver">v3.20</small></div>
       </div>
       <button id="balPill" class="pill" type="button" aria-label="Punti totali: apri la classifica"><span id="hPts">0</span> <small>PT</small></button>
     </div>
@@ -231,7 +231,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
         <button id="tabMoves" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h12l-3-3M17 17H5l3 3"/></svg>Storico Punti</button>
       </nav>
       <main>
-        <div id="catCard" style="display:none"><div style="display:flex;gap:8px"><button id="btnPlay1v1" class="full catbtn" type="button" style="margin-top:0;flex:1">Gioca 1 vs 1</button><button id="btnPlayTeam" class="full catbtn" type="button" style="margin-top:0;flex:1">Sfida a Squadre</button></div></div>
+        <div id="catCard" style="display:none"><label for="playCategory" style="margin-top:0">Categoria</label><select id="playCategory"><option value="">Tutte le categorie</option><option value="Murble race">Murble race</option><option value="Street race">Street race</option></select><div style="display:flex;gap:8px;margin-top:8px"><button id="btnPlay1v1" class="full catbtn" type="button" style="margin-top:0;flex:1">Gioca 1 vs 1</button><button id="btnPlayTeam" class="full catbtn" type="button" style="margin-top:0;flex:1">Sfida a Squadre</button></div></div>
         <div id="raceList"></div>
         <div id="homeErr" class="err"></div>
       </main>
@@ -358,6 +358,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
         <button type="button" class="small sec" data-cf="played">Già giocate</button>
         <button type="button" class="small sec" data-cf="susp">Sospese</button>
       </div>
+      <select id="cadmCat" style="margin-top:10px;display:none"><option value="">Tutte le categorie</option><option value="Murble race">Murble race</option><option value="Street race">Street race</option></select>
       <input id="cadmSearch" placeholder="Cerca per nome, categoria o biglia" style="margin-top:10px;display:none">
       <div id="cadmBar" class="uactions" style="display:none;margin-top:10px">
         <button class="small sec" type="button" id="cadmAll">Seleziona tutte</button>
@@ -805,6 +806,8 @@ async function fetchVideo(id){
   } catch (e) { /* nuovo tentativo al prossimo aggiornamento */ }
 }
 
+const macroCat = c => { const x = String(c || "").trim().toLowerCase(); return (x === "diecast" || x === "street race") ? "Street race" : "Murble race"; };
+const withDur = (y, r) => y ? { ...y, dur: Number.isInteger(r.durationSec) && r.durationSec > 0 ? r.durationSec : (parseDur(r.duration || "") || 0) } : y;
 const PODIUM_DEF = [100, 50, 25];
 const MEDALS = ["🥇", "🥈", "🥉"];
 const podiumPts = r => (Array.isArray(r.podiumPts) && r.podiumPts.length === 3) ? r.podiumPts : PODIUM_DEF;
@@ -875,11 +878,11 @@ function raceParts(r){
   const isOpen = !isActive || !!expanded[r.id];
   const arrow = isActive ? (isOpen ? " ▲" : " ▼") : "";
   const teamsPart = r.gameMode === "team" ? ` · Squadre: <b style="color:var(--txt)">${esc(Object.keys(counts).length)} / ${esc(r.teamsCount)}</b>` : "";
-  const head = `<div class="row"><span><b>${esc(r.name)}</b>${r.duration ? `<span class="dur">⏱ ${esc(r.duration)}</span>` : ""}${r.category ? `<span class="tag">${esc(r.category)}</span>` : ""}${r.gameMode ? `<span class="tag" style="border-color:#7db0ff;color:#7db0ff">${esc(modeLabel(r))}</span>` : ""}</span><span class="badge ${STATUS_CLASS[r.status] || "off"}">${STATUS_LABEL[r.status] || esc(r.status)}</span></div>
+  const head = `<div class="row"><span><b>${esc(r.name)}</b>${r.duration ? `<span class="dur">⏱ ${esc(r.duration)}</span>` : ""}<span class="tag">${esc(macroCat(r.category))}</span>${r.gameMode ? `<span class="tag" style="border-color:#7db0ff;color:#7db0ff">${esc(modeLabel(r))}</span>` : ""}</span><span class="badge ${STATUS_CLASS[r.status] || "off"}">${STATUS_LABEL[r.status] || esc(r.status)}</span></div>
       <div class="row mut" style="margin-top:4px"><span>Podio: 🥇${esc(pp[0])} · 🥈${esc(pp[1])} · 🥉${esc(pp[2])} PT</span><span>${b ? marbleSvg(meDoc && meDoc.marble, 16) + " ✓ Pronostico fatto" : ""}${arrow}</span></div>${r.expectedPlayers ? `<div class="row mut" style="margin-top:4px"><span>Giocatori: <b style="color:var(--txt)">${esc(r.betsCount || 0)} / ${esc(r.expectedPlayers)}</b>${teamsPart}</span></div>` : ""}`;
   const showVideo = isOpen && r.status !== "cancelled" && r.status !== "ready" && (r.status !== "open" || r.youtubeLive === true);
   if (showVideo && r.hasVideo && videoIds[r.id] === undefined && !(videoReq[r.id] > Date.now() - 20000)) fetchVideo(r.id);
-  return { head, body: isOpen ? runners + foot : "", yt: showVideo ? (videoIds[r.id] || ytInfo(r.youtubeUrl)) : null, isActive };
+  return { head, body: isOpen ? runners + foot : "", yt: showVideo ? withDur(videoIds[r.id] || ytInfo(r.youtubeUrl), r) : null, isActive };
 }
 
 function movesHtml(){
@@ -943,10 +946,10 @@ function renderRaces(){
     if (el._head !== parts.head) { head.innerHTML = parts.head; el._head = parts.head; }
     if (el._body !== parts.body) { body.innerHTML = parts.body; el._body = parts.body; }
     if (parts.yt) {
-      const key = parts.yt.id + ":" + parts.yt.start;
+      const key = parts.yt.id + ":" + parts.yt.start + ":" + (parts.yt.dur || 0);
       if (slot.dataset.id !== key) {
         const st = parts.yt.start > 0 ? parts.yt.start : 0;
-        slot.innerHTML = '<div class="yt"><iframe src="https://www.youtube.com/embed/' + parts.yt.id + '?rel=0&modestbranding=1&playsinline=1' + (st ? '&start=' + st : '') + '" title="Video gara" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div><div class="mut" style="margin-top:6px;font-size:13px"><a href="https://www.youtube.com/watch?v=' + parts.yt.id + (st ? '&t=' + st + 's' : '') + '" target="_blank" rel="noopener noreferrer" style="color:var(--mut)">Apri su YouTube ↗</a></div>';
+        slot.innerHTML = '<div class="yt"><iframe src="https://www.youtube.com/embed/' + parts.yt.id + '?rel=0&modestbranding=1&playsinline=1' + (st ? '&start=' + st : '') + (parts.yt.dur > 0 ? '&end=' + (st + parts.yt.dur) : '') + '" title="Video gara" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div><div class="mut" style="margin-top:6px;font-size:13px"><a href="https://www.youtube.com/watch?v=' + parts.yt.id + (st ? '&t=' + st + 's' : '') + '" target="_blank" rel="noopener noreferrer" style="color:var(--mut)">Apri su YouTube ↗</a></div>';
         slot.dataset.id = key;
       }
     } else if (slot.dataset.id) { slot.innerHTML = ""; delete slot.dataset.id; }
@@ -1116,15 +1119,16 @@ async function loadCatalog(){
   catAt = Date.now();
 }
 async function playRandom(mode, k){
+  const cat = $("playCategory").value;
   if (Date.now() - catAt > 60000 || !catRows.length) await loadCatalog();
-  const pool = catRows.filter(c => !c.suspended && (c.playedCount || 0) === 0);
+  const pool = catRows.filter(c => !c.suspended && (c.playedCount || 0) === 0 && (!cat || macroCat(c.category) === cat));
   for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
   let newId = null;
   for (const c of pool.slice(0, 20)) {
     try { newId = await launchFromCatalog(c.id, mode, k); break; }
     catch (e) { if (!e.skip) throw e; }
   }
-  if (!newId) { await loadCatalog(); throw new Error("Nessuna gara disponibile: sono tutte già giocate o in corso. Chiedi all'Admin di aggiungerne o di azzerare il catalogo."); }
+  if (!newId) { await loadCatalog(); throw new Error("Nessuna gara disponibile" + (cat ? " in \"" + cat + "\"" : "") + ": sono tutte già giocate o in corso. Chiedi all'Admin di aggiungerne o di azzerare il catalogo."); }
   expanded[newId] = true;
   catAt = 0;
   setRaceTab("active");
@@ -1731,7 +1735,7 @@ function renderAdminRaces(){
     }
     return `<div class="urow" data-id="${esc(r.id)}">
       <div class="rhead" data-tgl>
-        <div class="row"><span><b>${esc(r.name)}</b>${r.duration ? `<span class="dur">⏱ ${esc(r.duration)}</span>` : ""}${r.category ? `<span class="tag">${esc(r.category)}</span>` : ""}${r.gameMode ? `<span class="tag">${esc(modeLabel(r))}</span>` : ""}</span><span><span class="badge ${STATUS_CLASS[r.status] || "off"}">${STATUS_LABEL[r.status] || esc(r.status)}</span> <span class="mut">${open ? "▲" : "▼"}</span></span></div>
+        <div class="row"><span><b>${esc(r.name)}</b>${r.duration ? `<span class="dur">⏱ ${esc(r.duration)}</span>` : ""}<span class="tag">${esc(macroCat(r.category))}</span>${r.gameMode ? `<span class="tag">${esc(modeLabel(r))}</span>` : ""}</span><span><span class="badge ${STATUS_CLASS[r.status] || "off"}">${STATUS_LABEL[r.status] || esc(r.status)}</span> <span class="mut">${open ? "▲" : "▼"}</span></span></div>
         <div class="mut">Podio ${esc(pp.join(" / "))} PT${r.expectedPlayers ? " · Giocatori: " + esc(r.betsCount || 0) + " / " + esc(r.expectedPlayers) : ""}</div>
       </div>
       ${open ? `<div class="mut" style="margin-top:6px">${list}</div>${betsHtml ? `<div style="margin-top:8px"><b style="font-size:14px">Pronostici</b>${betsHtml}</div>` : ""}<div class="uactions">${actions}</div>` : ""}
@@ -1878,7 +1882,7 @@ async function loadCatAdm(){
   const qs = await getDocs(query(collection(adminDb, "catalog"), limit(500)));
   cadm = qs.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (a.name || "").localeCompare(b.name || ""));
   cadmDet = {};
-  $("cadmSearch").style.display = "";
+  $("cadmSearch").style.display = ""; $("cadmCat").style.display = "";
   renderCatAdm();
   if (cadmOpen && cadm.some(c => c.id === cadmOpen)) await openCatAdm(cadmOpen); else cadmOpen = null;
 }
@@ -1898,6 +1902,7 @@ function cadmVisible(){
     if (cadmFilter === "new" && (c.playedCount || 0) > 0) return false;
     if (cadmFilter === "played" && !((c.playedCount || 0) > 0)) return false;
     if (cadmFilter === "susp" && !c.suspended) return false;
+    if ($("cadmCat").value && macroCat(c.category) !== $("cadmCat").value) return false;
     return !t || (c.name || "").toLowerCase().includes(t) || (c.category || "").toLowerCase().includes(t) || (c.runners || []).some(r => String(r).toLowerCase().includes(t));
   });
 }
@@ -1922,7 +1927,7 @@ function renderCatAdm(){
     if (open) {
       body = !d ? '<div class="mut" style="margin-top:8px">Caricamento…</div>' : `<div style="margin-top:8px">
         <label>Nome gara</label><input data-f="name" maxlength="60" value="${esc(c.name || "")}">
-        <label>Categoria (facoltativa)</label><input data-f="category" maxlength="30" value="${esc(c.category || "")}">
+        <label>Categoria</label><select data-f="category"><option value="Murble race" ${macroCat(c.category) === "Murble race" ? "selected" : ""}>Murble race</option><option value="Street race" ${macroCat(c.category) === "Street race" ? "selected" : ""}>Street race</option></select>
         <label>Durata (MM:SS, facoltativa)</label><input data-f="duration" maxlength="20" value="${esc(c.duration || "")}">
         <label>Link YouTube</label><input data-f="url" inputmode="url" autocapitalize="none" value="${esc(d.url)}">
         <label>Biglie (una per riga)${locked ? " — bloccate: la gara è già stata giocata" : ""}</label><textarea data-f="runners" rows="5" ${locked ? "readonly" : ""}>${esc((c.runners || []).join("\n"))}</textarea>
@@ -1985,6 +1990,7 @@ $("btnCatLoad").onclick = async () => {
   await busy($("btnCatLoad"), async () => { try { await loadCatAdm(); } catch (e) { $("adminErr").textContent = msg(e); } });
 };
 $("cadmSearch").addEventListener("input", renderCatAdm);
+$("cadmCat").addEventListener("change", renderCatAdm);
 $("cadmList").addEventListener("click", async ev => {
   const row = ev.target.closest(".urow");
   if (!row) return;
