@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Murble Race">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Murble Race v3.15</title>
+<title>Murble Race v3.16</title>
 <style>
 :root{--bg:#0f1220;--card:#181c30;--line:#2a3050;--txt:#eef0fa;--mut:#8f96b8;--acc:#ff9f1c;--ok:#2ec27e;--err:#ff5d6c}
 *{box-sizing:border-box}
@@ -120,6 +120,8 @@ details.rsx[open] summary::after{content:"▲"}
 }
 .modal{position:fixed;inset:0;background:rgba(5,7,15,.72);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
 .modal.on{display:flex}
+#modalTermsUpd{z-index:60}
+#modalInfo{z-index:70}
 .mbox{background:var(--card);border:1px solid var(--line);border-radius:14px;max-width:680px;width:100%;max-height:88vh;display:flex;flex-direction:column;padding:18px;color:var(--txt)}
 .mbody{overflow-y:auto;margin-top:12px;line-height:1.55;font-size:15px;padding-right:4px}
 .mbody h3{margin:16px 0 6px;font-size:16px;color:var(--acc)}
@@ -181,8 +183,8 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
 
   <!-- AUTENTICAZIONE -->
   <div id="viewAuth" class="view on">
-    <h1>Murble <span>Race</span> <small class="ver">v3.15</small></h1>
-    <p class="sub">Scommesse sulle gare di biglie</p>
+    <h1>Murble <span>Race</span> <small class="ver">v3.16</small></h1>
+    <p class="sub">Pronostici a punti sulle gare di biglie</p>
     <div class="card">
       <div class="tabs">
         <button id="tabLogin" type="button">Accedi</button>
@@ -215,17 +217,17 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
     <div class="topbar">
       <div class="tleft">
         <button id="btnDrawer" class="ibtn" type="button" aria-label="Menu">☰</button>
-        <div class="ttl">Murble <span>Race</span> <small class="ver">v3.15</small></div>
+        <div class="ttl">Murble <span>Race</span> <small class="ver">v3.16</small></div>
       </div>
-      <button id="balPill" class="pill" type="button" aria-label="Ricarica crediti"><span id="hBal">0</span> <small>crediti</small> <b>+</b></button>
+      <button id="balPill" class="pill" type="button" aria-label="Punti totali: apri la classifica"><span id="hPts">0</span> <small>PT</small></button>
     </div>
-    <div id="hWait" class="banner" style="display:none">Account in attesa di attivazione da parte dell'admin: per ora non puoi scommettere.</div>
+    <div id="hWait" class="banner" style="display:none">Account in attesa di attivazione da parte dell'admin: per ora non puoi ancora giocare.</div>
     <div class="pgbody">
       <nav class="bnav" id="raceTabs">
         <button id="tabActive" type="button" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg>Gare</button>
         <button id="tabHistory" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h9"/></svg>Esiti</button>
         <button id="tabBoard" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4zM17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg>Classifica</button>
-        <button id="tabMoves" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h12l-3-3M17 17H5l3 3"/></svg>Movimenti</button>
+        <button id="tabMoves" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h12l-3-3M17 17H5l3 3"/></svg>Storico Punti</button>
       </nav>
       <main>
         <div id="catCard" style="display:none"><button id="btnCat" class="full catbtn" type="button" style="margin-top:0">Crea Partita dal Catalogo</button></div>
@@ -281,12 +283,12 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
         <textarea id="raceRunners" rows="4" required></textarea>
         <label for="raceYt">Link YouTube (facoltativo, live o registrato)</label>
         <input id="raceYt" inputmode="url" autocapitalize="none" placeholder="https://www.youtube.com/watch?v=...">
-        <label class="rn" style="margin-top:10px"><input id="raceLive" type="checkbox"><span class="nm">Diretta Live (mostra video anche a puntate aperte)</span></label>
+        <label class="rn" style="margin-top:10px"><input id="raceLive" type="checkbox"><span class="nm">Diretta Live (mostra video anche a pronostici aperti)</span></label>
         <label class="rn" style="margin-top:10px"><input id="raceTeam" type="checkbox"><span class="nm">Sfida a Squadre</span></label>
         <label for="raceDur">Durata gara (facoltativa, es. 2:51 o 3 min)</label>
         <input id="raceDur" maxlength="20" placeholder="2:51">
         <label for="raceInit">Stato iniziale</label>
-        <select id="raceInit"><option value="open" selected>Puntate aperte subito</option><option value="ready">Pronta da avviare (la avvia il gruppo)</option></select>
+        <select id="raceInit"><option value="open" selected>Pronostici aperti subito</option><option value="ready">Pronta da avviare (la avvia il gruppo)</option></select>
         <button class="full" type="submit">Crea gara</button>
       </form>
       <form id="formBulk" style="display:none">
@@ -303,14 +305,6 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
     </div>
     <div id="adminColPlayers" style="display:none">
     <div class="card">
-      <div class="mut">Tesoreria (fee trattenute)</div>
-      <div class="bal" style="font-size:32px"><span id="tBal">0</span> <span class="mut" style="font-size:16px">crediti</span></div>
-    </div>
-    <div class="card">
-      <b>Richieste di ricarica</b>
-      <div id="reqList"></div>
-    </div>
-    <div class="card">
       <div class="row"><b>Giocatori</b><button id="btnReload" class="sec small" type="button">Aggiorna</button></div>
       <div id="userList"></div>
     </div>
@@ -320,31 +314,31 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
       <div class="card">
         <div class="row"><b>Impostazioni</b></div>
         <form id="formCfg" style="margin-top:12px">
-          <label for="sFee">Fee sulle gare (%)</label>
-          <input id="sFee" type="number" step="1" min="0" max="100" inputmode="numeric" required>
-          <label for="sMin">Puntata minima (crediti)</label>
-          <input id="sMin" type="number" step="0.1" min="0.1" inputmode="decimal" required>
+          <label for="sBase">Punti Base Vittoria (PT)</label>
+          <input id="sBase" type="number" step="1" min="1" inputmode="numeric" required>
+          <label for="sBonus">Bonus Difficoltà (PT)</label>
+          <input id="sBonus" type="number" step="1" min="0" inputmode="numeric" required>
           <div class="mut" style="margin-top:6px">Valide solo per le gare create dopo il salvataggio.</div>
           <button class="full" type="submit">Salva impostazioni</button>
           <div id="cfgMsg" class="mut" style="margin-top:8px;color:var(--ok)"></div>
         </form>
         <details class="rsx" style="margin-top:18px">
         <summary>Reset</summary>
-        <div class="mut" style="margin-top:8px">Reset per la fase di test. Le operazioni sono definitive.</div>
+        <div class="mut" style="margin-top:8px">Reset per la fase di test o di cambio stagione. Le operazioni sono definitive.</div>
+        <div class="urow">
+          <b>Reset Stagione / Punti</b>
+          <div class="mut">Azzera i punti di tutti i giocatori e delle squadre e svuota le classifiche. Gare e pronostici restano.</div>
+          <div class="uactions"><button class="small danger" type="button" data-reset="season">Reset Stagione / Punti</button></div>
+        </div>
         <div class="urow">
           <b>Reset users</b>
-          <div class="mut">Elimina i profili giocatore e le richieste di ricarica. Gli account di accesso restano: al prossimo login il profilo viene ricreato a saldo 0 e in attesa di attivazione.</div>
+          <div class="mut">Elimina i profili giocatore. Gli account di accesso restano: al prossimo login il profilo viene ricreato a 0 punti e in attesa di attivazione.</div>
           <div class="uactions"><button class="small danger" type="button" data-reset="users">Reset users</button></div>
         </div>
         <div class="urow">
-          <b>Reset crediti</b>
-          <div class="mut">Azzera i saldi di tutti i giocatori, la Tesoreria e il registro movimenti.</div>
-          <div class="uactions"><button class="small danger" type="button" data-reset="credits">Reset crediti</button></div>
-        </div>
-        <div class="urow">
-          <b>Reset scommesse</b>
-          <div class="mut">Elimina tutte le puntate e tutte le gare (senza rimborsi).</div>
-          <div class="uactions"><button class="small danger" type="button" data-reset="bets">Reset scommesse</button></div>
+          <b>Reset pronostici e gare</b>
+          <div class="mut">Elimina tutti i pronostici e tutte le gare, azzera le classifiche.</div>
+          <div class="uactions"><button class="small danger" type="button" data-reset="bets">Reset pronostici</button></div>
         </div>
         <div class="urow">
           <b>Reset tutto</b>
@@ -360,16 +354,16 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
       <div class="row"><b>Gestione Catalogo</b><span class="uactions" style="margin:0"><button id="btnCatLoad" class="sec small" type="button">Aggiorna</button></span></div>
       <div class="tabs" id="cadmTabs" style="margin-top:10px;display:none">
         <button type="button" class="small" data-cf="all">Tutte</button>
-        <button type="button" class="small sec" data-cf="new">Non ancora scommesse</button>
-        <button type="button" class="small sec" data-cf="played">Già scommesse</button>
+        <button type="button" class="small sec" data-cf="new">Non ancora giocate</button>
+        <button type="button" class="small sec" data-cf="played">Già giocate</button>
         <button type="button" class="small sec" data-cf="susp">Sospese</button>
       </div>
       <input id="cadmSearch" placeholder="Cerca per nome, categoria o biglia" style="margin-top:10px;display:none">
       <div id="cadmBar" class="uactions" style="display:none;margin-top:10px">
         <button class="small sec" type="button" id="cadmAll">Seleziona tutte</button>
         <span id="cadmSelN" class="mut"></span>
-        <button class="small" type="button" data-bulk="new">Segna "Non ancora scommessa"</button>
-        <button class="small" type="button" data-bulk="played">Segna "Già scommessa"</button>
+        <button class="small" type="button" data-bulk="new">Segna "Non ancora giocata"</button>
+        <button class="small" type="button" data-bulk="played">Segna "Già giocata"</button>
         <button class="small sec" type="button" data-bulk="susp">Sospendi</button>
         <button class="small sec" type="button" data-bulk="unsusp">Riattiva</button>
         <button class="small danger" type="button" data-bulk="del">Elimina selezionate</button>
@@ -392,10 +386,9 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
     <div class="mut">Giocatore</div>
     <div class="mrow"><span id="hMarble"></span><b id="hName" style="font-size:19px"></b></div>
     <div style="margin-top:8px"><span id="hBadge" class="badge wait"></span></div>
-    <div class="mut" style="margin-top:12px">Saldo</div>
-    <div style="font-size:26px;font-weight:700"><span id="hBal2">0</span> <span class="mut">crediti</span></div>
+    <div class="mut" style="margin-top:12px">Punti totali</div>
+    <div style="font-size:26px;font-weight:700"><span id="hPts2">0</span> <span class="mut">PT</span></div>
   </div>
-  <button id="btnTopup" class="full" type="button" style="margin-top:0">Ricarica crediti</button>
   <nav class="dlinks">
     <a data-open="acc">Account &amp; Biglia</a>
     <a data-open="team">La mia Squadra</a>
@@ -427,21 +420,15 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
   </div>
 </div>
 
-<!-- RICARICA CREDITI -->
-<div id="modalTopup" class="modal" role="dialog" aria-modal="true">
+<!-- REGOLAMENTO AGGIORNATO (bloccante) -->
+<div id="modalTermsUpd" class="modal" role="dialog" aria-modal="true">
   <div class="mbox" style="max-width:420px">
-    <b style="font-size:18px">Ricarica crediti</b>
-    <form id="topupForm" style="margin-top:4px">
-      <label for="tAmt">Quanti crediti vuoi richiedere?</label>
-      <input id="tAmt" type="number" step="1" min="1" inputmode="numeric" required>
-      <div class="uactions" style="margin-top:12px">
-        <button class="small" type="submit">Invia richiesta</button>
-        <button class="small sec" id="btnTopupCancel" type="button">Annulla</button>
-      </div>
-      <div id="topupErr" class="err"></div>
-    </form>
-    <div id="topupStatus" class="mut" style="margin-top:10px"></div>
-    <button id="btnTopupClose" class="sec full" type="button">Chiudi</button>
+    <b style="font-size:18px">Regolamento aggiornato</b>
+    <p class="mut" style="margin-top:10px">Murble Race è diventato un gioco di <b>Pronostici a Punti</b>: niente più saldo, ricariche o puntate. Per continuare leggi e accetta il nuovo Regolamento e i Termini e Condizioni.</p>
+    <button id="btnTuRead" class="sec full" type="button">Leggi Regolamento e Termini</button>
+    <button id="btnTuAccept" class="full" type="button">Accetto</button>
+    <button id="btnTuLogout" class="sec full" type="button">Esci</button>
+    <div id="tuErr" class="err"></div>
   </div>
 </div>
 
@@ -486,53 +473,55 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
     <div class="mbody">
       <div id="infoRules">
         <h3>1. Come funziona una gara</h3>
-        <p>Ogni gara è una corsa di biglie trasmessa su YouTube. Prima della partenza scegli <b>una biglia</b> e punti una quantità di crediti: sei libero di scegliere l'importo, in multipli di 0,1 crediti, purché non sia inferiore alla puntata minima indicata.</p>
+        <p>Ogni gara è una corsa di biglie trasmessa su YouTube. Prima della partenza scegli <b>la biglia che pensi vincerà</b> e premi <b>Conferma Pronostico</b>. Partecipare è <b>gratuito</b>: non ci sono saldi, ricariche o importi da indicare.</p>
         <ul>
-          <li>Hai <b>una sola puntata per gara</b>: una volta confermata non si modifica e non si annulla (un rimborso può essere disposto solo dall'Admin).</li>
-          <li>Per scommettere l'account deve essere <b>attivo</b> e il saldo sufficiente. I crediti si ottengono con una richiesta di ricarica approvata dall'Admin.</li>
+          <li>Hai <b>un solo pronostico per gara</b>: una volta confermato non si modifica e non si annulla (può annullarlo solo l'Admin).</li>
+          <li>Per partecipare l'account deve essere <b>attivo</b>.</li>
           <li>Le gare compaiono in <b>Gare Attive</b>. Possono essere già aperte, oppure "da avviare": in quel caso un giocatore attivo la avvia indicando <b>quanti giocatori partecipano</b> (da 2 a 20). Il numero non si può più cambiare.</li>
           <li>Dal <b>Catalogo</b> puoi estrarre una gara a caso scegliendo i filtri (categoria, numero di biglie, durata, biglia partecipante) e il numero di giocatori.</li>
         </ul>
-        <h3>2. Chiusura delle puntate</h3>
-        <p>Quando il numero di puntate raggiunge il numero di partecipanti indicato all'avvio, la gara si <b>chiude automaticamente</b>: da quel momento non si può più puntare e il video della corsa viene sbloccato per tutti. L'Admin può comunque chiudere le puntate in anticipo. Il video è visibile solo a puntate chiuse (salvo gare in diretta).</p>
-        <h3>3. Montepremi e vincite (Pari-Mutuel)</h3>
-        <p>Tutte le puntate confluiscono in un <b>montepremi unico</b>. Chi non gioca contro un banco: i vincitori si dividono quanto puntato dagli altri.</p>
+        <h3>2. Chiusura dei pronostici</h3>
+        <p>Quando il numero di pronostici raggiunge il numero di partecipanti indicato all'avvio, la gara si <b>chiude automaticamente</b>: da quel momento non si può più pronosticare e il video della corsa viene sbloccato per tutti. L'Admin può comunque chiudere i pronostici in anticipo. Il video è visibile solo a pronostici chiusi (salvo gare in diretta).</p>
+        <h3>3. Punti e vittorie</h3>
+        <p>Chi indovina la biglia vincente guadagna <b>Punti (PT)</b>. Chi sbaglia non guadagna punti e <b>non perde nulla</b>.</p>
         <ul>
-          <li><b>Fee solo sul surplus.</b> La fee (percentuale indicata sulla gara) si applica soltanto alla parte di montepremi che arriva dalle puntate perse, cioè: <i>(montepremi − puntate sulla biglia vincente) × fee%</i>. La fee va alla Tesoreria dell'Admin.</li>
-          <li><b>Quota minima x1.00.</b> Poiché la fee non tocca le puntate vincenti, chi vince recupera sempre almeno la propria puntata.</li>
-          <li>Il montepremi netto (montepremi − fee) si divide tra i vincitori <b>in proporzione alla puntata</b> di ciascuno. Le cifre sono arrotondate per difetto al decimo; gli eventuali residui vanno in Tesoreria.</li>
-          <li>La quota mostrata accanto a ogni biglia è indicativa e cambia a ogni nuova puntata, finché le puntate sono aperte.</li>
+          <li><b>Punti Base Vittoria</b> (di default 100 PT) spettano a ogni vincitore.</li>
+          <li><b>Bonus Difficoltà</b> (di default 50 PT): più la biglia vincente è stata scelta da pochi, più il bonus è alto. Formula: <i>Base + (partecipanti totali − chi ha scelto la biglia vincente) × Bonus ÷ chi ha scelto la biglia vincente</i>, arrotondato all'intero.</li>
+          <li>Esempio: 5 partecipanti, uno solo indovina: 100 + (5 − 1) × 50 ÷ 1 = <b>300 PT</b>. Se indovinano in 4 su 5: 100 + 1 × 50 ÷ 4 ≈ <b>113 PT</b> a testa.</li>
+          <li>Accanto a ogni biglia vedi quanti giocatori l'hanno scelta e i <b>punti stimati</b>: sono indicativi e cambiano a ogni nuovo pronostico, finché i pronostici sono aperti. Per la biglia che non hai ancora scelto la stima include anche il tuo pronostico.</li>
         </ul>
-        <h3>4. Rimborsi</h3>
+        <h3>4. Nessun vincitore e gare annullate</h3>
         <ul>
-          <li>Se <b>nessuno ha puntato sulla biglia vincente</b>, tutte le puntate vengono rimborsate per intero, senza fee.</li>
-          <li>Se la gara viene <b>annullata</b> dall'Admin, tutte le puntate vengono rimborsate per intero.</li>
-          <li>L'Admin può rimborsare anche una singola puntata, quando la gara è ancora aperta o chiusa.</li>
+          <li>Se <b>nessuno ha scelto la biglia vincente</b>, nessuno guadagna punti e la gara non incide sulla classifica.</li>
+          <li>Se la gara viene <b>annullata</b> dall'Admin, tutti i pronostici sono annullati e non assegnano punti.</li>
+          <li>L'Admin può annullare anche un singolo pronostico, quando la gara è ancora aperta o chiusa.</li>
         </ul>
-        <h3>5. Classifica</h3>
-        <p>La classifica ordina i giocatori per <b>guadagno netto</b>: somma delle vincite meno somma delle puntate, calcolata solo sulle gare concluse con un vincitore. Le gare rimborsate o annullate non incidono. Nel dettaglio trovi anche le vittorie sul totale delle puntate.</p>
+        <h3>5. Classifica e Storico Punti</h3>
+        <p>La classifica ordina i giocatori per <b>punti totali (PT)</b> accumulati sulle gare concluse con un vincitore. Nel dettaglio trovi anche le vittorie sul totale dei pronostici. In <b>Storico Punti</b> vedi i punti ottenuti in ogni gara. L'Admin può azzerare i punti per iniziare una <b>nuova stagione</b>.</p>
         <h3>6. Biglia personale e Squadre</h3>
         <ul>
           <li>Dal menu ☰ → <b>Account &amp; Biglia</b> crei la tua biglia (due colori e uno stile): compare accanto al tuo nome, in classifica e nelle gare.</li>
           <li>Dal menu ☰ → <b>La mia Squadra</b> puoi creare una squadra (nome, tag di 2–4 lettere, biglia di squadra) o unirti con un <b>codice invito</b>. Una squadra ha al massimo 6 membri e ogni giocatore può stare in una sola squadra; solo i membri vedono il codice.</li>
-          <li>Ogni gara è <b>Singolo (tutti contro tutti)</b> oppure <b>Sfida a Squadre</b>. Le regole di puntata e di vincita non cambiano: nelle sfide a squadre la tua puntata viene contata anche nelle statistiche della squadra (puntate, vittorie, puntato, vinto, netto). Senza squadra giochi come "Indipendente".</li>
-          <li>La classifica ha due schede: <b>Singoli</b> e <b>Squadre</b>, entrambe per guadagno netto. Il capitano può sciogliere la squadra solo se è rimasto da solo.</li>
+          <li>Ogni gara è <b>Singolo (tutti contro tutti)</b> oppure <b>Sfida a Squadre</b>. Le regole dei punti non cambiano: nelle sfide a squadre il tuo pronostico viene contato anche nelle statistiche della squadra (pronostici, vittorie, punti). Senza squadra giochi come "Indipendente".</li>
+          <li>La classifica ha due schede: <b>Singoli</b> e <b>Squadre</b>, entrambe per punti. Il capitano può sciogliere la squadra solo se è rimasto da solo.</li>
         </ul>
         <div class="note">L'esito è deciso dall'Admin a corsa terminata, in base a ciò che si vede nel video. La decisione dell'Admin è definitiva.</div>
       </div>
       <div id="infoTerms" style="display:none">
-        <h3>1. Uso ricreativo e crediti virtuali</h3>
-        <p>Murble Race è un gioco <b>esclusivamente goliardico e ricreativo tra amici</b>. I crediti sono <b>puramente virtuali</b>: non hanno alcun valore economico, non sono acquistabili, non sono convertibili in denaro o altri beni e non possono essere ceduti. Nessun denaro reale è in gioco.</p>
+        <h3>1. Gioco di pronostici ricreativo, senza denaro</h3>
+        <p>Murble Race è un gioco di <b>abilità e pronostico a scopo ricreativo e gratuito</b>. I <b>Punti (PT)</b> servono solo a comporre la classifica: non hanno alcun valore economico, non sono acquistabili, non sono convertibili in denaro, premi o altri beni e non possono essere ceduti. Non esiste alcuna posta in gioco: nessun denaro reale è richiesto, versato o vinto.</p>
         <h3>2. Account e gestione dei profili</h3>
         <ul>
           <li>Ogni persona può avere <b>un solo account</b>. Sono vietati account multipli, fasulli o creati per aggirare le regole.</li>
-          <li>L'Admin può <b>attivare, sospendere o rimuovere</b> qualsiasi profilo a propria discrezione, in qualsiasi momento, anche senza preavviso, e può correggere saldi e puntate in caso di errori o abusi.</li>
+          <li>L'Admin può <b>attivare, sospendere o rimuovere</b> qualsiasi profilo a propria discrezione, in qualsiasi momento, anche senza preavviso, e può correggere punti e pronostici in caso di errori o abusi.</li>
           <li>Sei responsabile della custodia del tuo PIN: non comunicarlo a nessuno.</li>
         </ul>
         <h3>3. Riservatezza e divieto di condivisione</h3>
-        <p>L'app è <b>strettamente privata</b>. È vietata qualsiasi condivisione, diffusione o divulgazione non autorizzata del <b>link</b>, delle <b>schermate</b>, delle <b>credenziali</b> o dei <b>contenuti</b> dell'app (gare, video, classifiche, saldi, regolamento) a soggetti esterni non autorizzati dall'Admin. La violazione può comportare la sospensione o la rimozione immediata del profilo.</p>
-        <h3>4. Disponibilità del servizio</h3>
-        <p>Il servizio è offerto così com'è, senza garanzie di continuità o assenza di errori. I dati di gioco possono essere azzerati o modificati dall'Admin, anche durante le fasi di prova.</p>
+        <p>L'app è <b>strettamente privata</b>. È vietata qualsiasi condivisione, diffusione o divulgazione non autorizzata del <b>link</b>, delle <b>schermate</b>, delle <b>credenziali</b> o dei <b>contenuti</b> dell'app (gare, video, classifiche, regolamento) a soggetti esterni non autorizzati dall'Admin. La violazione può comportare la sospensione o la rimozione immediata del profilo.</p>
+        <h3>4. Disponibilità del servizio e stagioni</h3>
+        <p>Il servizio è offerto così com'è, senza garanzie di continuità o assenza di errori. I dati di gioco e i punti possono essere azzerati o modificati dall'Admin (ad esempio a ogni nuova stagione o durante le fasi di prova).</p>
+        <h3>5. Aggiornamenti</h3>
+        <p>Regolamento e Termini possono essere aggiornati: alla nuova versione ti verrà chiesto di accettarli di nuovo al successivo accesso.</p>
         <div class="note">Registrandoti dichiari di aver letto e accettato il Regolamento e questi Termini e Condizioni.</div>
       </div>
     </div>
@@ -568,6 +557,7 @@ const DOMAIN = "@murblerace.app";
 const ADMIN_EMAIL = "admin" + DOMAIN;
 const RESERVED = ["admin"];
 const MAX_BETS_SETTLE = 100;
+const TERMS_VERSION = 2; // incrementare per far riaccettare Regolamento e Termini a tutti
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
@@ -680,7 +670,7 @@ function openInfo(tab){
 function closeInfo(){ $("modalInfo").classList.remove("on"); }
 function openDrawer(){ $("drawer").classList.add("on"); $("drawerBg").classList.add("on"); }
 function closeDrawer(){ $("drawer").classList.remove("on"); $("drawerBg").classList.remove("on"); }
-function closeOverlays(){ ["modalInfo", "modalTopup", "modalCat", "modalAcc", "modalTeam"].forEach(m => $(m).classList.remove("on")); closeDrawer(); }
+function closeOverlays(){ ["modalInfo", "modalCat", "modalAcc", "modalTeam"].forEach(m => $(m).classList.remove("on")); closeDrawer(); }
 $("btnDrawer").onclick = openDrawer;
 $("btnDrawerClose").onclick = closeDrawer;
 $("drawerBg").onclick = closeDrawer;
@@ -753,7 +743,7 @@ function stopListeners(){
 
 onAuthStateChanged(auth, async user => {
   stopListeners();
-  if (!user) { me = null; myReq = null; meDoc = null; races = []; myBets = {}; myBetList = []; ledgerRows = []; draft = {}; raceTab = "active"; videoIds = {}; videoReq = {}; boardRows = []; prevStatus = {}; show("viewAuth"); return; }
+  if (!user) { me = null; myReq = null; meDoc = null; races = []; myBets = {}; myBetList = []; ledgerRows = []; draft = {}; raceTab = "active"; videoIds = {}; videoReq = {}; boardRows = []; prevStatus = {}; $("modalTermsUpd").classList.remove("on"); show("viewAuth"); return; }
   const name = user.email.split("@")[0];
   const display = (pendingDisplay && normName(pendingDisplay) === name) ? pendingDisplay : name;
   pendingDisplay = null;
@@ -766,15 +756,14 @@ onAuthStateChanged(auth, async user => {
     if (!snap.exists()) {
       // profilo mancante (nuova registrazione o profili azzerati): serve l'accettazione di Regolamento e Termini
       if (!accepted && !confirm("Per continuare devi accettare il Regolamento e i Termini e Condizioni (li trovi in fondo alla Home). Li accetti?")) throw new Error("Per usare l'app devi accettare il Regolamento e i Termini e Condizioni.");
-      await setDoc(ref, { username: display, balance: 0, active: false, acceptedTerms: true, createdAt: serverTimestamp() });
+      await setDoc(ref, { username: display, points: 0, active: false, acceptedTerms: true, termsVersion: TERMS_VERSION, createdAt: serverTimestamp() });
     }
     unsubUser = onSnapshot(ref, s => { if (s.exists()) renderHome(name, s.data()); },
       e => { $("homeErr").textContent = msg(e); });
-    unsubTopup = onSnapshot(doc(db, "topupRequests", user.uid), s => renderTopup(s.exists() ? s.data() : null), () => {});
     unsubRaces = onSnapshot(query(collection(db, "races"), orderBy("createdAt", "desc"), limit(20)),
       s => {
         races = s.docs.map(d => ({ id: d.id, ...d.data() }));
-        // quando una gara viene avviata o chiusa, la scheda si apre da sola per tutti (puntata / video)
+        // quando una gara viene avviata o chiusa, la scheda si apre da sola per tutti (pronostico / video)
         races.forEach(r => { const p = prevStatus[r.id]; if (p && ((p === "ready" && r.status === "open") || (p === "open" && r.status === "closed"))) expanded[r.id] = true; prevStatus[r.id] = r.status; });
         renderRaces();
       },
@@ -782,13 +771,10 @@ onAuthStateChanged(auth, async user => {
     unsubBets = onSnapshot(query(collection(db, "bets"), where("uid", "==", user.uid)),
       s => { myBets = {}; myBetList = s.docs.map(d => d.data()); myBetList.forEach(b => { myBets[b.raceId] = b; }); renderRaces(); },
       e => { $("homeErr").textContent = msg(e); });
-    unsubLedger = onSnapshot(query(collection(db, "ledger"), where("uid", "==", user.uid)),
-      s => { ledgerRows = s.docs.map(d => d.data()); if (raceTab === "moves") renderRaces(); },
-      () => {});
-    unsubTeams = onSnapshot(query(collection(db, "teams"), orderBy("stats.net", "desc"), limit(30)),
+    unsubTeams = onSnapshot(query(collection(db, "teams"), orderBy("stats.points", "desc"), limit(30)),
       s => { boardTeams = s.docs.map(d => ({ id: d.id, ...d.data() })); if (raceTab === "board") renderRaces(); },
       () => {});
-    unsubBoard = onSnapshot(query(collection(db, "leaderboard"), orderBy("net", "desc"), limit(50)),
+    unsubBoard = onSnapshot(query(collection(db, "leaderboard"), orderBy("points", "desc"), limit(50)),
       s => { boardRows = s.docs.map(d => ({ id: d.id, ...d.data() })); if (raceTab === "board") renderRaces(); },
       () => {});
     show("viewHome");
@@ -802,8 +788,9 @@ function updateCatBtn(){ $("catCard").style.display = (meDoc && meDoc.active && 
 function renderHome(name, d){
   meDoc = d;
   $("hName").textContent = d.username || name;
-  $("hBal").textContent = d.balance;
-  $("hBal2").textContent = d.balance;
+  $("hPts").textContent = d.points || 0;
+  $("hPts2").textContent = d.points || 0;
+  $("modalTermsUpd").classList.toggle("on", d.termsVersion !== TERMS_VERSION);
   $("hMarble").innerHTML = marbleSvg(d.marble, 34);
   syncTeam();
   const b = $("hBadge");
@@ -816,10 +803,10 @@ function renderHome(name, d){
 $("btnLogout").onclick = () => signOut(auth);
 
 // ---------- Gare (giocatore) ----------
-const STATUS_LABEL = { ready: "da avviare", open: "puntate aperte", closed: "puntate chiuse", settled: "conclusa", cancelled: "annullata" };
+const STATUS_LABEL = { ready: "da avviare", open: "pronostici aperti", closed: "pronostici chiusi", settled: "conclusa", cancelled: "annullata" };
 const STATUS_CLASS = { ready: "wait", open: "ok", closed: "wait", settled: "off", cancelled: "off" };
 
-// Il link del video sta in un documento separato (videos/{garaId}) che le regole rendono leggibile solo a puntate chiuse o in Diretta Live
+// Il link del video sta in un documento separato (videos/{garaId}) che le regole rendono leggibile solo a pronostici chiusi o in Diretta Live
 async function fetchVideo(id){
   videoReq[id] = Date.now();
   try {
@@ -834,34 +821,35 @@ function raceParts(r){
   const b = myBets[r.id];
   const pools = r.pools || {};
   const total = r.pool || 0;
-  const fee = r.feePercent || 0;
+  const base = Number.isInteger(r.basePts) ? r.basePts : 100, bonus = Number.isInteger(r.bonusPts) ? r.bonusPts : 50;
   const canBet = r.status === "open" && !b && meDoc && meDoc.active;
   const d = draft[r.id] || {};
   const runners = (r.runners || []).map((n, i) => {
-    const p = pools[String(i)] || 0;
-    const netI = r1(total - f1((total - p) * fee / 100)); // fee solo sul surplus: quota minima x1.00
-    const quota = p > 0 ? "x" + (netI / p).toFixed(2) : "—";
+    const c = pools[String(i)] || 0;
+    const cc = canBet ? c + 1 : c, tt = canBet ? total + 1 : total; // prima del pronostico la stima include il tuo
+    const pts = cc > 0 ? base + Math.round((tt - cc) * bonus / cc) : null;
     const isWin = r.status === "settled" && r.winner === i;
     const mine = b && b.runner === i ? " ★" : "";
     const radio = canBet
       ? `<input type="radio" name="rn_${esc(r.id)}" value="${i}" ${String(d.runner) === String(i) ? "checked" : ""}>`
       : "";
-    return `<label class="rn ${isWin ? "win" : ""}">${radio}<span class="nm">${esc(n)}${mine}${isWin ? " 🏆" : ""}</span><span class="mut">${esc(p)} · ${quota}</span></label>`;
+    const info = r.status === "settled" ? `${esc(c)} · ${isWin && pts !== null && !r.noWinner ? esc(pts) : 0} PT` : `${esc(c)} ${c === 1 ? "giocatore" : "giocatori"} · ${pts === null ? "—" : "~" + esc(pts) + " PT"}`;
+    return `<label class="rn ${isWin ? "win" : ""}">${radio}<span class="nm">${esc(n)}${mine}${isWin ? " 🏆" : ""}</span><span class="mut">${info}</span></label>`;
   }).join("");
 
   let foot = "";
   if (canBet) {
     foot = `<div class="betbox">
-      <input type="number" step="0.1" min="${esc(r.minBet || 1)}" inputmode="decimal" placeholder="Crediti da puntare (min ${esc(r.minBet || 1)})" data-amt value="${esc(d.amount || "")}">
-      <button class="full" data-act="bet" type="button">Punta</button>
+      <button class="full" data-act="bet" type="button">Conferma Pronostico</button>
+      <div class="mut" style="margin-top:6px">Scegli una biglia: il pronostico non si può più modificare. I punti stimati cambiano a ogni nuovo pronostico.</div>
     </div>`;
   } else if (b) {
     let res = "";
-    if (b.status === "won") res = `<span class="res-won">Vinto +${esc(b.payout)} crediti</span>`;
-    else if (b.status === "lost") res = `<span class="res-lost">Persa</span>`;
-    else if (b.status === "refunded") res = `<span class="mut">Rimborsata: +${esc(b.payout)} crediti</span>`;
+    if (b.status === "won") res = `<span class="res-won">Pronostico azzeccato +${esc(b.points || 0)} PT</span>`;
+    else if (b.status === "lost") res = `<span class="res-lost">Pronostico sbagliato · 0 PT</span>`;
+    else if (b.status === "void") res = `<span class="mut">Pronostico annullato · 0 PT</span>`;
     else res = `<span class="mut">In attesa del risultato</span>`;
-    foot = `<div class="betbox mut">${marbleSvg(meDoc && meDoc.marble, 18)} La tua puntata: <b>${esc(b.amount)}</b> crediti su <b>${esc((r.runners || [])[b.runner] ?? "?")}</b> — ${res}</div>`;
+    foot = `<div class="betbox mut">${marbleSvg(meDoc && meDoc.marble, 18)} Il tuo pronostico: <b>${esc((r.runners || [])[b.runner] ?? "?")}</b> — ${res}</div>`;
   } else if (r.status === "ready") {
     const pl = d.players !== undefined ? d.players : "";
     foot = meDoc && meDoc.active
@@ -870,18 +858,18 @@ function raceParts(r){
       <label>Modalità gara</label>
       <select data-teammode><option value="0">Singolo (Tutti contro tutti)</option><option value="1" ${d.teamMode === "1" ? "selected" : ""}>Sfida a Squadre</option></select>
       <button class="full" data-act="start" type="button">Avvia gara</button>
-      <div class="mut" style="margin-top:6px">Una volta avviata, il numero non si può più cambiare: la gara si chiude da sola all'ultima puntata.</div></div>`
+      <div class="mut" style="margin-top:6px">Una volta avviata, il numero non si può più cambiare: la gara si chiude da sola all'ultimo pronostico.</div></div>`
       : `<div class="betbox mut">Account da attivare per poter avviare la gara.</div>`;
   } else if (r.status === "open" && meDoc && !meDoc.active) {
-    foot = `<div class="betbox mut">Account da attivare per poter scommettere.</div>`;
+    foot = `<div class="betbox mut">Account da attivare per poter pronosticare.</div>`;
   }
 
-  if (r.teamMode && canBet) foot = `<div class="mut" style="margin-top:10px">Sfida a Squadre: ${meDoc && meDoc.teamTag ? "la tua puntata conta per <b>" + esc(meDoc.teamTag) + "</b>" : "senza squadra giochi come <b>Indipendente</b>"}.</div>` + foot;
+  if (r.teamMode && canBet) foot = `<div class="mut" style="margin-top:10px">Sfida a Squadre: ${meDoc && meDoc.teamTag ? "il tuo pronostico conta per <b>" + esc(meDoc.teamTag) + "</b>" : "senza squadra giochi come <b>Indipendente</b>"}.</div>` + foot;
   const isActive = r.status === "ready" || r.status === "open" || r.status === "closed";
   const isOpen = !isActive || !!expanded[r.id];
   const arrow = isActive ? (isOpen ? " ▲" : " ▼") : "";
   const head = `<div class="row"><span><b>${esc(r.name)}</b>${r.duration ? `<span class="dur">⏱ ${esc(r.duration)}</span>` : ""}${r.category ? `<span class="tag">${esc(r.category)}</span>` : ""}${r.teamMode ? `<span class="tag" style="border-color:#7db0ff;color:#7db0ff">Squadre</span>` : ""}</span><span class="badge ${STATUS_CLASS[r.status] || "off"}">${STATUS_LABEL[r.status] || esc(r.status)}</span></div>
-      <div class="row mut" style="margin-top:4px"><span>Montepremi: ${esc(total)} crediti · Fee ${esc(fee)}% sul surplus</span><span>${b ? marbleSvg(meDoc && meDoc.marble, 16) + " ✓ Hai puntato" : ""}${arrow}</span></div>${r.expectedPlayers ? `<div class="row mut" style="margin-top:4px"><span>Puntate: <b style="color:var(--txt)">${esc(r.betsCount || 0)} / ${esc(r.expectedPlayers)}</b></span></div>` : ""}`;
+      <div class="row mut" style="margin-top:4px"><span>Vittoria: ${esc(base)} PT + bonus difficoltà</span><span>${b ? marbleSvg(meDoc && meDoc.marble, 16) + " ✓ Pronostico fatto" : ""}${arrow}</span></div>${r.expectedPlayers ? `<div class="row mut" style="margin-top:4px"><span>Pronostici: <b style="color:var(--txt)">${esc(r.betsCount || 0)} / ${esc(r.expectedPlayers)}</b></span></div>` : ""}`;
   const showVideo = isOpen && r.status !== "cancelled" && r.status !== "ready" && (r.status !== "open" || r.youtubeLive === true);
   if (showVideo && r.hasVideo && videoIds[r.id] === undefined && !(videoReq[r.id] > Date.now() - 20000)) fetchVideo(r.id);
   return { head, body: isOpen ? runners + foot : "", yt: showVideo ? (videoIds[r.id] || ytInfo(r.youtubeUrl)) : null, isActive };
@@ -890,43 +878,38 @@ function raceParts(r){
 function movesHtml(){
   const nm = id => { const r = races.find(x => x.id === id); return r ? r.name : "Gara"; };
   const ts = o => (o.createdAt && o.createdAt.toMillis) ? o.createdAt.toMillis() : Date.now();
-  const rows = [];
-  ledgerRows.forEach(l => {
-    const plus = l.type === "topup" || l.type === "win" || l.type === "refund";
-    const label = l.type === "topup" ? "Ricarica"
-      : l.type === "withdraw" ? "Prelievo"
-      : l.type === "win" ? "Vincita · " + nm(l.raceId)
-      : l.type === "refund" ? "Rimborso · " + nm(l.raceId)
-      : String(l.type);
-    rows.push({ t: ts(l), label, amt: plus ? l.amount : -l.amount });
-  });
-  myBetList.forEach(b => {
+  const tot = `<div class="card"><div class="mut">Punti totali</div><div style="font-size:28px;font-weight:700">${esc((meDoc && meDoc.points) || 0)} <span class="mut" style="font-size:16px">PT</span></div></div>`;
+  const rows = myBetList.map(b => {
     const r = races.find(x => x.id === b.raceId);
     const rn = r && r.runners ? r.runners[b.runner] : null;
-    rows.push({ t: ts(b), label: "Puntata · " + nm(b.raceId) + (rn ? " · " + rn : ""), amt: -b.amount });
+    const val = b.status === "won" ? `<b class="res-won">+${esc(b.points || 0)} PT</b>`
+      : b.status === "lost" ? `<b class="res-lost">0 PT</b>`
+      : b.status === "void" ? `<span class="mut">annullato</span>`
+      : `<span class="mut">in attesa</span>`;
+    return { t: ts(b), label: "Pronostico · " + nm(b.raceId) + (rn ? " · " + rn : ""), val };
   });
   rows.sort((a, b) => b.t - a.t);
-  if (!rows.length) return '<div class="card mut">Nessun movimento.</div>';
-  return '<div class="card">' + rows.slice(0, 60).map(r => `<div class="urow"><div class="row"><span>${esc(r.label)}</span><b class="${r.amt >= 0 ? "res-won" : "res-lost"}">${r.amt > 0 ? "+" : ""}${esc(r1(r.amt))}</b></div><div class="mut">${esc(new Date(r.t).toLocaleString("it-IT", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }))}</div></div>`).join("") + '</div>';
+  if (!rows.length) return tot + '<div class="card mut">Nessun pronostico ancora.</div>';
+  return tot + '<div class="card">' + rows.slice(0, 60).map(r => `<div class="urow"><div class="row"><span>${esc(r.label)}</span>${r.val}</div><div class="mut">${esc(new Date(r.t).toLocaleString("it-IT", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }))}</div></div>`).join("") + '</div>';
 }
 
 function boardHtml(){
   const sub = `<div class="tabs" style="margin-bottom:10px"><button type="button" class="small${boardSub === "players" ? "" : " sec"}" data-bsub="players">Singoli</button><button type="button" class="small${boardSub === "teams" ? "" : " sec"}" data-bsub="teams">Squadre</button></div>`;
-  const netB = n => `<b class="${n >= 0 ? "res-won" : "res-lost"}">${n > 0 ? "+" : ""}${esc(n)}</b>`;
+  const ptB = n => `<b class="res-won">${esc(n)} PT</b>`;
   if (boardSub === "teams") {
-    const rows = boardTeams.filter(t => (t.stats && t.stats.bets) > 0 || true);
-    if (!rows.length) return sub + '<div class="card mut">Nessuna squadra ancora: creane una da ☰ → La mia Squadra.</div>';
+    const rows = boardTeams.filter(t => t.stats && Number.isInteger(t.stats.points));
+    if (!rows.length) return sub + '<div class="card mut">Nessuna squadra in classifica: creane una da ☰ → La mia Squadra e gioca una Sfida a Squadre.</div>';
     return sub + '<div class="card">' + rows.map((t, i) => {
       const st = t.stats || {}, mine = myTeam && t.id === myTeam.id;
-      return `<div class="urow"><div class="row"><span class="mrow">${i + 1}. ${marbleSvg(t.marble, 24)}<b${mine ? ' style="color:var(--acc)"' : ""}>${esc(t.name || "?")}</b><span class="ttag" style="margin:0">${esc(t.tag || "")}</span></span>${netB(r1(st.net || 0))}</div><div class="mut">Vittorie ${esc(st.wins || 0)} su ${esc(st.bets || 0)} puntate · ${esc((t.members || []).length)} membri</div></div>`;
+      return `<div class="urow"><div class="row"><span class="mrow">${i + 1}. ${marbleSvg(t.marble, 24)}<b${mine ? ' style="color:var(--acc)"' : ""}>${esc(t.name || "?")}</b><span class="ttag" style="margin:0">${esc(t.tag || "")}</span></span>${ptB(st.points || 0)}</div><div class="mut">Vittorie ${esc(st.wins || 0)} su ${esc(st.picks || 0)} pronostici · ${esc((t.members || []).length)} membri</div></div>`;
     }).join("") + '</div><div class="mut" style="text-align:center">Conta solo la modalità Sfida a Squadre, sulle gare concluse.</div>';
   }
   if (!boardRows.length) return sub + '<div class="card mut">Nessun risultato ancora: la classifica si aggiorna a ogni gara conclusa.</div>';
   return sub + '<div class="card">' + boardRows.map((r, i) => {
     const mine = me && r.id === me.uid;
     const mk = mine && meDoc && meDoc.marble ? meDoc.marble : r.marble;
-    return `<div class="urow"><div class="row"><span class="mrow">${i + 1}. ${marbleSvg(mk, 24)}<b${mine ? ' style="color:var(--acc)"' : ""}>${esc(r.username || "?")}</b>${r.teamTag ? `<span class="ttag" style="margin:0">${esc(r.teamTag)}</span>` : ""}${mine ? " (tu)" : ""}</span>${netB(r1(r.net || 0))}</div><div class="mut">Vittorie ${esc(r.wins || 0)} su ${esc(r.bets || 0)} puntate</div></div>`;
-  }).join("") + '</div><div class="mut" style="text-align:center">Guadagno netto = vincite meno puntate, sulle gare concluse.</div>';
+    return `<div class="urow"><div class="row"><span class="mrow">${i + 1}. ${marbleSvg(mk, 24)}<b${mine ? ' style="color:var(--acc)"' : ""}>${esc(r.username || "?")}</b>${r.teamTag ? `<span class="ttag" style="margin:0">${esc(r.teamTag)}</span>` : ""}${mine ? " (tu)" : ""}</span>${ptB(r.points || 0)}</div><div class="mut">Vittorie ${esc(r.wins || 0)} su ${esc(r.picks || 0)} pronostici</div></div>`;
+  }).join("") + '</div><div class="mut" style="text-align:center">Punti accumulati sulle gare concluse.</div>';
 }
 
 function renderRaces(){
@@ -1025,12 +1008,10 @@ $("raceList").addEventListener("click", async ev => {
     return;
   }
   const runner = Number(d.runner);
-  const amount = r1(Number(String(d.amount || "").replace(",", ".")));
   if (d.runner === undefined || !Number.isInteger(runner)) { $("homeErr").textContent = "Scegli una biglia."; return; }
-  if (!(amount > 0) || !isTenth(amount)) { $("homeErr").textContent = "Inserisci un importo valido (multipli di 0.1)."; return; }
   await busy(btn, async () => {
     try {
-      await placeBet(id, runner, amount);
+      await placeBet(id, runner);
       delete draft[id];
     } catch (e) { $("homeErr").textContent = msg(e); }
   });
@@ -1049,32 +1030,29 @@ async function startRace(raceId, n, teamMode){
   });
 }
 
-async function placeBet(raceId, runner, amount){
+async function placeBet(raceId, runner){
   const rr = doc(db, "races", raceId);
   const ur = doc(db, "users", me.uid);
   const br = doc(db, "bets", raceId + "_" + me.uid);
   await runTransaction(db, async tx => {
     const [r, u, b] = await Promise.all([tx.get(rr), tx.get(ur), tx.get(br)]);
-    if (!r.exists() || r.data().status !== "open") throw new Error("Le puntate per questa gara sono chiuse.");
+    if (!r.exists() || r.data().status !== "open") throw new Error("I pronostici per questa gara sono chiusi.");
     if (!u.data().active) throw new Error("Account non ancora attivo.");
-    if (b.exists()) throw new Error("Hai già puntato su questa gara.");
+    if (b.exists()) throw new Error("Hai già fatto il pronostico per questa gara.");
     const race = r.data();
     if (runner < 0 || runner >= race.runners.length) throw new Error("Biglia non valida.");
-    if (amount < (race.minBet || 1)) throw new Error("Puntata minima: " + (race.minBet || 1) + " crediti.");
-    if (u.data().balance < amount) throw new Error("Saldo insufficiente.");
     const key = String(runner);
     const pools = { ...(race.pools || {}) };
-    pools[key] = r1((pools[key] || 0) + amount);
-    tx.update(ur, { balance: r1(u.data().balance - amount) });
-    const bet = { raceId, uid: me.uid, username: me.name, runner, amount, status: "pending", createdAt: serverTimestamp() };
+    pools[key] = (pools[key] || 0) + 1;
+    const bet = { raceId, uid: me.uid, username: me.name, runner, status: "pending", createdAt: serverTimestamp() };
     if (race.teamMode && u.data().teamId) { bet.teamId = u.data().teamId; bet.teamTag = u.data().teamTag || ""; }
     tx.set(br, bet);
-    const upd = { pool: r1((race.pool || 0) + amount), pools };
+    const upd = { pool: (race.pool || 0) + 1, pools };
     const exp = race.expectedPlayers || 0;
     if (exp > 0) {
       const cnt = (race.betsCount || 0) + 1;
       upd.betsCount = cnt;
-      upd.status = cnt >= exp ? "closed" : "open"; // ultima puntata: chiusura automatica e video sbloccato
+      upd.status = cnt >= exp ? "closed" : "open"; // ultimo pronostico: chiusura automatica e video sbloccato
     }
     tx.update(rr, upd);
   });
@@ -1169,8 +1147,8 @@ async function launchFromCatalog(cid, n, excl, teamMode){
     cd.runners.forEach((_, i) => { pools[String(i)] = 0; });
     const data = {
       name: cd.name, runners: cd.runners, status: "open", pool: 0, pools, winner: null, hasVideo: true, youtubeLive: false,
-      feePercent: Number.isInteger(k.feePercent) ? k.feePercent : 10,
-      minBet: (typeof k.minBet === "number" && k.minBet > 0) ? r1(k.minBet) : 1,
+      basePts: Number.isInteger(k.basePts) ? k.basePts : 100,
+      bonusPts: Number.isInteger(k.bonusPts) ? k.bonusPts : 50,
       createdAt: serverTimestamp(), catalogId: cid, createdBy: me.uid, expectedPlayers: n, betsCount: 0, teamMode: !!teamMode
     };
     if (cd.duration) data.duration = cd.duration;
@@ -1308,7 +1286,7 @@ $("teamBody").addEventListener("submit", async ev => {
           const b = writeBatch(db);
           b.set(tr, { name, tag, captainUid: me.uid, members: [me.uid], names: { [me.uid]: (meDoc && meDoc.username) || me.name },
             marble: { color1: teamDraft.color1, color2: teamDraft.color2, pattern: teamDraft.pattern },
-            stats: { bets: 0, wins: 0, staked: 0, payout: 0, net: 0 }, createdAt: serverTimestamp() });
+            stats: { picks: 0, wins: 0, points: 0 }, createdAt: serverTimestamp() });
           b.set(doc(db, "teams", tr.id, "private", "info"), { code });
           b.set(doc(db, "teamCodes", code), { teamId: tr.id });
           b.update(doc(db, "users", me.uid), { teamId: tr.id, teamTag: tag });
@@ -1379,42 +1357,17 @@ $("teamBody").addEventListener("click", async ev => {
   });
 });
 
-// ---------- Richiesta ricarica crediti ----------
-function renderTopup(r){
-  myReq = r;
-  const pending = !!r && r.status === "pending";
-  const st = $("topupStatus");
-  if (!r) st.textContent = "";
-  else if (pending) st.textContent = "Richiesta di " + r.amount + " crediti in attesa di risposta dall'admin.";
-  else if (r.status === "approved") st.textContent = "Ultima richiesta approvata: +" + (r.approvedAmount ?? r.amount) + " crediti.";
-  else st.textContent = "Ultima richiesta rifiutata dall'admin.";
-}
-function openTopup(){
-  const pending = !!myReq && myReq.status === "pending";
-  $("topupForm").style.display = pending ? "none" : "block";
-  $("tAmt").value = "";
-  $("topupErr").textContent = "";
-  $("modalTopup").classList.add("on");
-  if (!pending) $("tAmt").focus();
-}
-$("btnTopup").onclick = openTopup;
-$("balPill").onclick = openTopup;
-$("btnTopupCancel").onclick = () => { $("modalTopup").classList.remove("on"); };
-$("btnTopupClose").onclick = () => { $("modalTopup").classList.remove("on"); };
-$("topupForm").addEventListener("submit", async ev => {
-  ev.preventDefault();
-  $("topupErr").textContent = "";
-  const amt = Number($("tAmt").value);
-  if (!Number.isInteger(amt) || amt < 1 || amt > 100000) { $("topupErr").textContent = "Inserisci un importo intero tra 1 e 100000."; return; }
-  await busy(ev.submitter, async () => {
-    try {
-      await setDoc(doc(db, "topupRequests", me.uid), { uid: me.uid, username: me.name, amount: amt, status: "pending", createdAt: serverTimestamp() });
-      $("topupForm").style.display = "none";
-    } catch (e) {
-      $("topupErr").textContent = e.code === "permission-denied" ? "Hai già una richiesta in attesa." : msg(e);
-    }
+// ---------- Regolamento aggiornato (bloccante) ----------
+$("btnTuRead").onclick = () => openInfo("rules");
+$("btnTuLogout").onclick = () => signOut(auth);
+$("btnTuAccept").onclick = async () => {
+  $("tuErr").textContent = "";
+  await busy($("btnTuAccept"), async () => {
+    try { await updateDoc(doc(db, "users", me.uid), { acceptedTerms: true, termsVersion: TERMS_VERSION }); }
+    catch (e) { $("tuErr").textContent = msg(e); }
   });
-});
+};
+$("balPill").onclick = () => setRaceTab("board");
 
 // ---------- Accesso admin ----------
 // La sessione admin resta salvata nel browser fino al tasto "Esci" del Pannello Admin
@@ -1480,12 +1433,12 @@ document.addEventListener("click", ev => {
 $("formCfg").addEventListener("submit", async ev => {
   ev.preventDefault();
   $("adminErr").textContent = ""; $("cfgMsg").textContent = "";
-  const fee = Number($("sFee").value), min = r1(Number($("sMin").value));
-  if (!Number.isInteger(fee) || fee < 0 || fee > 100) { $("adminErr").textContent = "La fee deve essere un intero da 0 a 100."; return; }
-  if (!(min >= 0.1) || !isTenth(Number($("sMin").value))) { $("adminErr").textContent = "La puntata minima deve essere almeno 0.1, in passi da 0.1."; return; }
+  const base = Number($("sBase").value), bonus = Number($("sBonus").value);
+  if (!Number.isInteger(base) || base < 1 || base > 100000) { $("adminErr").textContent = "I Punti Base devono essere un intero da 1 a 100000."; return; }
+  if (!Number.isInteger(bonus) || bonus < 0 || bonus > 100000) { $("adminErr").textContent = "Il Bonus Difficoltà deve essere un intero da 0 a 100000."; return; }
   await busy(ev.submitter, async () => {
     try {
-      await setDoc(doc(adminDb, "config", "app"), { feePercent: fee, minBet: min }, { merge: true });
+      await setDoc(doc(adminDb, "config", "app"), { basePts: base, bonusPts: bonus }, { merge: true });
       $("cfgMsg").textContent = "Impostazioni salvate (valide per le nuove gare).";
     } catch (e) { $("adminErr").textContent = msg(e); }
   });
@@ -1507,20 +1460,27 @@ async function wipeCollection(name){
     await b.commit();
   }
 }
-async function zeroBalances(){
+async function zeroPoints(){
   const qs = await getDocs(collection(adminDb, "users"));
-  const docs = qs.docs.filter(d => d.data().balance !== 0);
+  const docs = qs.docs.filter(d => d.data().points !== 0);
   for (let i = 0; i < docs.length; i += 400) {
     const b = writeBatch(adminDb);
-    docs.slice(i, i + 400).forEach(d => b.update(d.ref, { balance: 0 }));
+    docs.slice(i, i + 400).forEach(d => b.update(d.ref, { points: 0 }));
     await b.commit();
   }
+  const ts = await getDocs(collection(adminDb, "teams"));
+  for (let i = 0; i < ts.docs.length; i += 400) {
+    const b = writeBatch(adminDb);
+    ts.docs.slice(i, i + 400).forEach(d => b.update(d.ref, { stats: { picks: 0, wins: 0, points: 0 } }));
+    await b.commit();
+  }
+  await wipeCollection("leaderboard");
 }
 const RESET_TEXT = {
-  users: "Eliminare TUTTI i profili giocatore e le richieste di ricarica?",
-  credits: "Azzerare i saldi di tutti i giocatori, la Tesoreria e il registro movimenti?",
-  bets: "Eliminare TUTTE le puntate e TUTTE le gare (senza rimborsi)?",
-  all: "RESET TOTALE: eliminare giocatori, richieste, puntate, gare, movimenti e azzerare crediti e Tesoreria?"
+  season: "Azzerare i punti di tutti i giocatori e delle squadre e svuotare le classifiche?",
+  users: "Eliminare TUTTI i profili giocatore?",
+  bets: "Eliminare TUTTI i pronostici e TUTTE le gare e azzerare le classifiche?",
+  all: "RESET TOTALE: eliminare giocatori, squadre, pronostici, gare e classifiche?"
 };
 $("adminOpts").addEventListener("click", async ev => {
   const btn = ev.target.closest("button[data-reset]");
@@ -1530,35 +1490,27 @@ $("adminOpts").addEventListener("click", async ev => {
   $("adminErr").textContent = ""; $("optMsg").textContent = "";
   await busy(btn, async () => {
     try {
-      if (k === "credits" || k === "all") { await zeroBalances(); await wipeCollection("ledger"); await setDoc(doc(adminDb, "treasury", "main"), { balance: 0, totalFees: 0 }); }
+      if (k === "season") { await zeroPoints(); }
       if (k === "bets" || k === "all") { await wipeCollection("bets"); await wipeCollection("races"); await wipeCollection("videos"); await resetCatalogPlays(); await wipeCollection("leaderboard"); }
-      if (k === "users" || k === "all") { await wipeCollection("users"); await wipeCollection("topupRequests"); await wipeCollection("teams"); await wipeCollection("teamCodes"); await wipeCollection("leaderboard"); }
+      if (k === "users" || k === "all") { await wipeCollection("users"); await wipeCollection("teams"); await wipeCollection("teamCodes"); await wipeCollection("leaderboard"); }
       await loadAdmin();
       $("optMsg").textContent = "Reset eseguito.";
     } catch (e) { $("adminErr").textContent = msg(e); }
   });
 });
 
-let users = [], reqs = [], adminRaces = [], adminExp = {}, adminBets = {}, adminPreset = {}, adminSel = {};
+let users = [], adminRaces = [], adminExp = {}, adminBets = {}, adminPreset = {}, adminSel = {};
 
-// Crea config/app e treasury/main con valori predefiniti solo se mancano (mai sovrascrive)
+// Crea config/app con valori predefiniti solo se manca (mai sovrascrive)
 async function ensureInit(){
   const cfgRef = doc(adminDb, "config", "app");
-  const trRef = doc(adminDb, "treasury", "main");
   const made = await runTransaction(adminDb, async tx => {
     const c = await tx.get(cfgRef);
-    const t = await tx.get(trRef);
     const list = [];
-    if (!c.exists()) { tx.set(cfgRef, { feePercent: 10, minBet: 1, startingBalance: 100, liveUrl: "", bettingOpen: true }); list.push("config/app"); }
-    if (!t.exists()) { tx.set(trRef, { balance: 0, totalFees: 0 }); list.push("treasury/main"); }
+    if (!c.exists()) { tx.set(cfgRef, { basePts: 100, bonusPts: 50, liveUrl: "", bettingOpen: true }); list.push("config/app"); }
     return list;
   });
-  if (made.length) $("adminInfo").textContent = "Database inizializzato: creati " + made.join(" e ") + " con i valori predefiniti.";
-}
-
-async function loadTreasury(){
-  const t = await getDoc(doc(adminDb, "treasury", "main"));
-  $("tBal").textContent = t.exists() ? t.data().balance : 0;
+  if (made.length) $("adminInfo").textContent = "Database inizializzato: creato " + made.join(" e ") + " con i valori predefiniti.";
 }
 
 async function loadRaceBets(id){
@@ -1569,8 +1521,8 @@ async function loadRaceBets(id){
 async function loadConfig(){
   const c = await getDoc(doc(adminDb, "config", "app"));
   const d = c.exists() ? c.data() : {};
-  $("sFee").value = Number.isInteger(d.feePercent) ? d.feePercent : 10;
-  $("sMin").value = (typeof d.minBet === "number" && d.minBet > 0) ? d.minBet : 1;
+  $("sBase").value = Number.isInteger(d.basePts) ? d.basePts : 100;
+  $("sBonus").value = Number.isInteger(d.bonusPts) ? d.bonusPts : 50;
 }
 
 async function loadRaces(){
@@ -1592,17 +1544,12 @@ async function loadAdmin(){
   $("adminInfo").textContent = "";
   try {
     await ensureInit();
-    await loadTreasury();
     await loadConfig();
     await loadRaces();
-    const rs = await getDocs(query(collection(adminDb, "topupRequests"), where("status", "==", "pending")));
-    reqs = rs.docs.map(d => ({ id: d.id, ...d.data() }));
-    renderReqs();
     const qs = await getDocs(collection(adminDb, "users"));
     users = qs.docs.map(d => ({ id: d.id, ...d.data() }));
     users.sort((a, b) => a.username.localeCompare(b.username));
     renderUsers();
-    renderReqs();
   } catch (e) { $("adminErr").textContent = msg(e); }
 }
 
@@ -1628,8 +1575,8 @@ $("formRace").addEventListener("submit", async ev => {
       let videoFail = false;
       await setDoc(rRef, {
         name, runners, status: $("raceInit").value === "ready" ? "ready" : "open", pool: 0, pools, winner: null, hasVideo: !!yt, youtubeLive: !!yt && $("raceLive").checked, teamMode: $("raceTeam").checked, ...(dur ? { duration: dur } : {}),
-        feePercent: Number.isInteger(c.feePercent) ? c.feePercent : 10,
-        minBet: (typeof c.minBet === "number" && c.minBet > 0) ? r1(c.minBet) : 1,
+        basePts: Number.isInteger(c.basePts) ? c.basePts : 100,
+        bonusPts: Number.isInteger(c.bonusPts) ? c.bonusPts : 50,
         createdAt: serverTimestamp()
       });
       if (yt) {
@@ -1732,37 +1679,37 @@ function renderAdminRaces(){
     let actions = "";
     if (r.status === "ready") {
       actions = `<span class="mut" style="width:100%">In attesa che il gruppo avvii la gara.</span>
-                 <button class="small" data-act="publish">Apri puntate subito</button>
+                 <button class="small" data-act="publish">Apri pronostici subito</button>
                  <button class="small danger" data-act="cancelready">Annulla gara</button>`;
     } else if (r.status === "open") {
-      actions = `<button class="small" data-act="close">Chiudi puntate</button>
-                 <button class="small danger" data-act="cancel">Annulla e rimborsa</button>`;
+      actions = `<button class="small" data-act="close">Chiudi pronostici</button>
+                 <button class="small danger" data-act="cancel">Annulla gara</button>`;
     } else if (r.status === "closed") {
       actions = `${Number.isInteger(adminPreset[r.id]) ? `<span class="mut" style="width:100%">Vincitore preimpostato: <b>${esc((r.runners || [])[adminPreset[r.id]] ?? "?")}</b></span>` : ""}<select data-win>${(r.runners || []).map((n, i) => `<option value="${i}" ${String(sel) === String(i) ? "selected" : ""}>${esc(n)}</option>`).join("")}</select>
                  <button class="small" data-act="settle">Assegna vincitore</button>
-                 <button class="small danger" data-act="cancel">Annulla e rimborsa</button>`;
+                 <button class="small danger" data-act="cancel">Annulla gara</button>`;
     } else if (r.status === "settled") {
-      actions = `<span class="mut">Vincitore: <b>${esc((r.runners || [])[r.winner] ?? "?")}</b>${r.noWinner ? " (nessuna puntata vincente: rimborsate)" : ""}</span>`;
+      actions = `<span class="mut">Vincitore: <b>${esc((r.runners || [])[r.winner] ?? "?")}</b>${r.noWinner ? " (nessun pronostico vincente: 0 punti assegnati)" : ""}</span>`;
     } else {
-      actions = `<span class="mut">Annullata, puntate rimborsate.</span>`;
+      actions = `<span class="mut">Annullata, pronostici annullati.</span>`;
     }
     const open = !!adminExp[r.id];
     let betsHtml = "";
     if (r.status === "open" || r.status === "closed") {
       const bl = adminBets[r.id];
-      if (!bl) betsHtml = '<div class="mut">Caricamento puntate…</div>';
-      else if (!bl.length) betsHtml = '<div class="mut">Nessuna puntata.</div>';
+      if (!bl) betsHtml = '<div class="mut">Caricamento pronostici…</div>';
+      else if (!bl.length) betsHtml = '<div class="mut">Nessun pronostico.</div>';
       else betsHtml = bl.map(b => {
         const nm = (users.find(x => x.id === b.uid) || {}).username || b.username;
-        return `<div class="row" style="margin-top:6px"><span class="mut"><b style="color:var(--txt)">${esc(nm)}</b>${b.teamTag ? `<span class="ttag">${esc(b.teamTag)}</span>` : ""} · ${esc((r.runners || [])[b.runner] ?? "?")} · ${esc(b.amount)}${b.status !== "pending" ? " · " + esc(b.status) : ""}</span>${b.status === "pending" ? `<button class="small danger" data-act="refund" data-bet="${esc(b.id)}">Rimborsa</button>` : ""}</div>`;
+        return `<div class="row" style="margin-top:6px"><span class="mut"><b style="color:var(--txt)">${esc(nm)}</b>${b.teamTag ? `<span class="ttag">${esc(b.teamTag)}</span>` : ""} · ${esc((r.runners || [])[b.runner] ?? "?")}${b.status !== "pending" ? " · " + esc(b.status) + (b.status === "won" ? " +" + esc(b.points || 0) + " PT" : "") : ""}</span>${b.status === "pending" ? `<button class="small danger" data-act="refund" data-bet="${esc(b.id)}">Annulla</button>` : ""}</div>`;
       }).join("");
     }
     return `<div class="urow" data-id="${esc(r.id)}">
       <div class="rhead" data-tgl>
         <div class="row"><span><b>${esc(r.name)}</b>${r.duration ? `<span class="dur">⏱ ${esc(r.duration)}</span>` : ""}${r.category ? `<span class="tag">${esc(r.category)}</span>` : ""}</span><span><span class="badge ${STATUS_CLASS[r.status] || "off"}">${STATUS_LABEL[r.status] || esc(r.status)}</span> <span class="mut">${open ? "▲" : "▼"}</span></span></div>
-        <div class="mut">Montepremi: ${esc(r.pool || 0)} · Fee ${esc(r.feePercent || 0)}%${r.expectedPlayers ? " · Puntate: " + esc(r.betsCount || 0) + " / " + esc(r.expectedPlayers) : ""}</div>
+        <div class="mut">Pronostici: ${esc(r.pool || 0)} · Base ${esc(r.basePts ?? 100)} PT · Bonus ${esc(r.bonusPts ?? 50)} PT${r.expectedPlayers ? " · Partecipanti: " + esc(r.betsCount || 0) + " / " + esc(r.expectedPlayers) : ""}</div>
       </div>
-      ${open ? `<div class="mut" style="margin-top:6px">${list}</div>${betsHtml ? `<div style="margin-top:8px"><b style="font-size:14px">Puntate</b>${betsHtml}</div>` : ""}<div class="uactions">${actions}</div>` : ""}
+      ${open ? `<div class="mut" style="margin-top:6px">${list}</div>${betsHtml ? `<div style="margin-top:8px"><b style="font-size:14px">Pronostici</b>${betsHtml}</div>` : ""}<div class="uactions">${actions}</div>` : ""}
     </div>`;
   }).join("");
 }
@@ -1798,110 +1745,85 @@ $("raceAdminList").addEventListener("click", async ev => {
       if (act === "close") {
         await updateDoc(rr, { status: "closed" });
       } else if (act === "publish") {
-        if (!confirm("Aprire subito le puntate senza limite di giocatori? Il gruppo non potrà più avviarla.")) return;
+        if (!confirm("Aprire subito i pronostici senza limite di giocatori? Il gruppo non potrà più avviarla.")) return;
         await updateDoc(rr, { status: "open" });
       } else if (act === "cancelready") {
         if (!confirm("Annullare questa gara non ancora avviata?")) return;
         await updateDoc(rr, { status: "cancelled", settledAt: serverTimestamp() });
       } else if (act === "settle") {
         const w = Number(row.querySelector("[data-win]").value);
-        if (!confirm("Assegnare la vittoria a \"" + r.runners[w] + "\"? L'operazione è definitiva e paga i vincitori.")) return;
+        if (!confirm("Assegnare la vittoria a \"" + r.runners[w] + "\"? L'operazione è definitiva e assegna i punti ai vincitori.")) return;
         await finalizeRace(id, "settle", w);
       } else if (act === "refund") {
-        if (!confirm("Rimborsare questa puntata? Il giocatore viene riaccreditato e il montepremi scalato.")) return;
+        if (!confirm("Annullare questo pronostico? Il conteggio della gara viene scalato.")) return;
         await refundBet(id, btn.dataset.bet);
         await loadRaceBets(id);
       } else if (act === "cancel") {
-        if (!confirm("Annullare la gara e rimborsare tutte le puntate?")) return;
+        if (!confirm("Annullare la gara? Tutti i pronostici vengono annullati (nessun punto).")) return;
         if (r.status === "open") await updateDoc(rr, { status: "closed" });
         await finalizeRace(id, "cancel", null);
       }
       await loadRaces();
-      await loadTreasury();
     } catch (e) { $("adminErr").textContent = msg(e); await loadRaces().catch(() => {}); }
   });
 });
 
-// Rimborso di una singola puntata (atomico): saldo giocatore, ledger, montepremi e pool biglia
+// Annullamento di un singolo pronostico (atomico): conteggi della gara e stato del pronostico
 async function refundBet(raceId, betId){
   const rr = doc(adminDb, "races", raceId);
   const br = doc(adminDb, "bets", betId);
   await runTransaction(adminDb, async tx => {
     const [rs, bs] = await Promise.all([tx.get(rr), tx.get(br)]);
     if (!rs.exists() || !["open", "closed"].includes(rs.data().status)) throw new Error("La gara non è più modificabile.");
-    if (!bs.exists() || bs.data().status !== "pending") throw new Error("Puntata già gestita.");
+    if (!bs.exists() || bs.data().status !== "pending") throw new Error("Pronostico già gestito.");
     const b = bs.data(), race = rs.data();
-    const ur = doc(adminDb, "users", b.uid);
-    const us = await tx.get(ur);
-    const nb = r1(us.data().balance + b.amount);
     const key = String(b.runner);
     const pools = { ...(race.pools || {}) };
-    pools[key] = Math.max(0, r1((pools[key] || 0) - b.amount));
-    tx.update(ur, { balance: nb });
-    tx.set(doc(collection(adminDb, "ledger")), { uid: b.uid, type: "refund", amount: b.amount, balanceAfter: nb, raceId, betId, createdAt: serverTimestamp() });
-    tx.update(br, { status: "refunded", payout: b.amount });
-    tx.update(rr, { pool: Math.max(0, r1((race.pool || 0) - b.amount)), pools });
+    pools[key] = Math.max(0, (pools[key] || 0) - 1);
+    tx.update(br, { status: "void", points: 0 });
+    tx.update(rr, { pool: Math.max(0, (race.pool || 0) - 1), pools });
   });
 }
 
-// Chiusura gara atomica: pagamenti, rimborsi, fee in Tesoreria e stato gara in un'unica transazione
+// Chiusura gara atomica: assegnazione punti, classifiche e stato gara in un'unica transazione
 async function finalizeRace(raceId, mode, winner){
   const bs = await getDocs(query(collection(adminDb, "bets"), where("raceId", "==", raceId)));
-  if (bs.size > MAX_BETS_SETTLE) throw new Error("Troppe puntate (max " + MAX_BETS_SETTLE + ") per una chiusura atomica.");
+  if (bs.size > MAX_BETS_SETTLE) throw new Error("Troppi pronostici (max " + MAX_BETS_SETTLE + ") per una chiusura atomica.");
   const betRefs = bs.docs.map(d => d.ref);
   const rr = doc(adminDb, "races", raceId);
-  const tr = doc(adminDb, "treasury", "main");
   await runTransaction(adminDb, async tx => {
     const rs = await tx.get(rr);
     if (!rs.exists()) throw new Error("Gara non trovata.");
     const race = rs.data();
-    if (race.status !== "closed") throw new Error("La gara deve essere chiusa alle puntate.");
+    if (race.status !== "closed") throw new Error("La gara deve essere chiusa ai pronostici.");
     const bSnaps = await Promise.all(betRefs.map(r => tx.get(r)));
     const bets = bSnaps.filter(s => s.exists() && s.data().status === "pending").map(s => ({ ref: s.ref, ...s.data() }));
-    const total = r1(bets.reduce((a, b) => a + b.amount, 0));
-    const winPool = mode === "settle" ? r1(bets.filter(b => b.runner === winner).reduce((a, b) => a + b.amount, 0)) : 0;
-    const refund = mode === "cancel" || winPool === 0;
-    const fee = refund ? 0 : f1((total - winPool) * (race.feePercent || 0) / 100); // fee solo sul surplus: il vincitore recupera almeno la puntata
-    const net = r1(total - fee);
-
-    const pay = {};
-    let paid = 0;
-    bets.forEach(b => {
-      let p = 0;
-      if (refund) p = b.amount;
-      else if (b.runner === winner) p = f1(net * b.amount / winPool);
-      pay[b.ref.id] = p; paid = r1(paid + p);
-    });
-    const toTreasury = refund ? 0 : r1(net - paid + fee);
+    const base = Number.isInteger(race.basePts) ? race.basePts : 100;
+    const bonus = Number.isInteger(race.bonusPts) ? race.bonusPts : 50;
+    const total = bets.length;
+    const W = mode === "settle" ? bets.filter(b => b.runner === winner).length : 0;
+    const voided = mode === "cancel" || W === 0;
+    const pts = voided ? 0 : base + Math.round((total - W) * bonus / W);
 
     const uSnaps = await Promise.all(bets.map(b => tx.get(doc(adminDb, "users", b.uid))));
-    const lSnaps = refund ? [] : await Promise.all(bets.map(b => tx.get(doc(adminDb, "leaderboard", b.uid))));
-    const teamIds = (race.teamMode && !refund) ? [...new Set(bets.filter(b => b.teamId).map(b => b.teamId))] : [];
+    const lSnaps = voided ? [] : await Promise.all(bets.map(b => tx.get(doc(adminDb, "leaderboard", b.uid))));
+    const teamIds = (race.teamMode && !voided) ? [...new Set(bets.filter(b => b.teamId).map(b => b.teamId))] : [];
     const tSnaps = await Promise.all(teamIds.map(id => tx.get(doc(adminDb, "teams", id))));
-    const t = await tx.get(tr);
 
     bets.forEach((b, i) => {
-      const p = pay[b.ref.id];
       const us = uSnaps[i];
-      if (p > 0 && us.exists()) {
-        const nb = r1(us.data().balance + p);
-        tx.update(us.ref, { balance: nb });
-        tx.set(doc(collection(adminDb, "ledger")), {
-          uid: b.uid, type: refund ? "refund" : "win", amount: p, balanceAfter: nb, raceId, createdAt: serverTimestamp()
-        });
-      }
-      tx.update(b.ref, { status: refund ? "refunded" : (b.runner === winner ? "won" : "lost"), payout: p });
-      if (!refund) {
-        const lb = lSnaps[i].exists() ? lSnaps[i].data() : { bets: 0, wins: 0, staked: 0, payout: 0 };
-        const staked = r1((lb.staked || 0) + b.amount);
-        const payout = r1((lb.payout || 0) + p);
+      const won = !voided && b.runner === winner;
+      tx.update(b.ref, { status: voided ? "void" : (won ? "won" : "lost"), points: won ? pts : 0 });
+      if (won && us.exists()) tx.update(us.ref, { points: (us.data().points || 0) + pts });
+      if (!voided) {
+        const lb = lSnaps[i].exists() ? lSnaps[i].data() : {};
         tx.set(lSnaps[i].ref, {
           username: (us.exists() && us.data().username) || b.username,
           marble: (us.exists() && us.data().marble) || null,
           teamTag: (us.exists() && us.data().teamTag) || "",
-          bets: (lb.bets || 0) + 1,
-          wins: (lb.wins || 0) + (b.runner === winner ? 1 : 0),
-          staked, payout, net: r1(payout - staked)
+          picks: (lb.picks || 0) + 1,
+          wins: (lb.wins || 0) + (won ? 1 : 0),
+          points: (lb.points || 0) + (won ? pts : 0)
         });
       }
     });
@@ -1909,18 +1831,13 @@ async function finalizeRace(raceId, mode, winner){
       if (!tSnaps[i].exists()) return;
       const st = tSnaps[i].data().stats || {};
       const tb = bets.filter(b => b.teamId === id);
-      const staked = r1((st.staked || 0) + tb.reduce((a, b) => a + b.amount, 0));
-      const payout = r1((st.payout || 0) + tb.reduce((a, b) => a + pay[b.ref.id], 0));
-      tx.update(tSnaps[i].ref, { stats: { bets: (st.bets || 0) + tb.length, wins: (st.wins || 0) + tb.filter(b => b.runner === winner).length, staked, payout, net: r1(payout - staked) } });
+      const tw = tb.filter(b => b.runner === winner).length;
+      tx.update(tSnaps[i].ref, { stats: { picks: (st.picks || 0) + tb.length, wins: (st.wins || 0) + tw, points: (st.points || 0) + tw * pts } });
     });
-    if (toTreasury > 0.0001) {
-      const td = t.exists() ? t.data() : { balance: 0, totalFees: 0 };
-      tx.set(tr, { balance: r1((td.balance || 0) + toTreasury), totalFees: r1((td.totalFees || 0) + toTreasury) });
-    }
     tx.update(rr, {
       status: mode === "cancel" ? "cancelled" : "settled",
       winner: mode === "settle" ? winner : null,
-      noWinner: mode === "settle" && refund,
+      noWinner: mode === "settle" && voided,
       settledAt: serverTimestamp()
     });
   });
@@ -1944,7 +1861,7 @@ async function openCatAdm(id){
   renderCatAdm();
 }
 let cadmFilter = "all", cadmSel = new Set();
-function cadmStatus(c){ return c.suspended ? ["Sospesa", "off"] : (c.playedCount || 0) > 0 ? ["Già scommessa", "wait"] : ["Disponibile / Da scommettere", "ok"]; }
+function cadmStatus(c){ return c.suspended ? ["Sospesa", "off"] : (c.playedCount || 0) > 0 ? ["Già giocata", "wait"] : ["Disponibile / Da giocare", "ok"]; }
 function cadmVisible(){
   const t = $("cadmSearch").value.trim().toLowerCase();
   return cadm.filter(c => {
@@ -2106,12 +2023,10 @@ function renderUsers(){
           <b>${esc(u.username)}</b>
           <span><span class="badge ${u.active ? "ok" : "wait"}">${u.active ? "attivo" : "in attesa"}</span> <span class="mut">${adminExp[u.id] ? "▲" : "▼"}</span></span>
         </div>
-        <div class="mut">Saldo: ${esc(u.balance)} crediti</div>
+        <div class="mut">Punti: ${esc(u.points || 0)} PT</div>
       </div>
       ${adminExp[u.id] ? `<div class="uactions">
         <button class="small sec" data-act="toggle">${u.active ? "Disattiva" : "Attiva"}</button>
-        <input type="number" step="1" placeholder="± crediti" data-amt>
-        <button class="small" data-act="credit">Applica</button>
       </div>` : ""}
     </div>`).join("");
 }
@@ -2126,80 +2041,9 @@ $("userList").addEventListener("click", async ev => {
   $("adminErr").textContent = "";
   await busy(btn, async () => {
     try {
-      if (btn.dataset.act === "toggle") {
-        await updateDoc(doc(adminDb, "users", u.id), { active: !u.active });
-        u.active = !u.active;
-      } else {
-        const amt = Math.trunc(Number(row.querySelector("[data-amt]").value));
-        if (!amt) { $("adminErr").textContent = "Inserisci un importo intero diverso da zero."; return; }
-        const ref = doc(adminDb, "users", u.id);
-        const nb = await runTransaction(adminDb, async tx => {
-          const s = await tx.get(ref);
-          const nb = r1(s.data().balance + amt);
-          if (nb < 0) throw new Error("Il saldo non può diventare negativo.");
-          tx.update(ref, { balance: nb });
-          tx.set(doc(collection(adminDb, "ledger")), {
-            uid: u.id, type: amt > 0 ? "topup" : "withdraw", amount: Math.abs(amt), balanceAfter: nb, createdAt: serverTimestamp()
-          });
-          return nb;
-        });
-        u.balance = nb;
-      }
+      await updateDoc(doc(adminDb, "users", u.id), { active: !u.active });
+      u.active = !u.active;
       renderUsers();
-    } catch (e) { $("adminErr").textContent = msg(e); }
-  });
-});
-
-function renderReqs(){
-  const box = $("reqList");
-  if (!reqs.length) { box.innerHTML = '<div class="mut" style="margin-top:10px">Nessuna richiesta in attesa.</div>'; return; }
-  box.innerHTML = reqs.map(r => `
-    <div class="urow" data-id="${esc(r.id)}">
-      <div class="row"><b>${esc((users.find(x => x.id === r.id) || {}).username || r.username)}</b><span class="mut">chiede ${esc(r.amount)} crediti</span></div>
-      <div class="uactions">
-        <input type="number" step="1" min="1" value="${esc(r.amount)}" data-amt>
-        <button class="small" data-act="approve">Approva</button>
-        <button class="small sec" data-act="reject">Rifiuta</button>
-      </div>
-    </div>`).join("");
-}
-
-$("reqList").addEventListener("click", async ev => {
-  const btn = ev.target.closest("button[data-act]");
-  if (!btn) return;
-  const row = btn.closest(".urow");
-  const id = row.dataset.id;
-  $("adminErr").textContent = "";
-  await busy(btn, async () => {
-    try {
-      const rr = doc(adminDb, "topupRequests", id);
-      if (btn.dataset.act === "approve") {
-        const amt = Math.trunc(Number(row.querySelector("[data-amt]").value));
-        if (!(amt > 0)) { $("adminErr").textContent = "Inserisci un importo intero maggiore di zero."; return; }
-        const us = doc(adminDb, "users", id);
-        const nb = await runTransaction(adminDb, async tx => {
-          const r = await tx.get(rr);
-          const u = await tx.get(us);
-          if (!r.exists() || r.data().status !== "pending") throw new Error("Richiesta già gestita.");
-          const nb = r1(u.data().balance + amt);
-          tx.update(us, { balance: nb });
-          tx.set(doc(collection(adminDb, "ledger")), {
-            uid: id, type: "topup", amount: amt, balanceAfter: nb, createdAt: serverTimestamp(), requestId: id
-          });
-          tx.update(rr, { status: "approved", approvedAmount: amt, decidedAt: serverTimestamp() });
-          return nb;
-        });
-        const u = users.find(x => x.id === id);
-        if (u) { u.balance = nb; renderUsers(); }
-      } else {
-        await runTransaction(adminDb, async tx => {
-          const r = await tx.get(rr);
-          if (!r.exists() || r.data().status !== "pending") throw new Error("Richiesta già gestita.");
-          tx.update(rr, { status: "rejected", decidedAt: serverTimestamp() });
-        });
-      }
-      reqs = reqs.filter(r => r.id !== id);
-      renderReqs();
     } catch (e) { $("adminErr").textContent = msg(e); }
   });
 });
