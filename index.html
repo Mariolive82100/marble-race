@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Murble Race">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Murble Race v2.6</title>
+<title>Murble Race v2.7</title>
 <style>
 :root{--bg:#0f1220;--card:#181c30;--line:#2a3050;--txt:#eef0fa;--mut:#8f96b8;--acc:#ff9f1c;--ok:#2ec27e;--err:#ff5d6c}
 *{box-sizing:border-box}
@@ -74,6 +74,8 @@ details.rsx summary::-webkit-details-marker{display:none}
 details.rsx summary::after{content:"▼";font-size:12px;color:var(--mut)}
 details.rsx[open] summary::after{content:"▲"}
 #raceTabs button{font-size:14px;padding:10px 6px}
+#adminErr:not(:empty),#homeErr:not(:empty),#adminOk:not(:empty){position:sticky;bottom:12px;background:var(--card);border:1px solid var(--err);border-radius:10px;padding:10px 12px;z-index:4}
+#adminOk:not(:empty){border-color:var(--ok);color:var(--ok);margin-top:10px;font-size:14px}
 .res-won{color:var(--ok);font-weight:600}
 .res-lost{color:var(--err);font-weight:600}
 </style>
@@ -83,7 +85,7 @@ details.rsx[open] summary::after{content:"▲"}
 
   <!-- AUTENTICAZIONE -->
   <div id="viewAuth" class="view on">
-    <h1>Murble <span>Race</span> <small class="ver">v2.6</small></h1>
+    <h1>Murble <span>Race</span> <small class="ver">v2.7</small></h1>
     <p class="sub">Scommesse sulle gare di biglie</p>
     <div class="card">
       <div class="tabs">
@@ -114,7 +116,7 @@ details.rsx[open] summary::after{content:"▲"}
   <!-- HOME GIOCATORE -->
   <div id="viewHome" class="view">
     <div class="row">
-      <h1>Murble <span>Race</span> <small class="ver">v2.6</small></h1>
+      <h1>Murble <span>Race</span> <small class="ver">v2.7</small></h1>
       <div class="uactions" style="margin-top:0;flex-wrap:nowrap">
         <label id="wrapAdminQuick" class="sw" style="display:none">Admin<input id="swAdminHome" type="checkbox"><i></i></label>
         <button id="btnLogout" class="sec small" type="button">Esci</button>
@@ -249,6 +251,7 @@ details.rsx[open] summary::after{content:"▲"}
         <div id="optMsg" class="mut" style="margin-top:10px;color:var(--ok)"></div>
       </div>
     </div>
+    <div id="adminOk"></div>
     <div id="adminErr" class="err"></div>
   </div>
 
@@ -320,6 +323,11 @@ function msg(e){
   if (c === "auth/operation-not-allowed") return "Accesso Email/Password non abilitato in Firebase.";
   if (c === "permission-denied") return "Operazione non consentita (permission-denied).";
   return "Errore: " + (c || (e && e.message) || "sconosciuto");
+}
+function flashOk(t){
+  $("adminOk").textContent = t;
+  clearTimeout(flashOk._t);
+  flashOk._t = setTimeout(() => { $("adminOk").textContent = ""; }, 3500);
 }
 async function busy(btn, fn){
   if (btn) btn.disabled = true;
@@ -835,6 +843,7 @@ $("formRace").addEventListener("submit", async ev => {
       await batch.commit();
       $("raceName").value = ""; $("raceRunners").value = ""; $("raceYt").value = ""; $("raceLive").checked = false;
       await loadRaces();
+      flashOk("Gara creata.");
     } catch (e) { $("adminErr").textContent = msg(e); }
   });
 });
