@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Murble Race">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Murble Race v3.5</title>
+<title>Murble Race v3.6</title>
 <style>
 :root{--bg:#0f1220;--card:#181c30;--line:#2a3050;--txt:#eef0fa;--mut:#8f96b8;--acc:#ff9f1c;--ok:#2ec27e;--err:#ff5d6c}
 *{box-sizing:border-box}
@@ -88,7 +88,7 @@ details.rsx[open] summary::after{content:"▲"}
 
   <!-- AUTENTICAZIONE -->
   <div id="viewAuth" class="view on">
-    <h1>Murble <span>Race</span> <small class="ver">v3.5</small></h1>
+    <h1>Murble <span>Race</span> <small class="ver">v3.6</small></h1>
     <p class="sub">Scommesse sulle gare di biglie</p>
     <div class="card">
       <div class="tabs">
@@ -119,7 +119,7 @@ details.rsx[open] summary::after{content:"▲"}
   <!-- HOME GIOCATORE -->
   <div id="viewHome" class="view">
     <div class="row">
-      <h1>Murble <span>Race</span> <small class="ver">v3.5</small></h1>
+      <h1>Murble <span>Race</span> <small class="ver">v3.6</small></h1>
       <div class="uactions" style="margin-top:0;flex-wrap:nowrap">
         <label id="wrapAdminQuick" class="sw" style="display:none">Admin<input id="swAdminHome" type="checkbox"><i></i></label>
         <button id="btnLogout" class="sec small" type="button">Esci</button>
@@ -242,6 +242,12 @@ details.rsx[open] summary::after{content:"▲"}
     <div class="card">
       <div class="row"><b>Gare</b></div>
       <div id="raceAdminList"></div>
+    </div>
+    <div class="card">
+      <div class="row"><b>Catalogo</b><button id="btnCatLoad" class="sec small" type="button">Carica</button></div>
+      <input id="cadmSearch" placeholder="Cerca per nome, categoria o biglia" style="margin-top:10px;display:none">
+      <div id="cadmInfo" class="mut" style="margin-top:8px"></div>
+      <div id="cadmList"></div>
     </div>
     <div class="card">
       <b>Richieste di ricarica</b>
@@ -1156,6 +1162,7 @@ $("formBulk").addEventListener("submit", async ev => {
         if (g.presetWinner !== null) batch.set(doc(adminDb, "catalog_w", cRef.id), { presetWinner: g.presetWinner });
       });
       await batch.commit();
+      if (cadm.length) loadCatAdm().catch(() => {});
       $("bulkText").value = "";
       flashOk(parsed.length + (parsed.length === 1 ? " gara aggiunta al catalogo." : " gare aggiunte al catalogo."));
     } catch (e) { $("adminErr").textContent = msg(e); }
@@ -1353,6 +1360,104 @@ async function finalizeRace(raceId, mode, winner){
     });
   });
 }
+
+// ---------- Admin: catalogo (visualizza, modifica, elimina) ----------
+let cadm = [], cadmOpen = null, cadmDet = {};
+async function loadCatAdm(){
+  const qs = await getDocs(query(collection(adminDb, "catalog"), limit(500)));
+  cadm = qs.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+  cadmDet = {};
+  $("cadmSearch").style.display = "";
+  renderCatAdm();
+  if (cadmOpen && cadm.some(c => c.id === cadmOpen)) await openCatAdm(cadmOpen); else cadmOpen = null;
+}
+async function openCatAdm(id){
+  const [v, w] = await Promise.all([getDoc(doc(adminDb, "catalog_v", id)), getDoc(doc(adminDb, "catalog_w", id))]);
+  const c = cadm.find(x => x.id === id);
+  const wi = w.exists() ? w.data().presetWinner : null;
+  cadmDet[id] = { url: v.exists() ? v.data().url || "" : "", winner: (c && Number.isInteger(wi) && (c.runners || [])[wi]) || "" };
+  renderCatAdm();
+}
+function renderCatAdm(){
+  const t = $("cadmSearch").value.trim().toLowerCase();
+  const rows = cadm.filter(c => !t || (c.name || "").toLowerCase().includes(t) || (c.category || "").toLowerCase().includes(t) || (c.runners || []).some(r => String(r).toLowerCase().includes(t)));
+  $("cadmInfo").textContent = "Catalogo: " + cadm.length + " gare" + (t ? " · " + rows.length + " trovate" : "") + (rows.length > 100 ? " · mostrate le prime 100, affina la ricerca" : "");
+  $("cadmList").innerHTML = rows.slice(0, 100).map(c => {
+    const open = cadmOpen === c.id, d = cadmDet[c.id];
+    const locked = (c.playedCount || 0) > 0;
+    let body = "";
+    if (open) {
+      body = !d ? '<div class="mut" style="margin-top:8px">Caricamento…</div>' : `<div style="margin-top:8px">
+        <label>Nome gara</label><input data-f="name" maxlength="60" value="${esc(c.name || "")}">
+        <label>Categoria (facoltativa)</label><input data-f="category" maxlength="30" value="${esc(c.category || "")}">
+        <label>Durata (MM:SS, facoltativa)</label><input data-f="duration" maxlength="20" value="${esc(c.duration || "")}">
+        <label>Link YouTube</label><input data-f="url" inputmode="url" autocapitalize="none" value="${esc(d.url)}">
+        <label>Biglie (una per riga)${locked ? " — bloccate: la gara è già stata giocata" : ""}</label><textarea data-f="runners" rows="5" ${locked ? "readonly" : ""}>${esc((c.runners || []).join("\n"))}</textarea>
+        <label>Vincitore segreto (nome biglia, vuoto = nessuno)</label><input data-f="winner" value="${esc(d.winner)}">
+        <div class="uactions" style="margin-top:12px"><button class="small" data-act="csave">Salva</button><button class="small danger" data-act="cdel">Elimina</button></div>
+      </div>`;
+    }
+    return `<div class="urow" data-id="${esc(c.id)}"><div class="rhead" data-tgl>
+      <div class="row"><span><b>${esc(c.name || "?")}</b>${c.duration ? `<span class="dur">⏱ ${esc(c.duration)}</span>` : ""}${c.category ? `<span class="tag">${esc(c.category)}</span>` : ""}</span><span class="mut">${open ? "▲" : "▼"}</span></div>
+      <div class="mut">${esc(c.runnersCount || (c.runners || []).length)} biglie · giocata ${esc(c.playedCount || 0)} volte</div></div>${body}</div>`;
+  }).join("");
+}
+$("btnCatLoad").onclick = async () => {
+  $("adminErr").textContent = "";
+  await busy($("btnCatLoad"), async () => { try { await loadCatAdm(); } catch (e) { $("adminErr").textContent = msg(e); } });
+};
+$("cadmSearch").addEventListener("input", renderCatAdm);
+$("cadmList").addEventListener("click", async ev => {
+  const row = ev.target.closest(".urow");
+  if (!row) return;
+  const id = row.dataset.id;
+  const btn = ev.target.closest("button[data-act]");
+  if (!btn) {
+    if (!ev.target.closest("[data-tgl]")) return;
+    cadmOpen = cadmOpen === id ? null : id;
+    renderCatAdm();
+    if (cadmOpen && !cadmDet[id]) { try { await openCatAdm(id); } catch (e) { $("adminErr").textContent = msg(e); } }
+    return;
+  }
+  const c = cadm.find(x => x.id === id);
+  $("adminErr").textContent = "";
+  await busy(btn, async () => {
+    try {
+      if (btn.dataset.act === "cdel") {
+        if (!confirm("Eliminare \"" + c.name + "\" dal catalogo?" + ((c.playedCount || 0) > 0 ? "\nÈ già stata giocata: se ha una partita in corso, il video non sarà più disponibile." : ""))) return;
+        const b = writeBatch(adminDb);
+        b.delete(doc(adminDb, "catalog", id)); b.delete(doc(adminDb, "catalog_v", id)); b.delete(doc(adminDb, "catalog_w", id));
+        await b.commit();
+        cadm = cadm.filter(x => x.id !== id); delete cadmDet[id]; cadmOpen = null;
+        renderCatAdm(); flashOk("Gara eliminata dal catalogo.");
+        return;
+      }
+      const f = k => row.querySelector('[data-f="' + k + '"]');
+      const name = f("name").value.trim(), category = f("category").value.trim(), durTxt = f("duration").value.trim();
+      const url = f("url").value.trim(), winner = f("winner").value.trim();
+      const runners = (c.playedCount || 0) > 0 ? (c.runners || []) : f("runners").value.split("\n").map(x => x.trim()).filter(Boolean);
+      if (!name || name.length > 60) { $("adminErr").textContent = "Nome gara obbligatorio (max 60 caratteri)."; return; }
+      if (category.length > 30) { $("adminErr").textContent = "Categoria troppo lunga (max 30)."; return; }
+      if (!ytId(url)) { $("adminErr").textContent = "Link YouTube non valido."; return; }
+      if (runners.length < 2 || runners.length > 12) { $("adminErr").textContent = "Servono da 2 a 12 biglie."; return; }
+      if (new Set(runners.map(r => r.toLowerCase())).size !== runners.length) { $("adminErr").textContent = "I nomi delle biglie devono essere diversi."; return; }
+      let sec = null;
+      if (durTxt) { sec = parseDur(durTxt); if (!sec || sec <= 0) { $("adminErr").textContent = "Durata non valida (usa MM:SS, es. 2:51)."; return; } }
+      let wi = -1;
+      if (winner) { wi = runners.findIndex(r => r.toLowerCase() === winner.toLowerCase()); if (wi < 0) { $("adminErr").textContent = "Il vincitore non è tra le biglie."; return; } }
+      const upd = { name, runners, runnersCount: runners.length,
+        category: category || deleteField(), duration: sec ? fmtDur(sec) : deleteField(), durationSec: sec || deleteField() };
+      const b = writeBatch(adminDb);
+      b.update(doc(adminDb, "catalog", id), upd);
+      b.set(doc(adminDb, "catalog_v", id), { url });
+      if (wi >= 0) b.set(doc(adminDb, "catalog_w", id), { presetWinner: wi }); else b.delete(doc(adminDb, "catalog_w", id));
+      await b.commit();
+      Object.assign(c, { name, runners, runnersCount: runners.length, category: category || undefined, duration: sec ? fmtDur(sec) : undefined, durationSec: sec || undefined });
+      cadmDet[id] = { url, winner: wi >= 0 ? runners[wi] : "" };
+      renderCatAdm(); flashOk("Gara del catalogo salvata.");
+    } catch (e) { $("adminErr").textContent = msg(e); }
+  });
+});
 
 // ---------- Admin: giocatori ----------
 function renderUsers(){
