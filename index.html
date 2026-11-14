@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Murble Race">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Murble Race v3.0</title>
+<title>Murble Race v3.1</title>
 <style>
 :root{--bg:#0f1220;--card:#181c30;--line:#2a3050;--txt:#eef0fa;--mut:#8f96b8;--acc:#ff9f1c;--ok:#2ec27e;--err:#ff5d6c}
 *{box-sizing:border-box}
@@ -86,7 +86,7 @@ details.rsx[open] summary::after{content:"▲"}
 
   <!-- AUTENTICAZIONE -->
   <div id="viewAuth" class="view on">
-    <h1>Murble <span>Race</span> <small class="ver">v3.0</small></h1>
+    <h1>Murble <span>Race</span> <small class="ver">v3.1</small></h1>
     <p class="sub">Scommesse sulle gare di biglie</p>
     <div class="card">
       <div class="tabs">
@@ -117,7 +117,7 @@ details.rsx[open] summary::after{content:"▲"}
   <!-- HOME GIOCATORE -->
   <div id="viewHome" class="view">
     <div class="row">
-      <h1>Murble <span>Race</span> <small class="ver">v3.0</small></h1>
+      <h1>Murble <span>Race</span> <small class="ver">v3.1</small></h1>
       <div class="uactions" style="margin-top:0;flex-wrap:nowrap">
         <label id="wrapAdminQuick" class="sw" style="display:none">Admin<input id="swAdminHome" type="checkbox"><i></i></label>
         <button id="btnLogout" class="sec small" type="button">Esci</button>
@@ -206,8 +206,8 @@ details.rsx[open] summary::after{content:"▲"}
       </form>
       <form id="formBulk" style="display:none">
         <label for="bulkText">Incolla le gare: blocchi separati da una riga vuota</label>
-        <textarea id="bulkText" rows="10" placeholder="Nome gara 1&#10;https://youtu.be/XXXXXXXXXXX?t=90&#10;Biglia A&#10;Biglia B&#10;Biglia C&#10;&#10;Nome gara 2&#10;https://youtu.be/XXXXXXXXXXX?t=450&#10;Biglia D&#10;Biglia E"></textarea>
-        <div class="mut" style="margin-top:6px">Riga 1: nome gara · Riga 2: link YouTube (anche con minutaggio ?t=...) · Righe successive: una biglia per riga. Massimo 20 gare.</div>
+        <textarea id="bulkText" rows="10" placeholder="Nome gara 1&#10;https://youtu.be/XXXXXXXXXXX?t=90&#10;Vincitore: Biglia B&#10;Biglia A&#10;Biglia B&#10;Biglia C&#10;&#10;Nome gara 2&#10;https://youtu.be/XXXXXXXXXXX?t=450&#10;Biglia D&#10;Biglia E"></textarea>
+        <div class="mut" style="margin-top:6px">Riga 1: nome gara · Riga 2: link YouTube (anche con minutaggio ?t=...) · Riga facoltativa "Vincitore: NomeBiglia" (resta segreta, solo Admin) · Poi una biglia per riga. Massimo 20 gare.</div>
         <label class="rn" style="margin-top:10px"><input id="bulkLive" type="checkbox"><span class="nm">Diretta Live (mostra video anche a puntate aperte)</span></label>
         <button class="full" type="submit">Crea tutte le gare</button>
       </form>
@@ -798,7 +798,7 @@ $("adminOpts").addEventListener("click", async ev => {
   });
 });
 
-let users = [], reqs = [], adminRaces = [], adminExp = {}, adminBets = {};
+let users = [], reqs = [], adminRaces = [], adminExp = {}, adminBets = {}, adminPreset = {}, adminSel = {};
 
 // Crea config/app e treasury/main con valori predefiniti solo se mancano (mai sovrascrive)
 async function ensureInit(){
@@ -835,6 +835,13 @@ async function loadConfig(){
 async function loadRaces(){
   const rs = await getDocs(query(collection(adminDb, "races"), orderBy("createdAt", "desc"), limit(30)));
   adminRaces = rs.docs.map(d => ({ id: d.id, ...d.data() }));
+  await Promise.all(adminRaces.filter(r => r.status === "closed" && !(r.id in adminPreset)).map(async r => {
+    try {
+      const d = await getDoc(doc(adminDb, "videos", r.id + "_w"));
+      const w = d.exists() ? d.data().presetWinner : null;
+      adminPreset[r.id] = (Number.isInteger(w) && w >= 0 && w < (r.runners || []).length) ? w : null;
+    } catch (e) { adminPreset[r.id] = null; }
+  }));
   await Promise.all(adminRaces.filter(r => adminExp[r.id] && (r.status === "open" || r.status === "closed")).map(r => loadRaceBets(r.id)));
   renderAdminRaces();
 }
@@ -914,12 +921,22 @@ $("formBulk").addEventListener("submit", async ev => {
   if (blocks.length > 20) { $("adminErr").textContent = "Massimo 20 gare per volta."; return; }
   const errs = [];
   const parsed = blocks.map((b, i) => {
-    const n = i + 1, name = b[0], url = b[1] || "", runners = b.slice(2);
+    const n = i + 1, name = b[0], url = b[1] || "";
+    let rest = b.slice(2), winnerName = null;
+    const wm = rest.length ? rest[0].match(/^vincitore\s*:\s*(.+)$/i) : null;
+    if (wm) { winnerName = wm[1].trim(); rest = rest.slice(1); }
+    const runners = rest;
     if (name.length > 60) errs.push("Gara " + n + ": nome troppo lungo (max 60).");
     if (!ytId(url)) errs.push("Gara " + n + " (" + name + "): link YouTube mancante o non valido.");
     if (runners.length < 2 || runners.length > 12) errs.push("Gara " + n + " (" + name + "): servono da 2 a 12 biglie.");
     else if (new Set(runners.map(r => r.toLowerCase())).size !== runners.length) errs.push("Gara " + n + " (" + name + "): nomi biglie duplicati.");
-    return { name, url, runners };
+    let presetWinner = null;
+    if (winnerName !== null) {
+      const k = runners.findIndex(r => r.toLowerCase() === winnerName.toLowerCase());
+      if (k < 0) errs.push("Gara " + n + " (" + name + "): il vincitore \"" + winnerName + "\" non è tra le biglie.");
+      else presetWinner = k;
+    }
+    return { name, url, runners, presetWinner };
   });
   if (errs.length) { $("adminErr").textContent = errs.slice(0, 3).join(" ") + (errs.length > 3 ? " (+ altri " + (errs.length - 3) + " errori)" : ""); return; }
   const live = $("bulkLive").checked;
@@ -941,6 +958,8 @@ $("formBulk").addEventListener("submit", async ev => {
           createdAt: new Date(base + (parsed.length - 1 - i)) // la prima gara incollata resta in cima alla lista
         });
         batch.set(doc(adminDb, "videos", rRef.id), { url: g.url });
+        // il vincitore preimpostato sta in un documento a parte (id con suffisso _w) che i giocatori non possono mai leggere
+        if (g.presetWinner !== null) batch.set(doc(adminDb, "videos", rRef.id + "_w"), { presetWinner: g.presetWinner });
       });
       await batch.commit();
       $("bulkText").value = ""; $("bulkLive").checked = false;
@@ -955,13 +974,14 @@ function renderAdminRaces(){
   if (!adminRaces.length) { box.innerHTML = '<div class="mut" style="margin-top:10px">Nessuna gara creata.</div>'; return; }
   box.innerHTML = adminRaces.map(r => {
     const pools = r.pools || {};
+    const sel = adminSel[r.id] !== undefined ? adminSel[r.id] : adminPreset[r.id];
     const list = (r.runners || []).map((n, i) => `${esc(n)}: ${esc(pools[String(i)] || 0)}`).join(" · ");
     let actions = "";
     if (r.status === "open") {
       actions = `<button class="small" data-act="close">Chiudi puntate</button>
                  <button class="small danger" data-act="cancel">Annulla e rimborsa</button>`;
     } else if (r.status === "closed") {
-      actions = `<select data-win>${(r.runners || []).map((n, i) => `<option value="${i}">${esc(n)}</option>`).join("")}</select>
+      actions = `${Number.isInteger(adminPreset[r.id]) ? `<span class="mut" style="width:100%">Vincitore preimpostato: <b>${esc((r.runners || [])[adminPreset[r.id]] ?? "?")}</b></span>` : ""}<select data-win>${(r.runners || []).map((n, i) => `<option value="${i}" ${String(sel) === String(i) ? "selected" : ""}>${esc(n)}</option>`).join("")}</select>
                  <button class="small" data-act="settle">Assegna vincitore</button>
                  <button class="small danger" data-act="cancel">Annulla e rimborsa</button>`;
     } else if (r.status === "settled") {
@@ -989,6 +1009,12 @@ function renderAdminRaces(){
     </div>`;
   }).join("");
 }
+
+$("raceAdminList").addEventListener("change", ev => {
+  const sel = ev.target.closest("[data-win]");
+  if (!sel) return;
+  adminSel[sel.closest(".urow").dataset.id] = sel.value;
+});
 
 $("raceAdminList").addEventListener("click", async ev => {
   const h = ev.target.closest("[data-tgl]");
