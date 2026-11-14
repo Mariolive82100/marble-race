@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0f1220">
-<title>Murble Race v2.2</title>
+<title>Murble Race v2.3</title>
 <style>
 :root{--bg:#0f1220;--card:#181c30;--line:#2a3050;--txt:#eef0fa;--mut:#8f96b8;--acc:#ff9f1c;--ok:#2ec27e;--err:#ff5d6c}
 *{box-sizing:border-box}
@@ -75,7 +75,7 @@ details.rsx[open] summary::after{content:"▲"}
 
   <!-- AUTENTICAZIONE -->
   <div id="viewAuth" class="view on">
-    <h1>Murble <span>Race</span> <small class="ver">v2.2</small></h1>
+    <h1>Murble <span>Race</span> <small class="ver">v2.3</small></h1>
     <p class="sub">Scommesse sulle gare di biglie</p>
     <div class="card">
       <div class="tabs">
@@ -106,7 +106,7 @@ details.rsx[open] summary::after{content:"▲"}
   <!-- HOME GIOCATORE -->
   <div id="viewHome" class="view">
     <div class="row">
-      <h1>Murble <span>Race</span> <small class="ver">v2.2</small></h1>
+      <h1>Murble <span>Race</span> <small class="ver">v2.3</small></h1>
       <div class="uactions" style="margin-top:0;flex-wrap:nowrap">
         <label id="wrapAdminQuick" class="sw" style="display:none">Admin<input id="swAdminHome" type="checkbox"><i></i></label>
         <button id="btnLogout" class="sec small" type="button">Esci</button>
@@ -475,7 +475,7 @@ function renderRaces(){
     if (el._body !== parts.body) { body.innerHTML = parts.body; el._body = parts.body; }
     if (parts.yt) {
       if (slot.dataset.id !== parts.yt) {
-        slot.innerHTML = '<div class="yt"><iframe src="https://www.youtube-nocookie.com/embed/' + parts.yt + '?rel=0&modestbranding=1&playsinline=1&iv_load_policy=3&disablekb=1" title="Video gara" loading="lazy" referrerpolicy="no-referrer" sandbox="allow-scripts allow-same-origin allow-presentation" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe></div>';
+        slot.innerHTML = '<div class="yt"><iframe src="https://www.youtube.com/embed/' + parts.yt + '?rel=0&modestbranding=1&playsinline=1" title="Video gara" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div><div class="mut" style="margin-top:6px;font-size:13px"><a href="https://www.youtube.com/watch?v=' + parts.yt + '" target="_blank" rel="noopener noreferrer" style="color:var(--mut)">Apri su YouTube ↗</a></div>';
         slot.dataset.id = parts.yt;
       }
     } else if (slot.dataset.id) { slot.innerHTML = ""; delete slot.dataset.id; }
