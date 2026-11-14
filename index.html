@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1220">
+<title>Murble Race v1.9</title>
+<style>
+:root{--bg:#0f1220;--card:#181c30;--line:#2a3050;--txt:#eef0fa;--mut:#8f96b8;--acc:#ff9f1c;--ok:#2ec27e;--err:#ff5d6c}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;min-height:100vh}
+.wrap{max-width:460px;margin:0 auto;padding:28px 16px 56px}
+h1{margin:0;font-size:30px;letter-spacing:.5px}
+h1 span{color:var(--acc)}
+h1 .ver{font-size:12px;font-weight:600;color:var(--mut);letter-spacing:0;vertical-align:middle}
+.sub{color:var(--mut);margin:4px 0 22px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:14px}
+.view{display:none}.view.on{display:block}
+label{display:block;font-size:13px;color:var(--mut);margin:12px 0 4px}
+input,select,textarea{width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:#0f1220;color:var(--txt);font-size:16px;font-family:inherit}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--acc);border-color:transparent}
+button{cursor:pointer;border:0;border-radius:10px;padding:12px 16px;font-size:16px;font-weight:600;background:var(--acc);color:#1b1300}
+button.sec{background:transparent;color:var(--txt);border:1px solid var(--line)}
+button.danger{background:transparent;color:var(--err);border:1px solid var(--err)}
+button.small{padding:8px 12px;font-size:14px}
+button:disabled{opacity:.5;cursor:default}
+.full{width:100%;margin-top:16px}
+.tabs{display:flex;gap:8px;margin-bottom:6px}
+.tabs button{flex:1}
+.err{color:var(--err);min-height:20px;margin-top:10px;font-size:14px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.bal{font-size:44px;font-weight:700;margin:6px 0 0}
+.mut{color:var(--mut);font-size:14px}
+.badge{display:inline-block;padding:4px 10px;border-radius:99px;font-size:13px;font-weight:600}
+.badge.ok{background:rgba(46,194,126,.15);color:var(--ok)}
+.badge.wait{background:rgba(255,159,28,.15);color:var(--acc)}
+.badge.off{background:rgba(143,150,184,.15);color:var(--mut)}
+.foot{text-align:center;margin-top:28px}
+.foot a{color:var(--mut);font-size:13px;cursor:pointer;text-decoration:underline}
+.urow{border-top:1px solid var(--line);padding:12px 0}
+.urow:first-child{border-top:0}
+.uactions{display:flex;gap:8px;margin-top:8px;align-items:center;flex-wrap:wrap}
+.uactions input{width:90px;padding:8px}
+.uactions select{width:auto;flex:1;min-width:120px;padding:8px}
+.rn{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;margin-top:8px;cursor:pointer;font-size:16px;color:var(--txt);margin-bottom:0}
+.rn input{width:auto;margin:0}
+.rn .nm{flex:1}
+.rn.win{border-color:var(--ok)}
+.betbox{margin-top:12px}
+.betbox input[type=number]{margin-top:8px}
+.sw{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--mut);margin:0;cursor:pointer;user-select:none}
+.sw input{position:absolute;opacity:0;width:0;height:0}
+.sw i{position:relative;width:38px;height:22px;border-radius:99px;background:var(--line);transition:.15s}
+.sw i::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:var(--txt);transition:.15s}
+.sw input:checked+i{background:var(--acc)}
+.sw input:checked+i::after{left:19px;background:#1b1300}
+.sw input:focus-visible+i{outline:2px solid var(--acc)}
+.rhead{cursor:pointer}
+.rhead.static{cursor:default}
+.menu{position:absolute;right:0;top:100%;margin-top:6px;background:var(--card);border:1px solid var(--line);border-radius:10px;min-width:170px;z-index:5;padding:4px;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.menu button{display:block;width:100%;text-align:left;background:transparent;color:var(--txt);border:0;padding:10px 12px;font-size:15px;font-weight:500}
+.menu button:hover{background:rgba(255,255,255,.06)}
+.res-won{color:var(--ok);font-weight:600}
+.res-lost{color:var(--err);font-weight:600}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- AUTENTICAZIONE -->
+  <div id="viewAuth" class="view on">
+    <h1>Murble <span>Race</span> <small class="ver">v1.9</small></h1>
+    <p class="sub">Scommesse sulle gare di biglie</p>
+    <div class="card">
+      <div class="tabs">
+        <button id="tabLogin" type="button">Accedi</button>
+        <button id="tabReg" type="button" class="sec">Registrati</button>
+      </div>
+      <form id="formLogin" autocomplete="on">
+        <label for="lName">Nome utente</label>
+        <input id="lName" autocomplete="username" autocapitalize="none" required>
+        <label for="lPin">PIN</label>
+        <input id="lPin" type="password" autocomplete="current-password" required>
+        <button class="full" type="submit">Entra</button>
+      </form>
+      <form id="formReg" style="display:none" autocomplete="on">
+        <label for="rName">Scegli un nome utente</label>
+        <input id="rName" autocomplete="username" autocapitalize="none" required>
+        <div class="mut" style="margin-top:4px">3–20 caratteri: lettere, numeri, punto, trattino, underscore.</div>
+        <label for="rPin">PIN (minimo 6 caratteri)</label>
+        <input id="rPin" type="password" autocomplete="new-password" required>
+        <label for="rPin2">Ripeti il PIN</label>
+        <input id="rPin2" type="password" autocomplete="new-password" required>
+        <button class="full" type="submit">Crea account</button>
+      </form>
+      <div id="authErr" class="err"></div>
+    </div>
+  </div>
+
+  <!-- HOME GIOCATORE -->
+  <div id="viewHome" class="view">
+    <div class="row">
+      <h1>Murble <span>Race</span> <small class="ver">v1.9</small></h1>
+      <div class="uactions" style="margin-top:0;flex-wrap:nowrap">
+        <label id="wrapAdminQuick" class="sw" style="display:none">Admin<input id="swAdminHome" type="checkbox"><i></i></label>
+        <button id="btnLogout" class="sec small" type="button">Esci</button>
+      </div>
+    </div>
+    <p class="sub">Ciao, <b id="hName"></b></p>
+    <div class="card">
+      <div class="mut">Il tuo saldo</div>
+      <div class="bal"><span id="hBal">0</span> <span class="mut" style="font-size:18px">crediti</span></div>
+      <div style="margin-top:10px"><span id="hBadge" class="badge wait"></span></div>
+    </div>
+    <div class="card">
+      <div class="row"><b>Crediti</b><button id="btnTopup" class="small" type="button">Ricarica crediti</button></div>
+      <form id="topupForm" style="display:none">
+        <label for="tAmt">Quanti crediti vuoi richiedere?</label>
+        <input id="tAmt" type="number" step="1" min="1" inputmode="numeric" required>
+        <div class="uactions" style="margin-top:12px">
+          <button class="small" type="submit">Invia richiesta</button>
+          <button class="small sec" id="btnTopupCancel" type="button">Annulla</button>
+        </div>
+        <div id="topupErr" class="err"></div>
+      </form>
+      <div id="topupStatus" class="mut" style="margin-top:10px"></div>
+    </div>
+    <div id="hWait" class="card mut" style="display:none">Il tuo account deve essere attivato dall'admin prima di poter scommettere.</div>
+    <div class="tabs" id="raceTabs">
+      <button id="tabActive" type="button">Gare Attive</button>
+      <button id="tabHistory" type="button" class="sec">Storico / Esiti</button>
+    </div>
+    <div id="raceList"></div>
+    <div id="homeErr" class="err"></div>
+    <div class="foot"><a id="lnkAdmin">Accesso Admin</a></div>
+  </div>
+
+  <!-- LOGIN ADMIN -->
+  <div id="viewAdminLogin" class="view">
+    <h1>Accesso <span>Admin</span></h1>
+    <p class="sub">Inserisci il PIN Admin</p>
+    <div class="card">
+      <form id="formAdmin">
+        <label for="aPin">PIN Admin</label>
+        <input id="aPin" type="password" autocomplete="off" required>
+        <button class="full" type="submit">Entra nel pannello</button>
+        <button class="full sec" id="btnAdminCancel" type="button">Annulla</button>
+      </form>
+      <div id="adminLoginErr" class="err"></div>
+    </div>
+  </div>
+
+  <!-- PANNELLO ADMIN -->
+  <div id="viewAdmin" class="view">
+    <div class="row" style="position:relative">
+      <h1>Pannello <span>Admin</span></h1>
+      <div class="uactions" style="margin-top:0;flex-wrap:nowrap">
+        <label class="sw">Admin<input id="swAdminPanel" type="checkbox" checked><i></i></label>
+        <button id="btnAdminExit" class="sec small" type="button">Esci</button>
+        <button id="btnMenu" class="sec small" type="button" aria-label="Menu">☰</button>
+      </div>
+      <div id="adminMenu" class="menu" style="display:none">
+        <button type="button" data-sec="opts">Impostazioni</button>
+      </div>
+    </div>
+    <div id="adminMain">
+    <p id="adminInfo" class="sub" style="color:var(--ok);min-height:20px"></p>
+    <div class="card">
+      <div class="mut">Tesoreria (fee trattenute)</div>
+      <div class="bal" style="font-size:32px"><span id="tBal">0</span> <span class="mut" style="font-size:16px">crediti</span></div>
+    </div>
+    <div class="card">
+      <b>Nuova gara</b>
+      <form id="formRace">
+        <label for="raceName">Nome gara</label>
+        <input id="raceName" maxlength="60" required>
+        <label for="raceRunners">Biglie in gara (una per riga, da 2 a 12)</label>
+        <textarea id="raceRunners" rows="4" required></textarea>
+        <button class="full" type="submit">Crea gara (puntate aperte)</button>
+      </form>
+    </div>
+    <div class="card">
+      <div class="row"><b>Gare</b></div>
+      <div id="raceAdminList"></div>
+    </div>
+    <div class="card">
+      <b>Richieste di ricarica</b>
+      <div id="reqList"></div>
+    </div>
+    <div class="card">
+      <div class="row"><b>Giocatori</b><button id="btnReload" class="sec small" type="button">Aggiorna</button></div>
+      <div id="userList"></div>
+    </div>
+    </div>
+    <div id="adminOpts" style="display:none">
+      <div class="card">
+        <div class="row"><b>Impostazioni</b><button class="sec small" type="button" data-sec="main">← Pannello</button></div>
+        <div class="mut" style="margin-top:4px">Reset per la fase di test. Le operazioni sono definitive.</div>
+        <div class="urow">
+          <b>Reset users</b>
+          <div class="mut">Elimina i profili giocatore e le richieste di ricarica. Gli account di accesso restano: al prossimo login il profilo viene ricreato a saldo 0 e in attesa di attivazione.</div>
+          <div class="uactions"><button class="small danger" type="button" data-reset="users">Reset users</button></div>
+        </div>
+        <div class="urow">
+          <b>Reset crediti</b>
+          <div class="mut">Azzera i saldi di tutti i giocatori, la Tesoreria e il registro movimenti.</div>
+          <div class="uactions"><button class="small danger" type="button" data-reset="credits">Reset crediti</button></div>
+        </div>
+        <div class="urow">
+          <b>Reset scommesse</b>
+          <div class="mut">Elimina tutte le puntate e tutte le gare (senza rimborsi).</div>
+          <div class="uactions"><button class="small danger" type="button" data-reset="bets">Reset scommesse</button></div>
+        </div>
+        <div class="urow">
+          <b>Reset tutto</b>
+          <div class="mut">Esegue tutti i reset sopra.</div>
+          <div class="uactions"><button class="small danger" type="button" data-reset="all">Reset tutto</button></div>
+        </div>
+        <div id="optMsg" class="mut" style="margin-top:10px;color:var(--ok)"></div>
+      </div>
+    </div>
+    <div id="adminErr" class="err"></div>
+  </div>
+
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp, collection, getDocs, runTransaction, query, where, orderBy, limit, writeBatch }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCftJesN7G3XgsH3w9xGB79jZBvcOzmlDo",
+  authDomain: "murble-race.firebaseapp.com",
+  projectId: "murble-race",
+  storageBucket: "murble-race.firebasestorage.app",
+  messagingSenderId: "46726809074",
+  appId: "1:46726809074:web:06db698a2cb4ab3da0576b"
+};
+
+// Sessione giocatore e sessione admin sono separate (due istanze Firebase)
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const adminApp = initializeApp(firebaseConfig, "admin");
+const adminAuth = getAuth(adminApp);
+const adminDb = getFirestore(adminApp);
+
+const DOMAIN = "@murblerace.app";
+const ADMIN_EMAIL = "admin" + DOMAIN;
+const RESERVED = ["admin"];
+const MAX_BETS_SETTLE = 150;
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+const normName = s => s.trim().toLowerCase();
+const validName = n => /^[a-z0-9._-]{3,20}$/.test(n) && !RESERVED.includes(n);
+const toEmail = n => n + DOMAIN;
+
+function show(id){
+  document.querySelectorAll(".view").forEach(v => v.classList.remove("on"));
+  $(id).classList.add("on");
+  window.scrollTo(0, 0);
+}
+function msg(e){
+  const c = e && e.code || "";
+  if (["auth/invalid-credential","auth/wrong-password","auth/user-not-found","auth/invalid-email"].includes(c)) return "Nome o PIN errati.";
+  if (c === "auth/email-already-in-use") return "Questo nome è già in uso.";
+  if (c === "auth/weak-password") return "PIN troppo corto (minimo 6 caratteri).";
+  if (c === "auth/too-many-requests") return "Troppi tentativi. Riprova tra qualche minuto.";
+  if (c === "auth/network-request-failed") return "Connessione assente.";
+  if (c === "auth/operation-not-allowed") return "Accesso Email/Password non abilitato in Firebase.";
+  if (c === "permission-denied") return "Operazione non consentita (permission-denied).";
+  return "Errore: " + (c || (e && e.message) || "sconosciuto");
+}
+async function busy(btn, fn){
+  if (btn) btn.disabled = true;
+  try { await fn(); } finally { if (btn) btn.disabled = false; }
+}
+
+// ---------- Tab login / registrazione ----------
+function setTab(reg){
+  $("formLogin").style.display = reg ? "none" : "block";
+  $("formReg").style.display = reg ? "block" : "none";
+  $("tabLogin").classList.toggle("sec", reg);
+  $("tabReg").classList.toggle("sec", !reg);
+  $("authErr").textContent = "";
+}
+$("tabLogin").onclick = () => setTab(false);
+$("tabReg").onclick = () => setTab(true);
+
+$("formLogin").addEventListener("submit", async ev => {
+  ev.preventDefault();
+  $("authErr").textContent = "";
+  const n = normName($("lName").value), pin = $("lPin").value;
+  if (!validName(n)) { $("authErr").textContent = "Nome o PIN errati."; return; }
+  await busy(ev.submitter, async () => {
+    try { await signInWithEmailAndPassword(auth, toEmail(n), pin); }
+    catch (e) { $("authErr").textContent = msg(e); }
+  });
+});
+
+$("formReg").addEventListener("submit", async ev => {
+  ev.preventDefault();
+  $("authErr").textContent = "";
+  const raw = $("rName").value.trim(), n = normName(raw), pin = $("rPin").value, pin2 = $("rPin2").value;
+  if (!validName(n)) { $("authErr").textContent = "Nome non valido o riservato."; return; }
+  if (pin.length < 6) { $("authErr").textContent = "PIN troppo corto (minimo 6 caratteri)."; return; }
+  if (pin !== pin2) { $("authErr").textContent = "I due PIN non coincidono."; return; }
+  await busy(ev.submitter, async () => {
+    try { pendingDisplay = raw; await createUserWithEmailAndPassword(auth, toEmail(n), pin); }
+    catch (e) { pendingDisplay = null; $("authErr").textContent = msg(e); }
+  });
+});
+
+// ---------- Sessione giocatore ----------
+let unsubUser = null, unsubTopup = null, unsubRaces = null, unsubBets = null;
+let me = null, myReq = null, meDoc = null, pendingDisplay = null;
+let races = [], myBets = {}, draft = {}, expanded = {}, raceTab = "active";
+
+function stopListeners(){
+  [unsubUser, unsubTopup, unsubRaces, unsubBets].forEach(u => { if (u) u(); });
+  unsubUser = unsubTopup = unsubRaces = unsubBets = null;
+}
+
+onAuthStateChanged(auth, async user => {
+  stopListeners();
+  if (!user) { me = null; myReq = null; meDoc = null; races = []; myBets = {}; draft = {}; show("viewAuth"); return; }
+  const name = user.email.split("@")[0];
+  const display = (pendingDisplay && pendingDisplay.toLowerCase() === name) ? pendingDisplay : name;
+  pendingDisplay = null;
+  me = { uid: user.uid, name };
+  $("homeErr").textContent = "";
+  try {
+    const ref = doc(db, "users", user.uid);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) {
+      await setDoc(ref, { username: display, balance: 0, active: false, createdAt: serverTimestamp() });
+    }
+    unsubUser = onSnapshot(ref, s => { if (s.exists()) renderHome(name, s.data()); },
+      e => { $("homeErr").textContent = msg(e); });
+    unsubTopup = onSnapshot(doc(db, "topupRequests", user.uid), s => renderTopup(s.exists() ? s.data() : null), () => {});
+    unsubRaces = onSnapshot(query(collection(db, "races"), orderBy("createdAt", "desc"), limit(20)),
+      s => { races = s.docs.map(d => ({ id: d.id, ...d.data() })); renderRaces(); },
+      e => { $("homeErr").textContent = msg(e); });
+    unsubBets = onSnapshot(query(collection(db, "bets"), where("uid", "==", user.uid)),
+      s => { myBets = {}; s.docs.forEach(d => { const b = d.data(); myBets[b.raceId] = b; }); renderRaces(); },
+      e => { $("homeErr").textContent = msg(e); });
+    show("viewHome");
+  } catch (e) {
+    $("authErr").textContent = msg(e);
+    await signOut(auth);
+  }
+});
+
+function renderHome(name, d){
+  meDoc = d;
+  $("hName").textContent = d.username || name;
+  $("hBal").textContent = d.balance;
+  const b = $("hBadge");
+  b.textContent = d.active ? "Account attivo" : "In attesa di attivazione";
+  b.className = "badge " + (d.active ? "ok" : "wait");
+  $("hWait").style.display = d.active ? "none" : "block";
+  renderRaces();
+}
+$("btnLogout").onclick = () => signOut(auth);
+
+// ---------- Gare (giocatore) ----------
+const STATUS_LABEL = { open: "puntate aperte", closed: "puntate chiuse", settled: "conclusa", cancelled: "annullata" };
+const STATUS_CLASS = { open: "ok", closed: "wait", settled: "off", cancelled: "off" };
+
+function netPool(r){
+  const total = r.pool || 0;
+  return total - Math.floor(total * (r.feePercent || 0) / 100);
+}
+
+function raceCard(r){
+  const b = myBets[r.id];
+  const pools = r.pools || {};
+  const net = netPool(r);
+  const canBet = r.status === "open" && !b && meDoc && meDoc.active;
+  const d = draft[r.id] || {};
+  const runners = (r.runners || []).map((n, i) => {
+    const p = pools[String(i)] || 0;
+    const quota = p > 0 ? "x" + (net / p).toFixed(2) : "—";
+    const isWin = r.status === "settled" && r.winner === i;
+    const mine = b && b.runner === i ? " ★" : "";
+    const radio = canBet
+      ? `<input type="radio" name="rn_${esc(r.id)}" value="${i}" ${String(d.runner) === String(i) ? "checked" : ""}>`
+      : "";
+    return `<label class="rn ${isWin ? "win" : ""}">${radio}<span class="nm">${esc(n)}${mine}${isWin ? " 🏆" : ""}</span><span class="mut">${esc(p)} · ${quota}</span></label>`;
+  }).join("");
+
+  let foot = "";
+  if (canBet) {
+    foot = `<div class="betbox">
+      <input type="number" step="1" min="${esc(r.minBet || 1)}" inputmode="numeric" placeholder="Crediti da puntare (min ${esc(r.minBet || 1)})" data-amt value="${esc(d.amount || "")}">
+      <button class="full" data-act="bet" type="button">Punta</button>
+    </div>`;
+  } else if (b) {
+    let res = "";
+    if (b.status === "won") res = `<span class="res-won">Vinto +${esc(b.payout)} crediti</span>`;
+    else if (b.status === "lost") res = `<span class="res-lost">Persa</span>`;
+    else if (b.status === "refunded") res = `<span class="mut">Rimborsata: +${esc(b.payout)} crediti</span>`;
+    else res = `<span class="mut">In attesa del risultato</span>`;
+    foot = `<div class="betbox mut">La tua puntata: <b>${esc(b.amount)}</b> crediti su <b>${esc((r.runners || [])[b.runner] ?? "?")}</b> — ${res}</div>`;
+  } else if (r.status === "open" && meDoc && !meDoc.active) {
+    foot = `<div class="betbox mut">Account da attivare per poter scommettere.</div>`;
+  }
+
+  const isActive = r.status === "open" || r.status === "closed";
+  const isOpen = !isActive || !!expanded[r.id];
+  const arrow = isActive ? (isOpen ? " ▲" : " ▼") : "";
+  return `<div class="card race" data-id="${esc(r.id)}">
+    <div class="rhead ${isActive ? "" : "static"}" ${isActive ? "data-toggle" : ""}>
+      <div class="row"><b>${esc(r.name)}</b><span class="badge ${STATUS_CLASS[r.status] || "off"}">${STATUS_LABEL[r.status] || esc(r.status)}</span></div>
+      <div class="row mut" style="margin-top:4px"><span>Montepremi: ${esc(r.pool || 0)} crediti · Fee ${esc(r.feePercent || 0)}%</span><span>${b ? "✓ Hai puntato" : ""}${arrow}</span></div>
+    </div>
+    ${isOpen ? runners + foot : ""}
+  </div>`;
+}
+
+function renderRaces(){
+  const box = $("raceList");
+  if (!meDoc) return;
+  const isHist = r => r.status === "settled" || r.status === "cancelled";
+  const list = races.filter(r => raceTab === "history" ? isHist(r) : !isHist(r));
+  if (!list.length) { box.innerHTML = '<div class="card mut">' + (raceTab === "history" ? "Nessuna gara conclusa." : "Nessuna gara attiva al momento.") + '</div>'; return; }
+  box.innerHTML = list.map(raceCard).join("");
+}
+
+function setRaceTab(t){
+  raceTab = t;
+  $("tabActive").classList.toggle("sec", t !== "active");
+  $("tabHistory").classList.toggle("sec", t !== "history");
+  renderRaces();
+}
+$("tabActive").onclick = () => setRaceTab("active");
+$("tabHistory").onclick = () => setRaceTab("history");
+
+$("raceList").addEventListener("click", ev => {
+  const h = ev.target.closest("[data-toggle]");
+  if (!h) return;
+  const id = h.closest(".race").dataset.id;
+  expanded[id] = !expanded[id];
+  renderRaces();
+});
+
+$("raceList").addEventListener("input", ev => {
+  const c = ev.target.closest(".race");
+  if (!c) return;
+  const id = c.dataset.id;
+  const d = draft[id] || (draft[id] = {});
+  if (ev.target.type === "radio") d.runner = ev.target.value;
+  if (ev.target.matches("[data-amt]")) d.amount = ev.target.value;
+});
+
+$("raceList").addEventListener("click", async ev => {
+  const btn = ev.target.closest("button[data-act='bet']");
+  if (!btn) return;
+  const c = btn.closest(".race");
+  const id = c.dataset.id;
+  const d = draft[id] || {};
+  $("homeErr").textContent = "";
+  const runner = Number(d.runner);
+  const amount = Number(d.amount);
+  if (d.runner === undefined || !Number.isInteger(runner)) { $("homeErr").textContent = "Scegli una biglia."; return; }
+  if (!Number.isInteger(amount) || amount < 1) { $("homeErr").textContent = "Inserisci un importo intero valido."; return; }
+  await busy(btn, async () => {
+    try {
+      await placeBet(id, runner, amount);
+      delete draft[id];
+    } catch (e) { $("homeErr").textContent = msg(e); }
+  });
+});
+
+async function placeBet(raceId, runner, amount){
+  const rr = doc(db, "races", raceId);
+  const ur = doc(db, "users", me.uid);
+  const br = doc(db, "bets", raceId + "_" + me.uid);
+  await runTransaction(db, async tx => {
+    const [r, u, b] = await Promise.all([tx.get(rr), tx.get(ur), tx.get(br)]);
+    if (!r.exists() || r.data().status !== "open") throw new Error("Le puntate per questa gara sono chiuse.");
+    if (!u.data().active) throw new Error("Account non ancora attivo.");
+    if (b.exists()) throw new Error("Hai già puntato su questa gara.");
+    const race = r.data();
+    if (runner < 0 || runner >= race.runners.length) throw new Error("Biglia non valida.");
+    if (amount < (race.minBet || 1)) throw new Error("Puntata minima: " + (race.minBet || 1) + " crediti.");
+    if (u.data().balance < amount) throw new Error("Saldo insufficiente.");
+    const key = String(runner);
+    const pools = { ...(race.pools || {}) };
+    pools[key] = (pools[key] || 0) + amount;
+    tx.update(ur, { balance: u.data().balance - amount });
+    tx.set(br, { raceId, uid: me.uid, username: me.name, runner, amount, status: "pending", createdAt: serverTimestamp() });
+    tx.update(rr, { pool: (race.pool || 0) + amount, pools });
+  });
+}
+
+// ---------- Richiesta ricarica crediti ----------
+function renderTopup(r){
+  myReq = r;
+  const pending = !!r && r.status === "pending";
+  $("btnTopup").disabled = pending;
+  const st = $("topupStatus");
+  if (!r) st.textContent = "";
+  else if (pending) st.textContent = "Richiesta di " + r.amount + " crediti in attesa di risposta dall'admin.";
+  else if (r.status === "approved") st.textContent = "Ultima richiesta approvata: +" + (r.approvedAmount ?? r.amount) + " crediti.";
+  else st.textContent = "Ultima richiesta rifiutata dall'admin.";
+}
+$("btnTopup").onclick = () => {
+  $("topupForm").style.display = "block";
+  $("tAmt").value = "";
+  $("topupErr").textContent = "";
+  $("tAmt").focus();
+};
+$("btnTopupCancel").onclick = () => { $("topupForm").style.display = "none"; };
+$("topupForm").addEventListener("submit", async ev => {
+  ev.preventDefault();
+  $("topupErr").textContent = "";
+  const amt = Number($("tAmt").value);
+  if (!Number.isInteger(amt) || amt < 1 || amt > 100000) { $("topupErr").textContent = "Inserisci un importo intero tra 1 e 100000."; return; }
+  await busy(ev.submitter, async () => {
+    try {
+      await setDoc(doc(db, "topupRequests", me.uid), { uid: me.uid, username: me.name, amount: amt, status: "pending", createdAt: serverTimestamp() });
+      $("topupForm").style.display = "none";
+    } catch (e) {
+      $("topupErr").textContent = e.code === "permission-denied" ? "Hai già una richiesta in attesa." : msg(e);
+    }
+  });
+});
+
+// ---------- Accesso admin ----------
+// La sessione admin resta salvata nel browser fino al tasto "Esci" del Pannello Admin
+onAuthStateChanged(adminAuth, async u => {
+  let ok = false;
+  if (u && u.email === ADMIN_EMAIL) {
+    try { ok = (await getDoc(doc(adminDb, "admins", u.uid))).exists(); } catch (e) { ok = false; }
+  }
+  $("wrapAdminQuick").style.display = ok ? "" : "none";
+  $("swAdminHome").checked = false;
+  $("lnkAdmin").style.display = ok ? "none" : "";
+});
+
+$("swAdminHome").onchange = async ev => {
+  if (!ev.target.checked) return;
+  $("homeErr").textContent = "";
+  try { await loadAdmin(); showAdminSec("main"); $("swAdminPanel").checked = true; show("viewAdmin"); }
+  catch (e) { $("homeErr").textContent = msg(e); }
+  ev.target.checked = false;
+};
+
+$("lnkAdmin").onclick = () => { $("aPin").value = ""; $("adminLoginErr").textContent = ""; show("viewAdminLogin"); };
+$("btnAdminCancel").onclick = () => show("viewHome");
+
+$("formAdmin").addEventListener("submit", async ev => {
+  ev.preventDefault();
+  $("adminLoginErr").textContent = "";
+  await busy(ev.submitter, async () => {
+    try {
+      const cred = await signInWithEmailAndPassword(adminAuth, ADMIN_EMAIL, $("aPin").value);
+      const a = await getDoc(doc(adminDb, "admins", cred.user.uid));
+      if (!a.exists()) { await signOut(adminAuth); throw { code: "auth/invalid-credential" }; }
+      $("aPin").value = "";
+      await loadAdmin();
+      show("viewAdmin");
+    } catch (e) { $("adminLoginErr").textContent = (e.code === "auth/invalid-credential") ? "PIN Admin errato." : msg(e); }
+  });
+});
+
+$("swAdminPanel").onchange = ev => { if (!ev.target.checked) { show("viewHome"); ev.target.checked = true; } };
+$("btnAdminExit").onclick = async () => { await signOut(adminAuth).catch(() => {}); show("viewHome"); };
+$("btnReload").onclick = () => loadAdmin();
+
+// ---------- Admin: menu e opzioni ----------
+function showAdminSec(n){
+  $("adminMain").style.display = n === "main" ? "" : "none";
+  $("adminOpts").style.display = n === "opts" ? "" : "none";
+  $("optMsg").textContent = "";
+  $("adminErr").textContent = "";
+}
+$("btnMenu").onclick = ev => { ev.stopPropagation(); const m = $("adminMenu"); m.style.display = m.style.display === "none" ? "block" : "none"; };
+document.addEventListener("click", () => { $("adminMenu").style.display = "none"; });
+document.addEventListener("click", ev => {
+  const b = ev.target.closest("button[data-sec]");
+  if (b) showAdminSec(b.dataset.sec);
+});
+
+async function wipeCollection(name){
+  const qs = await getDocs(collection(adminDb, name));
+  for (let i = 0; i < qs.docs.length; i += 400) {
+    const b = writeBatch(adminDb);
+    qs.docs.slice(i, i + 400).forEach(d => b.delete(d.ref));
+    await b.commit();
+  }
+}
+async function zeroBalances(){
+  const qs = await getDocs(collection(adminDb, "users"));
+  const docs = qs.docs.filter(d => d.data().balance !== 0);
+  for (let i = 0; i < docs.length; i += 400) {
+    const b = writeBatch(adminDb);
+    docs.slice(i, i + 400).forEach(d => b.update(d.ref, { balance: 0 }));
+    await b.commit();
+  }
+}
+const RESET_TEXT = {
+  users: "Eliminare TUTTI i profili giocatore e le richieste di ricarica?",
+  credits: "Azzerare i saldi di tutti i giocatori, la Tesoreria e il registro movimenti?",
+  bets: "Eliminare TUTTE le puntate e TUTTE le gare (senza rimborsi)?",
+  all: "RESET TOTALE: eliminare giocatori, richieste, puntate, gare, movimenti e azzerare crediti e Tesoreria?"
+};
+$("adminOpts").addEventListener("click", async ev => {
+  const btn = ev.target.closest("button[data-reset]");
+  if (!btn) return;
+  const k = btn.dataset.reset;
+  if (!confirm(RESET_TEXT[k] + "\nOperazione definitiva.")) return;
+  $("adminErr").textContent = ""; $("optMsg").textContent = "";
+  await busy(btn, async () => {
+    try {
+      if (k === "credits" || k === "all") { await zeroBalances(); await wipeCollection("ledger"); await setDoc(doc(adminDb, "treasury", "main"), { balance: 0, totalFees: 0 }); }
+      if (k === "bets" || k === "all") { await wipeCollection("bets"); await wipeCollection("races"); }
+      if (k === "users" || k === "all") { await wipeCollection("users"); await wipeCollection("topupRequests"); }
+      await loadAdmin();
+      $("optMsg").textContent = "Reset eseguito.";
+    } catch (e) { $("adminErr").textContent = msg(e); }
+  });
+});
+
+let users = [], reqs = [], adminRaces = [], adminExp = {};
+
+// Crea config/app e treasury/main con valori predefiniti solo se mancano (mai sovrascrive)
+async function ensureInit(){
+  const cfgRef = doc(adminDb, "config", "app");
+  const trRef = doc(adminDb, "treasury", "main");
+  const made = await runTransaction(adminDb, async tx => {
+    const c = await tx.get(cfgRef);
+    const t = await tx.get(trRef);
+    const list = [];
+    if (!c.exists()) { tx.set(cfgRef, { feePercent: 10, minBet: 1, startingBalance: 100, liveUrl: "", bettingOpen: true }); list.push("config/app"); }
+    if (!t.exists()) { tx.set(trRef, { balance: 0, totalFees: 0 }); list.push("treasury/main"); }
+    return list;
+  });
+  if (made.length) $("adminInfo").textContent = "Database inizializzato: creati " + made.join(" e ") + " con i valori predefiniti.";
+}
+
+async function loadTreasury(){
+  const t = await getDoc(doc(adminDb, "treasury", "main"));
+  $("tBal").textContent = t.exists() ? t.data().balance : 0;
+}
+
+async function loadRaces(){
+  const rs = await getDocs(query(collection(adminDb, "races"), orderBy("createdAt", "desc"), limit(30)));
+  adminRaces = rs.docs.map(d => ({ id: d.id, ...d.data() }));
+  renderAdminRaces();
+}
+
+async function loadAdmin(){
+  $("adminErr").textContent = "";
+  $("adminInfo").textContent = "";
+  try {
+    await ensureInit();
+    await loadTreasury();
+    await loadRaces();
+    const rs = await getDocs(query(collection(adminDb, "topupRequests"), where("status", "==", "pending")));
+    reqs = rs.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderReqs();
+    const qs = await getDocs(collection(adminDb, "users"));
+    users = qs.docs.map(d => ({ id: d.id, ...d.data() }));
+    users.sort((a, b) => a.username.localeCompare(b.username));
+    renderUsers();
+    renderReqs();
+  } catch (e) { $("adminErr").textContent = msg(e); }
+}
+
+// ---------- Admin: gare ----------
+$("formRace").addEventListener("submit", async ev => {
+  ev.preventDefault();
+  $("adminErr").textContent = "";
+  const name = $("raceName").value.trim();
+  const runners = $("raceRunners").value.split("\n").map(s => s.trim()).filter(Boolean);
+  if (!name) { $("adminErr").textContent = "Inserisci il nome della gara."; return; }
+  if (runners.length < 2 || runners.length > 12) { $("adminErr").textContent = "Servono da 2 a 12 biglie."; return; }
+  if (new Set(runners.map(r => r.toLowerCase())).size !== runners.length) { $("adminErr").textContent = "I nomi delle biglie devono essere diversi."; return; }
+  await busy(ev.submitter, async () => {
+    try {
+      const cfg = await getDoc(doc(adminDb, "config", "app"));
+      const c = cfg.exists() ? cfg.data() : {};
+      const pools = {};
+      runners.forEach((_, i) => { pools[String(i)] = 0; });
+      await setDoc(doc(collection(adminDb, "races")), {
+        name, runners, status: "open", pool: 0, pools, winner: null,
+        feePercent: Number.isInteger(c.feePercent) ? c.feePercent : 10,
+        minBet: Number.isInteger(c.minBet) && c.minBet > 0 ? c.minBet : 1,
+        createdAt: serverTimestamp()
+      });
+      $("raceName").value = ""; $("raceRunners").value = "";
+      await loadRaces();
+    } catch (e) { $("adminErr").textContent = msg(e); }
+  });
+});
+
+function renderAdminRaces(){
+  const box = $("raceAdminList");
+  if (!adminRaces.length) { box.innerHTML = '<div class="mut" style="margin-top:10px">Nessuna gara creata.</div>'; return; }
+  box.innerHTML = adminRaces.map(r => {
+    const pools = r.pools || {};
+    const list = (r.runners || []).map((n, i) => `${esc(n)}: ${esc(pools[String(i)] || 0)}`).join(" · ");
+    let actions = "";
+    if (r.status === "open") {
+      actions = `<button class="small" data-act="close">Chiudi puntate</button>
+                 <button class="small danger" data-act="cancel">Annulla e rimborsa</button>`;
+    } else if (r.status === "closed") {
+      actions = `<select data-win>${(r.runners || []).map((n, i) => `<option value="${i}">${esc(n)}</option>`).join("")}</select>
+                 <button class="small" data-act="settle">Assegna vincitore</button>
+                 <button class="small danger" data-act="cancel">Annulla e rimborsa</button>`;
+    } else if (r.status === "settled") {
+      actions = `<span class="mut">Vincitore: <b>${esc((r.runners || [])[r.winner] ?? "?")}</b>${r.noWinner ? " (nessuna puntata vincente: rimborsate)" : ""}</span>`;
+    } else {
+      actions = `<span class="mut">Annullata, puntate rimborsate.</span>`;
+    }
+    const open = !!adminExp[r.id];
+    return `<div class="urow" data-id="${esc(r.id)}">
+      <div class="rhead" data-tgl>
+        <div class="row"><b>${esc(r.name)}</b><span><span class="badge ${STATUS_CLASS[r.status] || "off"}">${STATUS_LABEL[r.status] || esc(r.status)}</span> <span class="mut">${open ? "▲" : "▼"}</span></span></div>
+        <div class="mut">Montepremi: ${esc(r.pool || 0)} · Fee ${esc(r.feePercent || 0)}%</div>
+      </div>
+      ${open ? `<div class="mut" style="margin-top:6px">${list}</div><div class="uactions">${actions}</div>` : ""}
+    </div>`;
+  }).join("");
+}
+
+$("raceAdminList").addEventListener("click", async ev => {
+  const h = ev.target.closest("[data-tgl]");
+  if (h) { const hid = h.closest(".urow").dataset.id; adminExp[hid] = !adminExp[hid]; renderAdminRaces(); return; }
+  const btn = ev.target.closest("button[data-act]");
+  if (!btn) return;
+  const row = btn.closest(".urow");
+  const id = row.dataset.id;
+  const r = adminRaces.find(x => x.id === id);
+  const act = btn.dataset.act;
+  $("adminErr").textContent = "";
+  await busy(btn, async () => {
+    try {
+      const rr = doc(adminDb, "races", id);
+      if (act === "close") {
+        await updateDoc(rr, { status: "closed" });
+      } else if (act === "settle") {
+        const w = Number(row.querySelector("[data-win]").value);
+        if (!confirm("Assegnare la vittoria a \"" + r.runners[w] + "\"? L'operazione è definitiva e paga i vincitori.")) return;
+        await finalizeRace(id, "settle", w);
+      } else if (act === "cancel") {
+        if (!confirm("Annullare la gara e rimborsare tutte le puntate?")) return;
+        if (r.status === "open") await updateDoc(rr, { status: "closed" });
+        await finalizeRace(id, "cancel", null);
+      }
+      await loadRaces();
+      await loadTreasury();
+    } catch (e) { $("adminErr").textContent = msg(e); await loadRaces().catch(() => {}); }
+  });
+});
+
+// Chiusura gara atomica: pagamenti, rimborsi, fee in Tesoreria e stato gara in un'unica transazione
+async function finalizeRace(raceId, mode, winner){
+  const bs = await getDocs(query(collection(adminDb, "bets"), where("raceId", "==", raceId)));
+  if (bs.size > MAX_BETS_SETTLE) throw new Error("Troppe puntate (max " + MAX_BETS_SETTLE + ") per una chiusura atomica.");
+  const betRefs = bs.docs.map(d => d.ref);
+  const rr = doc(adminDb, "races", raceId);
+  const tr = doc(adminDb, "treasury", "main");
+  await runTransaction(adminDb, async tx => {
+    const rs = await tx.get(rr);
+    if (!rs.exists()) throw new Error("Gara non trovata.");
+    const race = rs.data();
+    if (race.status !== "closed") throw new Error("La gara deve essere chiusa alle puntate.");
+    const bSnaps = await Promise.all(betRefs.map(r => tx.get(r)));
+    const bets = bSnaps.filter(s => s.exists() && s.data().status === "pending").map(s => ({ ref: s.ref, ...s.data() }));
+    const total = bets.reduce((a, b) => a + b.amount, 0);
+    const winPool = mode === "settle" ? bets.filter(b => b.runner === winner).reduce((a, b) => a + b.amount, 0) : 0;
+    const refund = mode === "cancel" || winPool === 0;
+    const fee = refund ? 0 : Math.floor(total * (race.feePercent || 0) / 100);
+    const net = total - fee;
+
+    const pay = {};
+    let paid = 0;
+    bets.forEach(b => {
+      let p = 0;
+      if (refund) p = b.amount;
+      else if (b.runner === winner) p = Math.floor(net * b.amount / winPool);
+      pay[b.ref.id] = p; paid += p;
+    });
+    const toTreasury = refund ? 0 : net - paid + fee;
+
+    const payees = bets.filter(b => pay[b.ref.id] > 0);
+    const uSnaps = await Promise.all(payees.map(b => tx.get(doc(adminDb, "users", b.uid))));
+    const t = await tx.get(tr);
+
+    payees.forEach((b, i) => {
+      const p = pay[b.ref.id];
+      const nb = uSnaps[i].data().balance + p;
+      tx.update(uSnaps[i].ref, { balance: nb });
+      tx.set(doc(collection(adminDb, "ledger")), {
+        uid: b.uid, type: refund ? "refund" : "win", amount: p, balanceAfter: nb, raceId, createdAt: serverTimestamp()
+      });
+    });
+    bets.forEach(b => {
+      const p = pay[b.ref.id];
+      tx.update(b.ref, { status: refund ? "refunded" : (b.runner === winner ? "won" : "lost"), payout: p });
+    });
+    if (toTreasury > 0) {
+      const td = t.exists() ? t.data() : { balance: 0, totalFees: 0 };
+      tx.set(tr, { balance: (td.balance || 0) + toTreasury, totalFees: (td.totalFees || 0) + toTreasury });
+    }
+    tx.update(rr, {
+      status: mode === "cancel" ? "cancelled" : "settled",
+      winner: mode === "settle" ? winner : null,
+      noWinner: mode === "settle" && refund,
+      settledAt: serverTimestamp()
+    });
+  });
+}
+
+// ---------- Admin: giocatori ----------
+function renderUsers(){
+  const box = $("userList");
+  if (!users.length) { box.innerHTML = '<div class="mut" style="margin-top:10px">Nessun giocatore registrato.</div>'; return; }
+  box.innerHTML = users.map(u => `
+    <div class="urow" data-id="${esc(u.id)}">
+      <div class="rhead" data-tgl>
+        <div class="row">
+          <b>${esc(u.username)}</b>
+          <span><span class="badge ${u.active ? "ok" : "wait"}">${u.active ? "attivo" : "in attesa"}</span> <span class="mut">${adminExp[u.id] ? "▲" : "▼"}</span></span>
+        </div>
+        <div class="mut">Saldo: ${esc(u.balance)} crediti</div>
+      </div>
+      ${adminExp[u.id] ? `<div class="uactions">
+        <button class="small sec" data-act="toggle">${u.active ? "Disattiva" : "Attiva"}</button>
+        <input type="number" step="1" placeholder="± crediti" data-amt>
+        <button class="small" data-act="credit">Applica</button>
+      </div>` : ""}
+    </div>`).join("");
+}
+
+$("userList").addEventListener("click", async ev => {
+  const h = ev.target.closest("[data-tgl]");
+  if (h) { const hid = h.closest(".urow").dataset.id; adminExp[hid] = !adminExp[hid]; renderUsers(); return; }
+  const btn = ev.target.closest("button[data-act]");
+  if (!btn) return;
+  const row = btn.closest(".urow");
+  const u = users.find(x => x.id === row.dataset.id);
+  $("adminErr").textContent = "";
+  await busy(btn, async () => {
+    try {
+      if (btn.dataset.act === "toggle") {
+        await updateDoc(doc(adminDb, "users", u.id), { active: !u.active });
+        u.active = !u.active;
+      } else {
+        const amt = Math.trunc(Number(row.querySelector("[data-amt]").value));
+        if (!amt) { $("adminErr").textContent = "Inserisci un importo intero diverso da zero."; return; }
+        const ref = doc(adminDb, "users", u.id);
+        const nb = await runTransaction(adminDb, async tx => {
+          const s = await tx.get(ref);
+          const nb = s.data().balance + amt;
+          if (nb < 0) throw new Error("Il saldo non può diventare negativo.");
+          tx.update(ref, { balance: nb });
+          tx.set(doc(collection(adminDb, "ledger")), {
+            uid: u.id, type: amt > 0 ? "topup" : "withdraw", amount: Math.abs(amt), balanceAfter: nb, createdAt: serverTimestamp()
+          });
+          return nb;
+        });
+        u.balance = nb;
+      }
+      renderUsers();
+    } catch (e) { $("adminErr").textContent = msg(e); }
+  });
+});
+
+function renderReqs(){
+  const box = $("reqList");
+  if (!reqs.length) { box.innerHTML = '<div class="mut" style="margin-top:10px">Nessuna richiesta in attesa.</div>'; return; }
+  box.innerHTML = reqs.map(r => `
+    <div class="urow" data-id="${esc(r.id)}">
+      <div class="row"><b>${esc((users.find(x => x.id === r.id) || {}).username || r.username)}</b><span class="mut">chiede ${esc(r.amount)} crediti</span></div>
+      <div class="uactions">
+        <input type="number" step="1" min="1" value="${esc(r.amount)}" data-amt>
+        <button class="small" data-act="approve">Approva</button>
+        <button class="small sec" data-act="reject">Rifiuta</button>
+      </div>
+    </div>`).join("");
+}
+
+$("reqList").addEventListener("click", async ev => {
+  const btn = ev.target.closest("button[data-act]");
+  if (!btn) return;
+  const row = btn.closest(".urow");
+  const id = row.dataset.id;
+  $("adminErr").textContent = "";
+  await busy(btn, async () => {
+    try {
+      const rr = doc(adminDb, "topupRequests", id);
+      if (btn.dataset.act === "approve") {
+        const amt = Math.trunc(Number(row.querySelector("[data-amt]").value));
+        if (!(amt > 0)) { $("adminErr").textContent = "Inserisci un importo intero maggiore di zero."; return; }
+        const us = doc(adminDb, "users", id);
+        const nb = await runTransaction(adminDb, async tx => {
+          const r = await tx.get(rr);
+          const u = await tx.get(us);
+          if (!r.exists() || r.data().status !== "pending") throw new Error("Richiesta già gestita.");
+          const nb = u.data().balance + amt;
+          tx.update(us, { balance: nb });
+          tx.set(doc(collection(adminDb, "ledger")), {
+            uid: id, type: "topup", amount: amt, balanceAfter: nb, createdAt: serverTimestamp(), requestId: id
+          });
+          tx.update(rr, { status: "approved", approvedAmount: amt, decidedAt: serverTimestamp() });
+          return nb;
+        });
+        const u = users.find(x => x.id === id);
+        if (u) { u.balance = nb; renderUsers(); }
+      } else {
+        await runTransaction(adminDb, async tx => {
+          const r = await tx.get(rr);
+          if (!r.exists() || r.data().status !== "pending") throw new Error("Richiesta già gestita.");
+          tx.update(rr, { status: "rejected", decidedAt: serverTimestamp() });
+        });
+      }
+      reqs = reqs.filter(r => r.id !== id);
+      renderReqs();
+    } catch (e) { $("adminErr").textContent = msg(e); }
+  });
+});
+</script>
+</body>
+</html>
