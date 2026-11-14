@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Murble Race">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Murble Race v3.11</title>
+<title>Murble Race v3.12</title>
 <style>
 :root{--bg:#0f1220;--card:#181c30;--line:#2a3050;--txt:#eef0fa;--mut:#8f96b8;--acc:#ff9f1c;--ok:#2ec27e;--err:#ff5d6c}
 *{box-sizing:border-box}
@@ -44,6 +44,7 @@ button:disabled{opacity:.5;cursor:default}
 .badge.off{background:rgba(143,150,184,.15);color:var(--mut)}
 .foot{text-align:center;margin-top:28px}
 .foot a{color:var(--mut);font-size:13px;cursor:pointer;text-decoration:underline}
+.foot a[data-info]{color:var(--mut)}
 .urow{border-top:1px solid var(--line);padding:12px 0}
 .urow:first-child{border-top:0}
 .uactions{display:flex;gap:8px;margin-top:8px;align-items:center;flex-wrap:wrap}
@@ -121,6 +122,17 @@ details.rsx[open] summary::after{content:"▲"}
   .acols{grid-template-columns:repeat(2,minmax(0,1fr))}
   #raceList{grid-template-columns:repeat(auto-fill,minmax(420px,1fr))}
 }
+.modal{position:fixed;inset:0;background:rgba(5,7,15,.72);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
+.modal.on{display:flex}
+.mbox{background:var(--card);border:1px solid var(--line);border-radius:14px;max-width:680px;width:100%;max-height:88vh;display:flex;flex-direction:column;padding:18px;color:var(--txt)}
+.mbody{overflow-y:auto;margin-top:12px;line-height:1.55;font-size:15px;padding-right:4px}
+.mbody h3{margin:16px 0 6px;font-size:16px;color:var(--acc)}
+.mbody h3:first-child{margin-top:0}
+.mbody p{margin:6px 0}
+.mbody ul,.mbody ol{margin:6px 0;padding-left:22px}
+.mbody li{margin:5px 0}
+.mbody .note{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:10px 0;color:var(--mut)}
+a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
 </style>
 </head>
 <body>
@@ -128,7 +140,7 @@ details.rsx[open] summary::after{content:"▲"}
 
   <!-- AUTENTICAZIONE -->
   <div id="viewAuth" class="view on">
-    <h1>Murble <span>Race</span> <small class="ver">v3.11</small></h1>
+    <h1>Murble <span>Race</span> <small class="ver">v3.12</small></h1>
     <p class="sub">Scommesse sulle gare di biglie</p>
     <div class="card">
       <div class="tabs">
@@ -150,6 +162,7 @@ details.rsx[open] summary::after{content:"▲"}
         <input id="rPin" type="password" autocomplete="new-password" required>
         <label for="rPin2">Ripeti il PIN</label>
         <input id="rPin2" type="password" autocomplete="new-password" required>
+        <label class="rn" style="margin-top:14px;font-size:14px"><input id="rTerms" type="checkbox" required><span class="nm">Accetto il <a data-info="rules">Regolamento</a> e i <a data-info="terms">Termini e Condizioni</a></span></label>
         <button class="full" type="submit">Crea account</button>
       </form>
       <div id="authErr" class="err"></div>
@@ -159,7 +172,7 @@ details.rsx[open] summary::after{content:"▲"}
   <!-- HOME GIOCATORE -->
   <div id="viewHome" class="view">
     <div class="row">
-      <h1>Murble <span>Race</span> <small class="ver">v3.11</small></h1>
+      <h1>Murble <span>Race</span> <small class="ver">v3.12</small></h1>
       <div class="uactions" style="margin-top:0;flex-wrap:nowrap">
         <label id="wrapAdminQuick" class="sw" style="display:none">Admin<input id="swAdminHome" type="checkbox"><i></i></label>
         <button id="btnLogout" class="sec small" type="button">Esci</button>
@@ -219,7 +232,7 @@ details.rsx[open] summary::after{content:"▲"}
     <div id="raceList"></div>
     <div id="homeErr" class="err"></div>
     </div></div>
-    <div class="foot"><a id="lnkAdmin">Accesso Admin</a></div>
+    <div class="foot"><a data-info="rules">Regolamento</a> &nbsp;·&nbsp; <a data-info="terms">Termini e Condizioni</a> &nbsp;·&nbsp; <a id="lnkAdmin">Accesso Admin</a></div>
   </div>
 
   <!-- LOGIN ADMIN -->
@@ -368,6 +381,63 @@ details.rsx[open] summary::after{content:"▲"}
 
 </div>
 
+<!-- FINESTRA REGOLAMENTO / TERMINI -->
+<div id="modalInfo" class="modal" role="dialog" aria-modal="true">
+  <div class="mbox">
+    <div class="tabs" style="margin-bottom:0">
+      <button id="infoTabRules" type="button" class="small">Regolamento</button>
+      <button id="infoTabTerms" type="button" class="small sec">Termini e Condizioni</button>
+    </div>
+    <div class="mbody">
+      <div id="infoRules">
+        <h3>1. Come funziona una gara</h3>
+        <p>Ogni gara è una corsa di biglie trasmessa su YouTube. Prima della partenza scegli <b>una biglia</b> e punti una quantità di crediti: sei libero di scegliere l'importo, in multipli di 0,1 crediti, purché non sia inferiore alla puntata minima indicata.</p>
+        <ul>
+          <li>Hai <b>una sola puntata per gara</b>: una volta confermata non si modifica e non si annulla (un rimborso può essere disposto solo dall'Admin).</li>
+          <li>Per scommettere l'account deve essere <b>attivo</b> e il saldo sufficiente. I crediti si ottengono con una richiesta di ricarica approvata dall'Admin.</li>
+          <li>Le gare compaiono in <b>Gare Attive</b>. Possono essere già aperte, oppure "da avviare": in quel caso un giocatore attivo la avvia indicando <b>quanti giocatori partecipano</b> (da 2 a 20). Il numero non si può più cambiare.</li>
+          <li>Dal <b>Catalogo</b> puoi estrarre una gara a caso scegliendo i filtri (categoria, numero di biglie, durata, biglia partecipante) e il numero di giocatori.</li>
+        </ul>
+        <h3>2. Chiusura delle puntate</h3>
+        <p>Quando il numero di puntate raggiunge il numero di partecipanti indicato all'avvio, la gara si <b>chiude automaticamente</b>: da quel momento non si può più puntare e il video della corsa viene sbloccato per tutti. L'Admin può comunque chiudere le puntate in anticipo. Il video è visibile solo a puntate chiuse (salvo gare in diretta).</p>
+        <h3>3. Montepremi e vincite (Pari-Mutuel)</h3>
+        <p>Tutte le puntate confluiscono in un <b>montepremi unico</b>. Chi non gioca contro un banco: i vincitori si dividono quanto puntato dagli altri.</p>
+        <ul>
+          <li><b>Fee solo sul surplus.</b> La fee (percentuale indicata sulla gara) si applica soltanto alla parte di montepremi che arriva dalle puntate perse, cioè: <i>(montepremi − puntate sulla biglia vincente) × fee%</i>. La fee va alla Tesoreria dell'Admin.</li>
+          <li><b>Quota minima x1.00.</b> Poiché la fee non tocca le puntate vincenti, chi vince recupera sempre almeno la propria puntata.</li>
+          <li>Il montepremi netto (montepremi − fee) si divide tra i vincitori <b>in proporzione alla puntata</b> di ciascuno. Le cifre sono arrotondate per difetto al decimo; gli eventuali residui vanno in Tesoreria.</li>
+          <li>La quota mostrata accanto a ogni biglia è indicativa e cambia a ogni nuova puntata, finché le puntate sono aperte.</li>
+        </ul>
+        <h3>4. Rimborsi</h3>
+        <ul>
+          <li>Se <b>nessuno ha puntato sulla biglia vincente</b>, tutte le puntate vengono rimborsate per intero, senza fee.</li>
+          <li>Se la gara viene <b>annullata</b> dall'Admin, tutte le puntate vengono rimborsate per intero.</li>
+          <li>L'Admin può rimborsare anche una singola puntata, quando la gara è ancora aperta o chiusa.</li>
+        </ul>
+        <h3>5. Classifica</h3>
+        <p>La classifica ordina i giocatori per <b>guadagno netto</b>: somma delle vincite meno somma delle puntate, calcolata solo sulle gare concluse con un vincitore. Le gare rimborsate o annullate non incidono. Nel dettaglio trovi anche le vittorie sul totale delle puntate.</p>
+        <div class="note">L'esito è deciso dall'Admin a corsa terminata, in base a ciò che si vede nel video. La decisione dell'Admin è definitiva.</div>
+      </div>
+      <div id="infoTerms" style="display:none">
+        <h3>1. Uso ricreativo e crediti virtuali</h3>
+        <p>Murble Race è un gioco <b>esclusivamente goliardico e ricreativo tra amici</b>. I crediti sono <b>puramente virtuali</b>: non hanno alcun valore economico, non sono acquistabili, non sono convertibili in denaro o altri beni e non possono essere ceduti. Nessun denaro reale è in gioco.</p>
+        <h3>2. Account e gestione dei profili</h3>
+        <ul>
+          <li>Ogni persona può avere <b>un solo account</b>. Sono vietati account multipli, fasulli o creati per aggirare le regole.</li>
+          <li>L'Admin può <b>attivare, sospendere o rimuovere</b> qualsiasi profilo a propria discrezione, in qualsiasi momento, anche senza preavviso, e può correggere saldi e puntate in caso di errori o abusi.</li>
+          <li>Sei responsabile della custodia del tuo PIN: non comunicarlo a nessuno.</li>
+        </ul>
+        <h3>3. Riservatezza e divieto di condivisione</h3>
+        <p>L'app è <b>strettamente privata</b>. È vietata qualsiasi condivisione, diffusione o divulgazione non autorizzata del <b>link</b>, delle <b>schermate</b>, delle <b>credenziali</b> o dei <b>contenuti</b> dell'app (gare, video, classifiche, saldi, regolamento) a soggetti esterni non autorizzati dall'Admin. La violazione può comportare la sospensione o la rimozione immediata del profilo.</p>
+        <h3>4. Disponibilità del servizio</h3>
+        <p>Il servizio è offerto così com'è, senza garanzie di continuità o assenza di errori. I dati di gioco possono essere azzerati o modificati dall'Admin, anche durante le fasi di prova.</p>
+        <div class="note">Registrandoti dichiari di aver letto e accettato il Regolamento e questi Termini e Condizioni.</div>
+      </div>
+    </div>
+    <button id="infoClose" class="full" type="button" style="margin-top:14px">Chiudi</button>
+  </div>
+</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut }
@@ -459,6 +529,29 @@ async function busy(btn, fn){
   try { await fn(); } finally { if (btn) btn.disabled = false; }
 }
 
+// ---------- Regolamento / Termini ----------
+function openInfo(tab){
+  const t = tab === "terms";
+  $("infoRules").style.display = t ? "none" : "";
+  $("infoTerms").style.display = t ? "" : "none";
+  $("infoTabRules").classList.toggle("sec", t);
+  $("infoTabTerms").classList.toggle("sec", !t);
+  $("modalInfo").classList.add("on");
+  document.querySelector("#modalInfo .mbody").scrollTop = 0;
+}
+function closeInfo(){ $("modalInfo").classList.remove("on"); }
+$("infoTabRules").onclick = () => openInfo("rules");
+$("infoTabTerms").onclick = () => openInfo("terms");
+$("infoClose").onclick = closeInfo;
+$("modalInfo").addEventListener("click", ev => { if (ev.target === $("modalInfo")) closeInfo(); });
+document.addEventListener("keydown", ev => { if (ev.key === "Escape") closeInfo(); });
+document.addEventListener("click", ev => {
+  const a = ev.target.closest("a[data-info]");
+  if (!a) return;
+  ev.preventDefault();
+  openInfo(a.dataset.info);
+});
+
 // ---------- Tab login / registrazione ----------
 function setTab(reg){
   $("formLogin").style.display = reg ? "none" : "block";
@@ -488,15 +581,16 @@ $("formReg").addEventListener("submit", async ev => {
   if (!validName(n)) { $("authErr").textContent = "Nome non valido o riservato."; return; }
   if (pin.length < 6) { $("authErr").textContent = "PIN troppo corto (minimo 6 caratteri)."; return; }
   if (pin !== pin2) { $("authErr").textContent = "I due PIN non coincidono."; return; }
+  if (!$("rTerms").checked) { $("authErr").textContent = "Per registrarti devi accettare il Regolamento e i Termini e Condizioni."; return; }
   await busy(ev.submitter, async () => {
-    try { pendingDisplay = raw; await createUserWithEmailAndPassword(auth, toEmail(n), pin); }
-    catch (e) { pendingDisplay = null; $("authErr").textContent = msg(e); }
+    try { pendingDisplay = raw; pendingTerms = true; await createUserWithEmailAndPassword(auth, toEmail(n), pin); }
+    catch (e) { pendingDisplay = null; pendingTerms = false; $("authErr").textContent = msg(e); }
   });
 });
 
 // ---------- Sessione giocatore ----------
 let unsubUser = null, unsubTopup = null, unsubRaces = null, unsubBets = null, unsubLedger = null, unsubBoard = null;
-let me = null, myReq = null, meDoc = null, pendingDisplay = null;
+let me = null, myReq = null, meDoc = null, pendingDisplay = null, pendingTerms = false;
 let races = [], myBets = {}, myBetList = [], ledgerRows = [], draft = {}, expanded = {}, raceTab = "active";
 let videoIds = {}, videoReq = {}, boardRows = [], prevStatus = {};
 
@@ -511,13 +605,16 @@ onAuthStateChanged(auth, async user => {
   const name = user.email.split("@")[0];
   const display = (pendingDisplay && pendingDisplay.toLowerCase() === name) ? pendingDisplay : name;
   pendingDisplay = null;
+  const accepted = pendingTerms; pendingTerms = false;
   me = { uid: user.uid, name };
   $("homeErr").textContent = "";
   try {
     const ref = doc(db, "users", user.uid);
     const snap = await getDoc(ref);
     if (!snap.exists()) {
-      await setDoc(ref, { username: display, balance: 0, active: false, createdAt: serverTimestamp() });
+      // profilo mancante (nuova registrazione o profili azzerati): serve l'accettazione di Regolamento e Termini
+      if (!accepted && !confirm("Per continuare devi accettare il Regolamento e i Termini e Condizioni (li trovi in fondo alla Home). Li accetti?")) throw new Error("Per usare l'app devi accettare il Regolamento e i Termini e Condizioni.");
+      await setDoc(ref, { username: display, balance: 0, active: false, acceptedTerms: true, createdAt: serverTimestamp() });
     }
     unsubUser = onSnapshot(ref, s => { if (s.exists()) renderHome(name, s.data()); },
       e => { $("homeErr").textContent = msg(e); });
