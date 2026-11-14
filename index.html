@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0f1220">
-<title>Murble Race v2.0</title>
+<title>Murble Race v2.1</title>
 <style>
 :root{--bg:#0f1220;--card:#181c30;--line:#2a3050;--txt:#eef0fa;--mut:#8f96b8;--acc:#ff9f1c;--ok:#2ec27e;--err:#ff5d6c}
 *{box-sizing:border-box}
@@ -62,6 +62,10 @@ button:disabled{opacity:.5;cursor:default}
 .menu button:hover{background:rgba(255,255,255,.06)}
 .yt{position:relative;padding-top:56.25%;margin-top:10px;border-radius:10px;overflow:hidden;background:#000}
 .yt iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+details.rsx summary{cursor:pointer;font-weight:600;padding:10px 12px;border:1px solid var(--line);border-radius:10px;list-style:none;display:flex;justify-content:space-between;align-items:center}
+details.rsx summary::-webkit-details-marker{display:none}
+details.rsx summary::after{content:"▼";font-size:12px;color:var(--mut)}
+details.rsx[open] summary::after{content:"▲"}
 .res-won{color:var(--ok);font-weight:600}
 .res-lost{color:var(--err);font-weight:600}
 </style>
@@ -71,7 +75,7 @@ button:disabled{opacity:.5;cursor:default}
 
   <!-- AUTENTICAZIONE -->
   <div id="viewAuth" class="view on">
-    <h1>Murble <span>Race</span> <small class="ver">v2.0</small></h1>
+    <h1>Murble <span>Race</span> <small class="ver">v2.1</small></h1>
     <p class="sub">Scommesse sulle gare di biglie</p>
     <div class="card">
       <div class="tabs">
@@ -102,7 +106,7 @@ button:disabled{opacity:.5;cursor:default}
   <!-- HOME GIOCATORE -->
   <div id="viewHome" class="view">
     <div class="row">
-      <h1>Murble <span>Race</span> <small class="ver">v2.0</small></h1>
+      <h1>Murble <span>Race</span> <small class="ver">v2.1</small></h1>
       <div class="uactions" style="margin-top:0;flex-wrap:nowrap">
         <label id="wrapAdminQuick" class="sw" style="display:none">Admin<input id="swAdminHome" type="checkbox"><i></i></label>
         <button id="btnLogout" class="sec small" type="button">Esci</button>
@@ -203,13 +207,14 @@ button:disabled{opacity:.5;cursor:default}
           <label for="sFee">Fee sulle gare (%)</label>
           <input id="sFee" type="number" step="1" min="0" max="100" inputmode="numeric" required>
           <label for="sMin">Puntata minima (crediti)</label>
-          <input id="sMin" type="number" step="1" min="1" inputmode="numeric" required>
+          <input id="sMin" type="number" step="0.1" min="0.1" inputmode="decimal" required>
           <div class="mut" style="margin-top:6px">Valide solo per le gare create dopo il salvataggio.</div>
           <button class="full" type="submit">Salva impostazioni</button>
           <div id="cfgMsg" class="mut" style="margin-top:8px;color:var(--ok)"></div>
         </form>
-        <div style="margin-top:18px"><b>Reset</b></div>
-        <div class="mut" style="margin-top:4px">Reset per la fase di test. Le operazioni sono definitive.</div>
+        <details class="rsx" style="margin-top:18px">
+        <summary>Reset</summary>
+        <div class="mut" style="margin-top:8px">Reset per la fase di test. Le operazioni sono definitive.</div>
         <div class="urow">
           <b>Reset users</b>
           <div class="mut">Elimina i profili giocatore e le richieste di ricarica. Gli account di accesso restano: al prossimo login il profilo viene ricreato a saldo 0 e in attesa di attivazione.</div>
@@ -230,6 +235,7 @@ button:disabled{opacity:.5;cursor:default}
           <div class="mut">Esegue tutti i reset sopra.</div>
           <div class="uactions"><button class="small danger" type="button" data-reset="all">Reset tutto</button></div>
         </div>
+        </details>
         <div id="optMsg" class="mut" style="margin-top:10px;color:var(--ok)"></div>
       </div>
     </div>
@@ -282,6 +288,9 @@ function ytId(u){
   }
   return id && /^[A-Za-z0-9_-]{11}$/.test(id) ? id : null;
 }
+const r1 = x => Math.round(x * 10) / 10;
+const f1 = x => Math.floor(x * 10 + 1e-9) / 10;
+const isTenth = x => Math.abs(x * 10 - Math.round(x * 10)) < 1e-9;
 const normName = s => s.trim().toLowerCase();
 const validName = n => /^[a-z0-9._-]{3,20}$/.test(n) && !RESERVED.includes(n);
 const toEmail = n => n + DOMAIN;
@@ -407,7 +416,7 @@ function raceParts(r){
   const d = draft[r.id] || {};
   const runners = (r.runners || []).map((n, i) => {
     const p = pools[String(i)] || 0;
-    const netI = total - Math.floor((total - p) * fee / 100); // fee solo sul surplus: quota minima x1.00
+    const netI = r1(total - f1((total - p) * fee / 100)); // fee solo sul surplus: quota minima x1.00
     const quota = p > 0 ? "x" + (netI / p).toFixed(2) : "—";
     const isWin = r.status === "settled" && r.winner === i;
     const mine = b && b.runner === i ? " ★" : "";
@@ -420,7 +429,7 @@ function raceParts(r){
   let foot = "";
   if (canBet) {
     foot = `<div class="betbox">
-      <input type="number" step="1" min="${esc(r.minBet || 1)}" inputmode="numeric" placeholder="Crediti da puntare (min ${esc(r.minBet || 1)})" data-amt value="${esc(d.amount || "")}">
+      <input type="number" step="0.1" min="${esc(r.minBet || 1)}" inputmode="decimal" placeholder="Crediti da puntare (min ${esc(r.minBet || 1)})" data-amt value="${esc(d.amount || "")}">
       <button class="full" data-act="bet" type="button">Punta</button>
     </div>`;
   } else if (b) {
@@ -508,9 +517,9 @@ $("raceList").addEventListener("click", async ev => {
   const d = draft[id] || {};
   $("homeErr").textContent = "";
   const runner = Number(d.runner);
-  const amount = Number(d.amount);
+  const amount = r1(Number(String(d.amount || "").replace(",", ".")));
   if (d.runner === undefined || !Number.isInteger(runner)) { $("homeErr").textContent = "Scegli una biglia."; return; }
-  if (!Number.isInteger(amount) || amount < 1) { $("homeErr").textContent = "Inserisci un importo intero valido."; return; }
+  if (!(amount > 0) || !isTenth(amount)) { $("homeErr").textContent = "Inserisci un importo valido (multipli di 0.1)."; return; }
   await busy(btn, async () => {
     try {
       await placeBet(id, runner, amount);
@@ -534,10 +543,10 @@ async function placeBet(raceId, runner, amount){
     if (u.data().balance < amount) throw new Error("Saldo insufficiente.");
     const key = String(runner);
     const pools = { ...(race.pools || {}) };
-    pools[key] = (pools[key] || 0) + amount;
-    tx.update(ur, { balance: u.data().balance - amount });
+    pools[key] = r1((pools[key] || 0) + amount);
+    tx.update(ur, { balance: r1(u.data().balance - amount) });
     tx.set(br, { raceId, uid: me.uid, username: me.name, runner, amount, status: "pending", createdAt: serverTimestamp() });
-    tx.update(rr, { pool: (race.pool || 0) + amount, pools });
+    tx.update(rr, { pool: r1((race.pool || 0) + amount), pools });
   });
 }
 
@@ -634,9 +643,9 @@ document.addEventListener("click", ev => {
 $("formCfg").addEventListener("submit", async ev => {
   ev.preventDefault();
   $("adminErr").textContent = ""; $("cfgMsg").textContent = "";
-  const fee = Number($("sFee").value), min = Number($("sMin").value);
+  const fee = Number($("sFee").value), min = r1(Number($("sMin").value));
   if (!Number.isInteger(fee) || fee < 0 || fee > 100) { $("adminErr").textContent = "La fee deve essere un intero da 0 a 100."; return; }
-  if (!Number.isInteger(min) || min < 1) { $("adminErr").textContent = "La puntata minima deve essere un intero da 1 in su."; return; }
+  if (!(min >= 0.1) || !isTenth(Number($("sMin").value))) { $("adminErr").textContent = "La puntata minima deve essere almeno 0.1, in passi da 0.1."; return; }
   await busy(ev.submitter, async () => {
     try {
       await setDoc(doc(adminDb, "config", "app"), { feePercent: fee, minBet: min }, { merge: true });
@@ -716,7 +725,7 @@ async function loadConfig(){
   const c = await getDoc(doc(adminDb, "config", "app"));
   const d = c.exists() ? c.data() : {};
   $("sFee").value = Number.isInteger(d.feePercent) ? d.feePercent : 10;
-  $("sMin").value = Number.isInteger(d.minBet) ? d.minBet : 1;
+  $("sMin").value = (typeof d.minBet === "number" && d.minBet > 0) ? d.minBet : 1;
 }
 
 async function loadRaces(){
@@ -765,7 +774,7 @@ $("formRace").addEventListener("submit", async ev => {
       await setDoc(doc(collection(adminDb, "races")), {
         name, runners, status: "open", pool: 0, pools, winner: null, youtubeUrl: yt,
         feePercent: Number.isInteger(c.feePercent) ? c.feePercent : 10,
-        minBet: Number.isInteger(c.minBet) && c.minBet > 0 ? c.minBet : 1,
+        minBet: (typeof c.minBet === "number" && c.minBet > 0) ? r1(c.minBet) : 1,
         createdAt: serverTimestamp()
       });
       $("raceName").value = ""; $("raceRunners").value = ""; $("raceYt").value = "";
@@ -868,14 +877,14 @@ async function refundBet(raceId, betId){
     const b = bs.data(), race = rs.data();
     const ur = doc(adminDb, "users", b.uid);
     const us = await tx.get(ur);
-    const nb = us.data().balance + b.amount;
+    const nb = r1(us.data().balance + b.amount);
     const key = String(b.runner);
     const pools = { ...(race.pools || {}) };
-    pools[key] = Math.max(0, (pools[key] || 0) - b.amount);
+    pools[key] = Math.max(0, r1((pools[key] || 0) - b.amount));
     tx.update(ur, { balance: nb });
     tx.set(doc(collection(adminDb, "ledger")), { uid: b.uid, type: "refund", amount: b.amount, balanceAfter: nb, raceId, betId, createdAt: serverTimestamp() });
     tx.update(br, { status: "refunded", payout: b.amount });
-    tx.update(rr, { pool: Math.max(0, (race.pool || 0) - b.amount), pools });
+    tx.update(rr, { pool: Math.max(0, r1((race.pool || 0) - b.amount)), pools });
   });
 }
 
@@ -893,21 +902,21 @@ async function finalizeRace(raceId, mode, winner){
     if (race.status !== "closed") throw new Error("La gara deve essere chiusa alle puntate.");
     const bSnaps = await Promise.all(betRefs.map(r => tx.get(r)));
     const bets = bSnaps.filter(s => s.exists() && s.data().status === "pending").map(s => ({ ref: s.ref, ...s.data() }));
-    const total = bets.reduce((a, b) => a + b.amount, 0);
-    const winPool = mode === "settle" ? bets.filter(b => b.runner === winner).reduce((a, b) => a + b.amount, 0) : 0;
+    const total = r1(bets.reduce((a, b) => a + b.amount, 0));
+    const winPool = mode === "settle" ? r1(bets.filter(b => b.runner === winner).reduce((a, b) => a + b.amount, 0)) : 0;
     const refund = mode === "cancel" || winPool === 0;
-    const fee = refund ? 0 : Math.floor((total - winPool) * (race.feePercent || 0) / 100); // fee solo sul surplus: il vincitore recupera almeno la puntata
-    const net = total - fee;
+    const fee = refund ? 0 : f1((total - winPool) * (race.feePercent || 0) / 100); // fee solo sul surplus: il vincitore recupera almeno la puntata
+    const net = r1(total - fee);
 
     const pay = {};
     let paid = 0;
     bets.forEach(b => {
       let p = 0;
       if (refund) p = b.amount;
-      else if (b.runner === winner) p = Math.floor(net * b.amount / winPool);
-      pay[b.ref.id] = p; paid += p;
+      else if (b.runner === winner) p = f1(net * b.amount / winPool);
+      pay[b.ref.id] = p; paid = r1(paid + p);
     });
-    const toTreasury = refund ? 0 : net - paid + fee;
+    const toTreasury = refund ? 0 : r1(net - paid + fee);
 
     const payees = bets.filter(b => pay[b.ref.id] > 0);
     const uSnaps = await Promise.all(payees.map(b => tx.get(doc(adminDb, "users", b.uid))));
@@ -915,7 +924,7 @@ async function finalizeRace(raceId, mode, winner){
 
     payees.forEach((b, i) => {
       const p = pay[b.ref.id];
-      const nb = uSnaps[i].data().balance + p;
+      const nb = r1(uSnaps[i].data().balance + p);
       tx.update(uSnaps[i].ref, { balance: nb });
       tx.set(doc(collection(adminDb, "ledger")), {
         uid: b.uid, type: refund ? "refund" : "win", amount: p, balanceAfter: nb, raceId, createdAt: serverTimestamp()
@@ -925,9 +934,9 @@ async function finalizeRace(raceId, mode, winner){
       const p = pay[b.ref.id];
       tx.update(b.ref, { status: refund ? "refunded" : (b.runner === winner ? "won" : "lost"), payout: p });
     });
-    if (toTreasury > 0) {
+    if (toTreasury > 0.0001) {
       const td = t.exists() ? t.data() : { balance: 0, totalFees: 0 };
-      tx.set(tr, { balance: (td.balance || 0) + toTreasury, totalFees: (td.totalFees || 0) + toTreasury });
+      tx.set(tr, { balance: r1((td.balance || 0) + toTreasury), totalFees: r1((td.totalFees || 0) + toTreasury) });
     }
     tx.update(rr, {
       status: mode === "cancel" ? "cancelled" : "settled",
@@ -978,7 +987,7 @@ $("userList").addEventListener("click", async ev => {
         const ref = doc(adminDb, "users", u.id);
         const nb = await runTransaction(adminDb, async tx => {
           const s = await tx.get(ref);
-          const nb = s.data().balance + amt;
+          const nb = r1(s.data().balance + amt);
           if (nb < 0) throw new Error("Il saldo non può diventare negativo.");
           tx.update(ref, { balance: nb });
           tx.set(doc(collection(adminDb, "ledger")), {
@@ -1024,7 +1033,7 @@ $("reqList").addEventListener("click", async ev => {
           const r = await tx.get(rr);
           const u = await tx.get(us);
           if (!r.exists() || r.data().status !== "pending") throw new Error("Richiesta già gestita.");
-          const nb = u.data().balance + amt;
+          const nb = r1(u.data().balance + amt);
           tx.update(us, { balance: nb });
           tx.set(doc(collection(adminDb, "ledger")), {
             uid: id, type: "topup", amount: amt, balanceAfter: nb, createdAt: serverTimestamp(), requestId: id
