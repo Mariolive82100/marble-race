@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Murble Race">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Murble Race v3.25</title>
+<title>Murble Race v3.26</title>
 <style>
 :root{--bg:#0f1220;--card:#181c30;--line:#2a3050;--txt:#eef0fa;--mut:#8f96b8;--acc:#ff9f1c;--ok:#2ec27e;--err:#ff5d6c}
 *{box-sizing:border-box}
@@ -183,7 +183,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
 
   <!-- AUTENTICAZIONE -->
   <div id="viewAuth" class="view on">
-    <h1>Murble <span>Race</span> <small class="ver">v3.25</small></h1>
+    <h1>Murble <span>Race</span> <small class="ver">v3.26</small></h1>
     <p class="sub">Pronostici a punti sulle gare di biglie</p>
     <div class="card">
       <div class="tabs">
@@ -217,7 +217,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
     <div class="topbar">
       <div class="tleft">
         <button id="btnDrawer" class="ibtn" type="button" aria-label="Menu">☰</button>
-        <div class="ttl">Murble <span>Race</span> <small class="ver">v3.25</small></div>
+        <div class="ttl">Murble <span>Race</span> <small class="ver">v3.26</small></div>
       </div>
       <button id="balPill" class="pill" type="button" aria-label="Punti totali: apri la classifica"><span id="hPts">0</span> <small>PT</small></button>
     </div>
@@ -860,6 +860,14 @@ const PODIUM_DEF = [100, 50, 25];
 const MEDALS = ["🥇", "🥈", "🥉"];
 const podiumPts = r => (Array.isArray(r.podiumPts) && r.podiumPts.length === 3) ? r.podiumPts : PODIUM_DEF;
 const modeLabel = r => r.gameMode === "team" ? "Squadre " + r.teamsCount + "×" + r.teamSize : (r.gameMode === "multi" || r.gameMode === "1v1") ? "Libera · " + r.expectedPlayers + " giocatori" : "";
+// Titolo neutro: il nome reale della gara non si mostra mai ai giocatori
+function raceTitle(r){
+  if (!["ready", "open", "closed"].includes(r.status)) return "Gara";
+  const t = x => (x.createdAt && x.createdAt.toMillis) ? x.createdAt.toMillis() : Date.now();
+  const act = races.filter(x => ["ready", "open", "closed"].includes(x.status)).sort((a, b) => t(a) - t(b));
+  const i = act.findIndex(x => x.id === r.id);
+  return act.length > 1 && i >= 0 ? "Gara " + (i + 1) : "Gara";
+}
 function raceParts(r){
   const b = myBets[r.id];
   const taken = r.taken || {};
@@ -925,7 +933,7 @@ function raceParts(r){
   const isOpen = !isActive || !!expanded[r.id];
   const arrow = isActive ? (isOpen ? " ▲" : " ▼") : "";
   const teamsPart = r.gameMode === "team" ? ` · Squadre: <b style="color:var(--txt)">${esc(Object.keys(counts).length)} / ${esc(r.teamsCount)}</b>` : "";
-  const head = `<div class="row"><span><b>${esc(r.name)}</b>${r.duration ? `<span class="dur">⏱ ${esc(r.duration)}</span>` : ""}<span class="tag">${esc(macroCat(r.category))}</span>${r.gameMode ? `<span class="tag" style="border-color:#7db0ff;color:#7db0ff">${esc(modeLabel(r))}</span>` : ""}</span><span class="badge ${STATUS_CLASS[r.status] || "off"}">${STATUS_LABEL[r.status] || esc(r.status)}</span></div>
+  const head = `<div class="row"><span><b>${esc(raceTitle(r))}</b>${r.duration ? `<span class="dur">⏱ ${esc(r.duration)}</span>` : ""}<span class="tag">${esc(macroCat(r.category))}</span>${r.gameMode ? `<span class="tag" style="border-color:#7db0ff;color:#7db0ff">${esc(modeLabel(r))}</span>` : ""}</span><span class="badge ${STATUS_CLASS[r.status] || "off"}">${STATUS_LABEL[r.status] || esc(r.status)}</span></div>
       <div class="row mut" style="margin-top:4px"><span>Podio: 🥇${esc(pp[0])} · 🥈${esc(pp[1])} · 🥉${esc(pp[2])} PT</span><span>${b ? marbleSvg(meDoc && meDoc.marble, 16) + " ✓ Pronostico fatto" : ""}${arrow}</span></div>${r.expectedPlayers ? `<div class="row mut" style="margin-top:4px"><span>Giocatori: <b style="color:var(--txt)">${esc(r.betsCount || 0)} / ${esc(r.expectedPlayers)}</b>${teamsPart}</span></div>` : ""}`;
   const showVideo = isOpen && r.status !== "cancelled" && r.status !== "ready" && (r.status !== "open" || r.youtubeLive === true);
   if (showVideo && r.hasVideo && videoIds[r.id] === undefined && !(videoReq[r.id] > Date.now() - 20000)) fetchVideo(r.id);
@@ -940,7 +948,7 @@ function raceParts(r){
 }
 
 function movesHtml(){
-  const nm = id => { const r = races.find(x => x.id === id); return r ? r.name : "Gara"; };
+  const nm = id => { const r = races.find(x => x.id === id); return "Gara"; };
   const ts = o => (o.createdAt && o.createdAt.toMillis) ? o.createdAt.toMillis() : Date.now();
   const tot = `<div class="card"><div class="mut">Punti totali</div><div style="font-size:28px;font-weight:700">${esc((meDoc && meDoc.points) || 0)} <span class="mut" style="font-size:16px">PT</span></div></div>`;
   const rows = myBetList.map(b => {
