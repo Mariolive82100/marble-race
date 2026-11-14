@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Murble Race">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Murble Race v3.3</title>
+<title>Murble Race v3.4</title>
 <style>
 :root{--bg:#0f1220;--card:#181c30;--line:#2a3050;--txt:#eef0fa;--mut:#8f96b8;--acc:#ff9f1c;--ok:#2ec27e;--err:#ff5d6c}
 *{box-sizing:border-box}
@@ -53,6 +53,7 @@ button:disabled{opacity:.5;cursor:default}
 .rn input{width:auto;margin:0}
 .rn .nm{flex:1}
 .rn.win{border-color:var(--ok)}
+.dur{display:inline-block;margin-left:8px;padding:2px 10px;border-radius:999px;background:var(--acc);color:#0b0d14;font-weight:700;font-size:14px;white-space:nowrap;vertical-align:middle}
 .betbox{margin-top:12px}
 .betbox input[type=number]{margin-top:8px}
 .sw{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--mut);margin:0;cursor:pointer;user-select:none}
@@ -86,7 +87,7 @@ details.rsx[open] summary::after{content:"▲"}
 
   <!-- AUTENTICAZIONE -->
   <div id="viewAuth" class="view on">
-    <h1>Murble <span>Race</span> <small class="ver">v3.3</small></h1>
+    <h1>Murble <span>Race</span> <small class="ver">v3.4</small></h1>
     <p class="sub">Scommesse sulle gare di biglie</p>
     <div class="card">
       <div class="tabs">
@@ -117,7 +118,7 @@ details.rsx[open] summary::after{content:"▲"}
   <!-- HOME GIOCATORE -->
   <div id="viewHome" class="view">
     <div class="row">
-      <h1>Murble <span>Race</span> <small class="ver">v3.3</small></h1>
+      <h1>Murble <span>Race</span> <small class="ver">v3.4</small></h1>
       <div class="uactions" style="margin-top:0;flex-wrap:nowrap">
         <label id="wrapAdminQuick" class="sw" style="display:none">Admin<input id="swAdminHome" type="checkbox"><i></i></label>
         <button id="btnLogout" class="sec small" type="button">Esci</button>
@@ -527,8 +528,8 @@ function raceParts(r){
   const isActive = r.status === "ready" || r.status === "open" || r.status === "closed";
   const isOpen = !isActive || !!expanded[r.id];
   const arrow = isActive ? (isOpen ? " ▲" : " ▼") : "";
-  const head = `<div class="row"><b>${esc(r.name)}</b><span class="badge ${STATUS_CLASS[r.status] || "off"}">${STATUS_LABEL[r.status] || esc(r.status)}</span></div>
-      <div class="row mut" style="margin-top:4px"><span>Montepremi: ${esc(total)} crediti · Fee ${esc(fee)}%${r.duration ? " · Durata: " + esc(r.duration) : " sul surplus"}</span><span>${b ? "✓ Hai puntato" : ""}${arrow}</span></div>${r.expectedPlayers ? `<div class="row mut" style="margin-top:4px"><span>Puntate: <b style="color:var(--txt)">${esc(r.betsCount || 0)} / ${esc(r.expectedPlayers)}</b></span></div>` : ""}`;
+  const head = `<div class="row"><span><b>${esc(r.name)}</b>${r.duration ? `<span class="dur">⏱ ${esc(r.duration)}</span>` : ""}</span><span class="badge ${STATUS_CLASS[r.status] || "off"}">${STATUS_LABEL[r.status] || esc(r.status)}</span></div>
+      <div class="row mut" style="margin-top:4px"><span>Montepremi: ${esc(total)} crediti · Fee ${esc(fee)}% sul surplus</span><span>${b ? "✓ Hai puntato" : ""}${arrow}</span></div>${r.expectedPlayers ? `<div class="row mut" style="margin-top:4px"><span>Puntate: <b style="color:var(--txt)">${esc(r.betsCount || 0)} / ${esc(r.expectedPlayers)}</b></span></div>` : ""}`;
   const showVideo = isOpen && r.status !== "cancelled" && r.status !== "ready" && (r.status !== "open" || r.youtubeLive === true);
   if (showVideo && r.hasVideo && videoIds[r.id] === undefined && !(videoReq[r.id] > Date.now() - 20000)) fetchVideo(r.id);
   return { head, body: isOpen ? runners + foot : "", yt: showVideo ? (videoIds[r.id] || ytInfo(r.youtubeUrl)) : null, isActive };
@@ -1063,8 +1064,8 @@ function renderAdminRaces(){
     }
     return `<div class="urow" data-id="${esc(r.id)}">
       <div class="rhead" data-tgl>
-        <div class="row"><b>${esc(r.name)}</b><span><span class="badge ${STATUS_CLASS[r.status] || "off"}">${STATUS_LABEL[r.status] || esc(r.status)}</span> <span class="mut">${open ? "▲" : "▼"}</span></span></div>
-        <div class="mut">Montepremi: ${esc(r.pool || 0)} · Fee ${esc(r.feePercent || 0)}%${r.duration ? " · Durata: " + esc(r.duration) : ""}${r.expectedPlayers ? " · Puntate: " + esc(r.betsCount || 0) + " / " + esc(r.expectedPlayers) : ""}</div>
+        <div class="row"><span><b>${esc(r.name)}</b>${r.duration ? `<span class="dur">⏱ ${esc(r.duration)}</span>` : ""}</span><span><span class="badge ${STATUS_CLASS[r.status] || "off"}">${STATUS_LABEL[r.status] || esc(r.status)}</span> <span class="mut">${open ? "▲" : "▼"}</span></span></div>
+        <div class="mut">Montepremi: ${esc(r.pool || 0)} · Fee ${esc(r.feePercent || 0)}%${r.expectedPlayers ? " · Puntate: " + esc(r.betsCount || 0) + " / " + esc(r.expectedPlayers) : ""}</div>
       </div>
       ${open ? `<div class="mut" style="margin-top:6px">${list}</div>${betsHtml ? `<div style="margin-top:8px"><b style="font-size:14px">Puntate</b>${betsHtml}</div>` : ""}<div class="uactions">${actions}</div>` : ""}
     </div>`;
