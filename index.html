@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Murble Race">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Murble Race v3.32</title>
+<title>Murble Race v3.33</title>
 <style>
 :root{--bg:#090b10;--card:#121622;--line:#232b40;--txt:#eef0fa;--mut:#8f96b8;--acc:#ffb300;--ok:#00e676;--err:#ff3b5c}
 *{box-sizing:border-box}
@@ -201,7 +201,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
 
   <!-- AUTENTICAZIONE -->
   <div id="viewAuth" class="view on">
-    <h1>Murble <span>Race</span> <small class="ver">v3.32</small></h1>
+    <h1>Murble <span>Race</span> <small class="ver">v3.33</small></h1>
     <p class="sub">Pronostici a punti sulle gare di biglie</p>
     <div class="card">
       <div class="tabs">
@@ -235,7 +235,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
     <div class="topbar">
       <div class="tleft">
         <button id="btnDrawer" class="ibtn" type="button" aria-label="Menu">☰</button>
-        <div class="ttl">Murble <span>Race</span> <small class="ver">v3.32</small></div>
+        <div class="ttl">Murble <span>Race</span> <small class="ver">v3.33</small></div>
       </div>
       <button id="balPill" class="pill" type="button" aria-label="Punti totali: apri la classifica"><span id="hPts">0</span> <small>PT</small></button>
     </div>
@@ -251,7 +251,8 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
       <main>
         <div id="startCard" style="display:none">
           <div id="passCard" class="card pass" role="button" tabindex="0" aria-label="Personalizza la biglia"></div>
-          <div id="catCard" class="bigbtns"><button id="btnPlay1v1" class="btn-go" type="button">Estrai gara</button><button id="btnPlayTeam" class="btn-team" type="button">Sfida a Squadre</button></div>
+          <div id="catCard" class="bigbtns"><button id="btnPlay1v1" class="btn-go" type="button">Sorteggia gara</button><button id="btnPlayTeam" class="btn-team" type="button">Sfida a Squadre</button></div>
+          <button id="btnTour" type="button" disabled style="width:100%;margin:0 0 14px;opacity:.4;background:transparent;color:var(--txt);border:1px dashed var(--mut);padding:16px;font-weight:800;text-transform:uppercase;letter-spacing:.5px">Crea torneo <small style="font-weight:600;text-transform:none">· coming soon</small></button>
           <div id="newsCard" class="card news"></div>
           <div class="foot" style="margin-top:0"><a id="lnkMoves">Storico Punti</a></div>
         </div>
@@ -460,6 +461,19 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
 </div>
 
 <!-- CREA PARTITA DAL CATALOGO -->
+<div id="modalCount" class="modal" role="dialog" aria-modal="true">
+  <div class="mbox" style="max-width:420px">
+    <b style="font-size:18px">Quante gare vuoi creare?</b>
+    <div class="mbody">
+      <div id="cntChips" style="display:flex;gap:8px;margin-top:8px">
+        <button class="small" type="button" data-cnt="1" style="flex:1">1</button><button class="small sec" type="button" data-cnt="2" style="flex:1">2</button><button class="small sec" type="button" data-cnt="3" style="flex:1">3</button><button class="small sec" type="button" data-cnt="more" style="flex:1">Più</button>
+      </div>
+      <div id="cntMoreBox" style="display:none"><label for="cntMore">Numero di gare (da 4 a 10)</label><input id="cntMore" type="number" step="1" min="4" max="10" inputmode="numeric" value="4"></div>
+      <div class="uactions" style="margin-top:14px"><button class="small" id="btnCntOk" type="button">Avanti</button><button class="small sec" id="btnCntCancel" type="button">Annulla</button></div>
+      <div id="cntErr" class="err"></div>
+    </div>
+  </div>
+</div>
 <div id="modalCat" class="modal" role="dialog" aria-modal="true">
   <div class="mbox" style="max-width:420px">
     <b id="catTitle" style="font-size:18px">Avvia Partita</b>
@@ -694,7 +708,7 @@ function openInfo(tab){
 function closeInfo(){ $("modalInfo").classList.remove("on"); }
 function openDrawer(){ $("drawer").classList.add("on"); $("drawerBg").classList.add("on"); }
 function closeDrawer(){ $("drawer").classList.remove("on"); $("drawerBg").classList.remove("on"); }
-function closeOverlays(){ ["modalInfo", "modalCat", "modalAcc", "modalTeam"].forEach(m => $(m).classList.remove("on")); closeDrawer(); }
+function closeOverlays(){ ["modalInfo", "modalCount", "modalCat", "modalAcc", "modalTeam"].forEach(m => $(m).classList.remove("on")); closeDrawer(); }
 $("btnDrawer").onclick = openDrawer;
 $("btnDrawerClose").onclick = closeDrawer;
 $("drawerBg").onclick = closeDrawer;
@@ -1378,7 +1392,7 @@ async function playRandom(mode, k){
   catAt = 0;
   setRaceTab("open");
 }
-let playMode = "multi";
+let playMode = "multi", playCount = 1, cntSel = "1";
 async function updPreview(){
   const cat = $("playCategory").value;
   let k;
@@ -1402,12 +1416,28 @@ function openPlay(mode, info){
   $("catInfo").textContent = info;
   $("modalCat").classList.add("on");
 }
+function setCnt(v){
+  cntSel = v;
+  $("cntChips").querySelectorAll("button").forEach(b => b.classList.toggle("sec", b.dataset.cnt !== v));
+  $("cntMoreBox").style.display = v === "more" ? "" : "none";
+}
+$("cntChips").addEventListener("click", ev => { const b = ev.target.closest("button[data-cnt]"); if (b) setCnt(b.dataset.cnt); });
+$("btnCntCancel").onclick = () => $("modalCount").classList.remove("on");
+$("btnCntOk").onclick = () => {
+  let n = cntSel === "more" ? Number($("cntMore").value) : Number(cntSel);
+  if (!Number.isInteger(n) || n < 1 || n > 10) { $("cntErr").textContent = "Indica un numero di gare da 1 a 10."; return; }
+  playCount = n;
+  $("modalCount").classList.remove("on");
+  openPlay("multi", "Scegli categoria e numero di giocatori: verranno estratte a caso " + (n === 1 ? "una gara" : n + " gare diverse") + " non ancora giocate, con un numero di biglie multiplo dei giocatori. Chi prima arriva sceglie le proprie biglie.");
+};
 $("btnPlay1v1").onclick = () => {
   $("homeErr").textContent = "";
-  openPlay("multi", "Scegli categoria e numero di giocatori: verrà estratta a caso una gara non ancora giocata con un numero di biglie multiplo dei giocatori. Chi prima arriva sceglie le proprie biglie.");
+  $("cntErr").textContent = ""; setCnt("1"); $("cntMore").value = "4";
+  $("modalCount").classList.add("on");
 };
 $("btnPlayTeam").onclick = () => {
   $("homeErr").textContent = "";
+  playCount = 1;
   if (!meDoc || !meDoc.teamId) { openTeam(); return; }
   const size = myTeam ? (myTeam.members || []).length : 0;
   if (size < 2 || size > 4) { $("homeErr").textContent = "Per la sfida a squadre la tua squadra deve avere da 2 a 4 giocatori."; return; }
@@ -1465,7 +1495,13 @@ $("formCat").addEventListener("submit", async ev => {
     if (!Number.isInteger(k) || k < 2 || k > 6) { $("catErr").textContent = "Indica quante squadre si sfidano (da 2 a 6)."; return; }
   }
   await busy(ev.submitter, async () => {
-    try { await playRandom(playMode, k); $("modalCat").classList.remove("on"); }
+    try {
+      const total = playMode === "multi" ? playCount : 1;
+      let done = 0;
+      try { for (; done < total; done++) { await playRandom(playMode, k); catAt = 0; } }
+      catch (e) { if (!done) throw e; $("homeErr").textContent = "Create " + done + " gare su " + total + ": " + msg(e); }
+      $("modalCat").classList.remove("on");
+    }
     catch (e) { $("catErr").textContent = msg(e); }
   });
 });
