@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Murble Race">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Murble Race v2.7</title>
+<title>Murble Race v2.8</title>
 <style>
 :root{--bg:#0f1220;--card:#181c30;--line:#2a3050;--txt:#eef0fa;--mut:#8f96b8;--acc:#ff9f1c;--ok:#2ec27e;--err:#ff5d6c}
 *{box-sizing:border-box}
@@ -85,7 +85,7 @@ details.rsx[open] summary::after{content:"▲"}
 
   <!-- AUTENTICAZIONE -->
   <div id="viewAuth" class="view on">
-    <h1>Murble <span>Race</span> <small class="ver">v2.7</small></h1>
+    <h1>Murble <span>Race</span> <small class="ver">v2.8</small></h1>
     <p class="sub">Scommesse sulle gare di biglie</p>
     <div class="card">
       <div class="tabs">
@@ -116,7 +116,7 @@ details.rsx[open] summary::after{content:"▲"}
   <!-- HOME GIOCATORE -->
   <div id="viewHome" class="view">
     <div class="row">
-      <h1>Murble <span>Race</span> <small class="ver">v2.7</small></h1>
+      <h1>Murble <span>Race</span> <small class="ver">v2.8</small></h1>
       <div class="uactions" style="margin-top:0;flex-wrap:nowrap">
         <label id="wrapAdminQuick" class="sw" style="display:none">Admin<input id="swAdminHome" type="checkbox"><i></i></label>
         <button id="btnLogout" class="sec small" type="button">Esci</button>
@@ -832,18 +832,21 @@ $("formRace").addEventListener("submit", async ev => {
       const pools = {};
       runners.forEach((_, i) => { pools[String(i)] = 0; });
       const rRef = doc(collection(adminDb, "races"));
-      const batch = writeBatch(adminDb);
-      batch.set(rRef, {
+      let videoFail = false;
+      await setDoc(rRef, {
         name, runners, status: "open", pool: 0, pools, winner: null, hasVideo: !!yt, youtubeLive: !!yt && $("raceLive").checked,
         feePercent: Number.isInteger(c.feePercent) ? c.feePercent : 10,
         minBet: (typeof c.minBet === "number" && c.minBet > 0) ? r1(c.minBet) : 1,
         createdAt: serverTimestamp()
       });
-      if (yt) batch.set(doc(adminDb, "videos", rRef.id), { url: yt });
-      await batch.commit();
+      if (yt) {
+        try { await setDoc(doc(adminDb, "videos", rRef.id), { url: yt }); }
+        catch (e) { videoFail = true; }
+      }
       $("raceName").value = ""; $("raceRunners").value = ""; $("raceYt").value = ""; $("raceLive").checked = false;
       await loadRaces();
-      flashOk("Gara creata.");
+      if (videoFail) $("adminErr").textContent = "Gara creata, ma il link video NON è stato salvato (permission-denied): pubblica le regole Firestore aggiornate (documento regole_firestore.txt) e ricrea la gara.";
+      else flashOk("Gara creata.");
     } catch (e) { $("adminErr").textContent = msg(e); }
   });
 });
