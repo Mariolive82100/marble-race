@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Murble Race">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Murble Race v2.5</title>
+<title>Murble Race v2.6</title>
 <style>
 :root{--bg:#0f1220;--card:#181c30;--line:#2a3050;--txt:#eef0fa;--mut:#8f96b8;--acc:#ff9f1c;--ok:#2ec27e;--err:#ff5d6c}
 *{box-sizing:border-box}
@@ -83,7 +83,7 @@ details.rsx[open] summary::after{content:"▲"}
 
   <!-- AUTENTICAZIONE -->
   <div id="viewAuth" class="view on">
-    <h1>Murble <span>Race</span> <small class="ver">v2.5</small></h1>
+    <h1>Murble <span>Race</span> <small class="ver">v2.6</small></h1>
     <p class="sub">Scommesse sulle gare di biglie</p>
     <div class="card">
       <div class="tabs">
@@ -114,7 +114,7 @@ details.rsx[open] summary::after{content:"▲"}
   <!-- HOME GIOCATORE -->
   <div id="viewHome" class="view">
     <div class="row">
-      <h1>Murble <span>Race</span> <small class="ver">v2.5</small></h1>
+      <h1>Murble <span>Race</span> <small class="ver">v2.6</small></h1>
       <div class="uactions" style="margin-top:0;flex-wrap:nowrap">
         <label id="wrapAdminQuick" class="sw" style="display:none">Admin<input id="swAdminHome" type="checkbox"><i></i></label>
         <button id="btnLogout" class="sec small" type="button">Esci</button>
@@ -365,6 +365,7 @@ $("formReg").addEventListener("submit", async ev => {
 let unsubUser = null, unsubTopup = null, unsubRaces = null, unsubBets = null, unsubLedger = null;
 let me = null, myReq = null, meDoc = null, pendingDisplay = null;
 let races = [], myBets = {}, myBetList = [], ledgerRows = [], draft = {}, expanded = {}, raceTab = "active";
+let videoIds = {}, videoReq = {};
 
 function stopListeners(){
   [unsubUser, unsubTopup, unsubRaces, unsubBets, unsubLedger].forEach(u => { if (u) u(); });
@@ -373,7 +374,7 @@ function stopListeners(){
 
 onAuthStateChanged(auth, async user => {
   stopListeners();
-  if (!user) { me = null; myReq = null; meDoc = null; races = []; myBets = {}; myBetList = []; ledgerRows = []; draft = {}; raceTab = "active"; show("viewAuth"); return; }
+  if (!user) { me = null; myReq = null; meDoc = null; races = []; myBets = {}; myBetList = []; ledgerRows = []; draft = {}; raceTab = "active"; videoIds = {}; videoReq = {}; show("viewAuth"); return; }
   const name = user.email.split("@")[0];
   const display = (pendingDisplay && pendingDisplay.toLowerCase() === name) ? pendingDisplay : name;
   pendingDisplay = null;
@@ -420,6 +421,16 @@ $("btnLogout").onclick = () => signOut(auth);
 const STATUS_LABEL = { open: "puntate aperte", closed: "puntate chiuse", settled: "conclusa", cancelled: "annullata" };
 const STATUS_CLASS = { open: "ok", closed: "wait", settled: "off", cancelled: "off" };
 
+// Il link del video sta in un documento separato (videos/{garaId}) che le regole rendono leggibile solo a puntate chiuse o in Diretta Live
+async function fetchVideo(id){
+  videoReq[id] = Date.now();
+  try {
+    const d = await getDoc(doc(db, "videos", id));
+    videoIds[id] = d.exists() ? ytId(d.data().url) : null;
+    renderRaces();
+  } catch (e) { /* nuovo tentativo al prossimo aggiornamento */ }
+}
+
 function raceParts(r){
   const b = myBets[r.id];
   const pools = r.pools || {};
@@ -461,7 +472,9 @@ function raceParts(r){
   const arrow = isActive ? (isOpen ? " ▲" : " ▼") : "";
   const head = `<div class="row"><b>${esc(r.name)}</b><span class="badge ${STATUS_CLASS[r.status] || "off"}">${STATUS_LABEL[r.status] || esc(r.status)}</span></div>
       <div class="row mut" style="margin-top:4px"><span>Montepremi: ${esc(total)} crediti · Fee ${esc(fee)}% sul surplus</span><span>${b ? "✓ Hai puntato" : ""}${arrow}</span></div>`;
-  return { head, body: isOpen ? runners + foot : "", yt: (isOpen && r.status !== "cancelled" && (r.status !== "open" || r.youtubeLive === true)) ? ytId(r.youtubeUrl) : null, isActive };
+  const showVideo = isOpen && r.status !== "cancelled" && (r.status !== "open" || r.youtubeLive === true);
+  if (showVideo && r.hasVideo && videoIds[r.id] === undefined && !(videoReq[r.id] > Date.now() - 20000)) fetchVideo(r.id);
+  return { head, body: isOpen ? runners + foot : "", yt: showVideo ? (videoIds[r.id] || ytId(r.youtubeUrl)) : null, isActive };
 }
 
 function movesHtml(){
@@ -725,7 +738,7 @@ $("adminOpts").addEventListener("click", async ev => {
   await busy(btn, async () => {
     try {
       if (k === "credits" || k === "all") { await zeroBalances(); await wipeCollection("ledger"); await setDoc(doc(adminDb, "treasury", "main"), { balance: 0, totalFees: 0 }); }
-      if (k === "bets" || k === "all") { await wipeCollection("bets"); await wipeCollection("races"); }
+      if (k === "bets" || k === "all") { await wipeCollection("bets"); await wipeCollection("races"); await wipeCollection("videos"); }
       if (k === "users" || k === "all") { await wipeCollection("users"); await wipeCollection("topupRequests"); }
       await loadAdmin();
       $("optMsg").textContent = "Reset eseguito.";
@@ -810,12 +823,16 @@ $("formRace").addEventListener("submit", async ev => {
       const c = cfg.exists() ? cfg.data() : {};
       const pools = {};
       runners.forEach((_, i) => { pools[String(i)] = 0; });
-      await setDoc(doc(collection(adminDb, "races")), {
-        name, runners, status: "open", pool: 0, pools, winner: null, youtubeUrl: yt, youtubeLive: !!yt && $("raceLive").checked,
+      const rRef = doc(collection(adminDb, "races"));
+      const batch = writeBatch(adminDb);
+      batch.set(rRef, {
+        name, runners, status: "open", pool: 0, pools, winner: null, hasVideo: !!yt, youtubeLive: !!yt && $("raceLive").checked,
         feePercent: Number.isInteger(c.feePercent) ? c.feePercent : 10,
         minBet: (typeof c.minBet === "number" && c.minBet > 0) ? r1(c.minBet) : 1,
         createdAt: serverTimestamp()
       });
+      if (yt) batch.set(doc(adminDb, "videos", rRef.id), { url: yt });
+      await batch.commit();
       $("raceName").value = ""; $("raceRunners").value = ""; $("raceYt").value = ""; $("raceLive").checked = false;
       await loadRaces();
     } catch (e) { $("adminErr").textContent = msg(e); }
