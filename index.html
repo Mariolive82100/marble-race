@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Murble Race">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Murble Race v3.10</title>
+<title>Murble Race v3.11</title>
 <style>
 :root{--bg:#0f1220;--card:#181c30;--line:#2a3050;--txt:#eef0fa;--mut:#8f96b8;--acc:#ff9f1c;--ok:#2ec27e;--err:#ff5d6c}
 *{box-sizing:border-box}
@@ -107,6 +107,7 @@ details.rsx[open] summary::after{content:"▲"}
   #raceTabs button{flex:none;padding:10px 22px}
   .acols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 24px;align-items:start}
   #adminOpts{max-width:720px}
+  #cadmList{display:grid;grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:0 24px;align-items:start}
   .card{padding:16px;margin-bottom:12px}
   .rhead:hover{opacity:.92}
   .rn:hover{border-color:var(--acc)}
@@ -127,7 +128,7 @@ details.rsx[open] summary::after{content:"▲"}
 
   <!-- AUTENTICAZIONE -->
   <div id="viewAuth" class="view on">
-    <h1>Murble <span>Race</span> <small class="ver">v3.10</small></h1>
+    <h1>Murble <span>Race</span> <small class="ver">v3.11</small></h1>
     <p class="sub">Scommesse sulle gare di biglie</p>
     <div class="card">
       <div class="tabs">
@@ -158,7 +159,7 @@ details.rsx[open] summary::after{content:"▲"}
   <!-- HOME GIOCATORE -->
   <div id="viewHome" class="view">
     <div class="row">
-      <h1>Murble <span>Race</span> <small class="ver">v3.10</small></h1>
+      <h1>Murble <span>Race</span> <small class="ver">v3.11</small></h1>
       <div class="uactions" style="margin-top:0;flex-wrap:nowrap">
         <label id="wrapAdminQuick" class="sw" style="display:none">Admin<input id="swAdminHome" type="checkbox"><i></i></label>
         <button id="btnLogout" class="sec small" type="button">Esci</button>
@@ -246,6 +247,7 @@ details.rsx[open] summary::after{content:"▲"}
         <button id="btnMenu" class="sec small" type="button" aria-label="Menu">☰</button>
       </div>
       <div id="adminMenu" class="menu" style="display:none">
+        <button type="button" data-sec="cat">Catalogo</button>
         <button type="button" data-sec="opts">Impostazioni</button>
       </div>
     </div>
@@ -288,27 +290,6 @@ details.rsx[open] summary::after{content:"▲"}
       <div id="raceAdminList"></div>
     </div>
     </div><div class="acol">
-    <div class="card">
-      <div class="row"><b>Gestione Catalogo</b><button id="btnCatLoad" class="sec small" type="button">Carica</button></div>
-      <div class="tabs" id="cadmTabs" style="margin-top:10px;display:none">
-        <button type="button" class="small" data-cf="all">Tutte</button>
-        <button type="button" class="small sec" data-cf="new">Non ancora scommesse</button>
-        <button type="button" class="small sec" data-cf="played">Già scommesse</button>
-        <button type="button" class="small sec" data-cf="susp">Sospese</button>
-      </div>
-      <input id="cadmSearch" placeholder="Cerca per nome, categoria o biglia" style="margin-top:10px;display:none">
-      <div id="cadmBar" class="uactions" style="display:none;margin-top:10px">
-        <button class="small sec" type="button" id="cadmAll">Seleziona tutte</button>
-        <span id="cadmSelN" class="mut"></span>
-        <button class="small" type="button" data-bulk="new">Segna "Non ancora scommessa"</button>
-        <button class="small" type="button" data-bulk="played">Segna "Già scommessa"</button>
-        <button class="small sec" type="button" data-bulk="susp">Sospendi</button>
-        <button class="small sec" type="button" data-bulk="unsusp">Riattiva</button>
-        <button class="small danger" type="button" data-bulk="del">Elimina selezionate</button>
-      </div>
-      <div id="cadmInfo" class="mut" style="margin-top:8px"></div>
-      <div id="cadmList"></div>
-    </div>
     <div class="card">
       <b>Richieste di ricarica</b>
       <div id="reqList"></div>
@@ -357,6 +338,29 @@ details.rsx[open] summary::after{content:"▲"}
         </details>
         <div id="optMsg" class="mut" style="margin-top:10px;color:var(--ok)"></div>
       </div>
+    </div>
+    <div id="adminCat" style="display:none">
+    <div class="card">
+      <div class="row"><b>Gestione Catalogo</b><span class="uactions" style="margin:0"><button id="btnCatLoad" class="sec small" type="button">Aggiorna</button><button class="sec small" type="button" data-sec="main">← Pannello</button></span></div>
+      <div class="tabs" id="cadmTabs" style="margin-top:10px;display:none">
+        <button type="button" class="small" data-cf="all">Tutte</button>
+        <button type="button" class="small sec" data-cf="new">Non ancora scommesse</button>
+        <button type="button" class="small sec" data-cf="played">Già scommesse</button>
+        <button type="button" class="small sec" data-cf="susp">Sospese</button>
+      </div>
+      <input id="cadmSearch" placeholder="Cerca per nome, categoria o biglia" style="margin-top:10px;display:none">
+      <div id="cadmBar" class="uactions" style="display:none;margin-top:10px">
+        <button class="small sec" type="button" id="cadmAll">Seleziona tutte</button>
+        <span id="cadmSelN" class="mut"></span>
+        <button class="small" type="button" data-bulk="new">Segna "Non ancora scommessa"</button>
+        <button class="small" type="button" data-bulk="played">Segna "Già scommessa"</button>
+        <button class="small sec" type="button" data-bulk="susp">Sospendi</button>
+        <button class="small sec" type="button" data-bulk="unsusp">Riattiva</button>
+        <button class="small danger" type="button" data-bulk="del">Elimina selezionate</button>
+      </div>
+      <div id="cadmInfo" class="mut" style="margin-top:8px"></div>
+      <div id="cadmList"></div>
+    </div>
     </div>
     <div id="adminOk"></div>
     <div id="adminErr" class="err"></div>
@@ -1004,6 +1008,8 @@ $("btnReload").onclick = () => loadAdmin();
 function showAdminSec(n){
   $("adminMain").style.display = n === "main" ? "" : "none";
   $("adminOpts").style.display = n === "opts" ? "" : "none";
+  $("adminCat").style.display = n === "cat" ? "" : "none";
+  if (n === "cat" && !cadm.length) loadCatAdm().catch(e => { $("adminErr").textContent = msg(e); });
   $("optMsg").textContent = "";
   $("cfgMsg").textContent = "";
   $("adminErr").textContent = "";
