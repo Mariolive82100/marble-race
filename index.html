@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Murble Race">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Murble Race v3.24</title>
+<title>Murble Race v3.25</title>
 <style>
 :root{--bg:#0f1220;--card:#181c30;--line:#2a3050;--txt:#eef0fa;--mut:#8f96b8;--acc:#ff9f1c;--ok:#2ec27e;--err:#ff5d6c}
 *{box-sizing:border-box}
@@ -183,7 +183,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
 
   <!-- AUTENTICAZIONE -->
   <div id="viewAuth" class="view on">
-    <h1>Murble <span>Race</span> <small class="ver">v3.24</small></h1>
+    <h1>Murble <span>Race</span> <small class="ver">v3.25</small></h1>
     <p class="sub">Pronostici a punti sulle gare di biglie</p>
     <div class="card">
       <div class="tabs">
@@ -217,7 +217,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
     <div class="topbar">
       <div class="tleft">
         <button id="btnDrawer" class="ibtn" type="button" aria-label="Menu">☰</button>
-        <div class="ttl">Murble <span>Race</span> <small class="ver">v3.24</small></div>
+        <div class="ttl">Murble <span>Race</span> <small class="ver">v3.25</small></div>
       </div>
       <button id="balPill" class="pill" type="button" aria-label="Punti totali: apri la classifica"><span id="hPts">0</span> <small>PT</small></button>
     </div>
@@ -486,13 +486,13 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
         <ul>
           <li>Una squadra ha <b>al massimo 4 giocatori</b>. Chi lancia la partita indica <b>quante squadre si sfidano</b> (minimo 2): i partecipanti sono <i>numero di squadre × giocatori della sua squadra</i>.</li>
           <li>Possono partecipare solo squadre con <b>lo stesso numero di giocatori</b> della squadra che ha lanciato la partita, e ogni squadra non può superare quel numero.</li>
-          <li>Ogni giocatore sceglie <b>1 sola biglia</b>, che non può essere già stata scelta da un compagno della <b>stessa squadra</b>. Le squadre avversarie possono scegliere la stessa biglia.</li>
+          <li>Anche nelle Sfide a Squadre l'app estrae una gara con un numero di biglie <b>multiplo del totale dei partecipanti</b> (squadre × giocatori per squadra) e le ripartisce <b>equamente ed esclusivamente</b> tra tutti i giocatori. Ognuno sceglie lo stesso numero di biglie; quelle già scelte da chiunque (compagni o avversari) sono bloccate: <b>chi prima arriva sceglie</b>. Se non esiste una gara adatta, cambia categoria o numero di squadre.</li>
         </ul>
         <h3>4. Podio e punti</h3>
         <p>A corsa terminata l'Admin conferma il <b>1°, 2° e 3° classificato</b> in base al video. Chi ha scelto quelle biglie guadagna i punti del podio, fissati dall'Admin (di default <b>100 PT</b> al 1°, <b>50 PT</b> al 2°, <b>25 PT</b> al 3°). Le altre biglie non danno punti e <b>non fanno perdere nulla</b>.</p>
         <ul>
           <li>I punti si sommano al punteggio personale del giocatore. Se più biglie di un giocatore finiscono sul podio, i punti si sommano.</li>
-          <li>Nelle Sfide a Squadre i punti (e le vittorie del 1° posto) si sommano <b>anche al punteggio della squadra</b>.</li>
+          <li>Nelle Sfide a Squadre i punti (e le vittorie del 1° posto) di tutti i membri si sommano <b>anche al punteggio della squadra</b>.</li>
           <li>Se la gara viene <b>annullata</b> dall'Admin, i pronostici sono annullati e non assegnano punti. L'Admin può annullare anche un singolo pronostico.</li>
         </ul>
         <h3>5. Classifica e Storico Punti</h3>
@@ -554,7 +554,7 @@ const DOMAIN = "@murblerace.app";
 const ADMIN_EMAIL = "admin" + DOMAIN;
 const RESERVED = ["admin"];
 const MAX_BETS_SETTLE = 100;
-const TERMS_VERSION = 6; // incrementare per far riaccettare Regolamento e Termini a tutti
+const TERMS_VERSION = 7; // incrementare per far riaccettare Regolamento e Termini a tutti
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
@@ -865,7 +865,7 @@ function raceParts(r){
   const taken = r.taken || {};
   const pp = podiumPts(r);
   const is1v1 = r.gameMode !== "team";
-  const ppp = is1v1 ? (r.picksPerPlayer || 1) : 1;
+  const ppp = r.picksPerPlayer || 1;
   const tid = (meDoc && meDoc.teamId) || "";
   const counts = r.teamCounts || {};
   let teamOk = true, teamMsg = "";
@@ -879,13 +879,12 @@ function raceParts(r){
   const d = draft[r.id] || {};
   const sel = Array.isArray(d.runners) ? d.runners : [];
   const runners = (r.runners || []).map((n, i) => {
-    const tk = is1v1 ? taken[String(i)] : (tid ? taken[tid + "_" + i] : undefined);
+    const tk = taken[String(i)];
     const myPick = !!b && (b.runners || []).includes(String(i));
     const lock = tk !== undefined && !myPick;
     const place = r.status === "settled" && Array.isArray(r.podium) ? r.podium.indexOf(i) : -1;
-    const control = canBet ? `<input type="${is1v1 ? "checkbox" : "radio"}" name="rn_${esc(r.id)}" value="${i}" ${lock ? "disabled" : ""} ${sel.includes(String(i)) && !lock ? "checked" : ""}>` : "";
+    const control = canBet ? `<input type="${ppp > 1 ? "checkbox" : "radio"}" name="rn_${esc(r.id)}" value="${i}" ${lock ? "disabled" : ""} ${sel.includes(String(i)) && !lock ? "checked" : ""}>` : "";
     let cnt = "";
-    if (!is1v1) { const c = Object.keys(taken).filter(k => k.endsWith("_" + i)).length; cnt = c + (c === 1 ? " giocatore" : " giocatori"); }
     const info = [cnt, place >= 0 ? "+" + pp[place] + " PT" : "", tk !== undefined ? "🔒 " + (typeof tk === "object" ? tk.n : tk) : ""].filter(Boolean).join(" · ");
     return `<label class="rn ${place === 0 ? "win" : ""}"${lock ? ' style="opacity:.55"' : ""}>${control}<span class="nm">${esc(n)}${myPick ? " ★" : ""}${place >= 0 ? " " + MEDALS[place] : ""}</span><span class="mut">${esc(info)}</span></label>`;
   }).join("");
@@ -893,9 +892,7 @@ function raceParts(r){
 
   let foot = "";
   if (canBet) {
-    const hint = is1v1
-      ? `Scegli <b>${esc(ppp)}</b> ${ppp === 1 ? "biglia" : "biglie"} su ${esc((r.runners || []).length)}: quelle che confermi vengono bloccate per gli altri giocatori (chi prima arriva sceglie).`
-      : `Giochi per <b>${esc(meDoc.teamTag || "")}</b>: 1 sola biglia, non già scelta da un compagno di squadra.`;
+    const hint = `${is1v1 ? "" : "Giochi per <b>" + esc(meDoc.teamTag || "") + "</b>. "}Scegli <b>${esc(ppp)}</b> ${ppp === 1 ? "biglia" : "biglie"} su ${esc((r.runners || []).length)}: quelle che confermi vengono bloccate per tutti gli altri giocatori, compagni e avversari (chi prima arriva sceglie).`;
     foot = `<div class="mut" style="margin-top:10px">${hint}</div><div class="betbox">
       <button class="full" data-act="bet" type="button">Conferma Pronostico</button>
       <div class="mut" style="margin-top:6px">Il pronostico non si può più modificare. Podio: 1° ${esc(pp[0])} · 2° ${esc(pp[1])} · 3° ${esc(pp[2])} PT.</div>
@@ -1108,8 +1105,9 @@ function modeFields(mode, k, nRunners, size){
   }
   if (!Number.isInteger(k) || k < 2 || k > 6) throw new Error("Indica quante squadre si sfidano (da 2 a 6).");
   if (size < 2 || size > 4) throw new Error("Per la sfida a squadre la tua squadra deve avere da 2 a 4 giocatori.");
-  if (nRunners < size) throw new Error("Gara con meno biglie dei giocatori di una squadra.");
-  return { gameMode: "team", teamsCount: k, teamSize: size, expectedPlayers: k * size, picksPerPlayer: 1 };
+  const tot = k * size;
+  if (nRunners < tot || nRunners % tot !== 0) throw new Error("Questa gara ha " + nRunners + " biglie: non si dividono equamente tra " + tot + " giocatori.");
+  return { gameMode: "team", teamsCount: k, teamSize: size, expectedPlayers: tot, picksPerPlayer: nRunners / tot };
 }
 $("raceList").addEventListener("click", async ev => {
   const y = ev.target.closest("[data-yt]"), pb = ev.target.closest("button[data-act='replay'], button[data-act='confirmpod']");
@@ -1148,9 +1146,9 @@ async function confirmRacePodium(raceId){
     const players = {};
     for (const [key, val] of Object.entries(race.taken || {})) {
       if (!val || typeof val !== "object" || !val.u) throw new Error("Gara creata con una versione precedente: la conferma spetta all'Admin.");
-      const kp = isTeam ? key.split("_") : ["", key];
-      const pl = players[val.u] || (players[val.u] = { runners: [], name: val.n || "", tid: isTeam ? kp[0] : "" });
-      pl.runners.push(Number(kp[1]));
+      if (isTeam && !val.t) throw new Error("Gara creata con una versione precedente: la conferma spetta all'Admin.");
+      const pl = players[val.u] || (players[val.u] = { runners: [], name: val.n || "", tid: isTeam ? val.t : "" });
+      pl.runners.push(Number(key));
     }
     const uids = Object.keys(players);
     const tids = [...new Set(uids.map(u => players[u].tid).filter(Boolean))];
@@ -1221,18 +1219,17 @@ async function placeBet(raceId, keys){
       if (!tid) throw new Error("Per le Sfide a Squadre devi far parte di una Squadra.");
       const t = await tx.get(doc(db, "teams", tid));
       if (!t.exists() || (t.data().members || []).length !== race.teamSize) throw new Error("Servono squadre da " + race.teamSize + " giocatori.");
-      if (keys.length !== 1) throw new Error("Scegli una sola biglia.");
+      if (keys.length !== race.picksPerPlayer) throw new Error("Scegli esattamente " + race.picksPerPlayer + (race.picksPerPlayer === 1 ? " biglia." : " biglie."));
       const counts = { ...(race.teamCounts || {}) };
       if ((counts[tid] || 0) >= race.teamSize) throw new Error("La tua squadra ha già completato i pronostici.");
       if (!(tid in counts) && Object.keys(counts).length >= race.teamsCount) throw new Error("La gara ha già tutte le squadre.");
-      const tk = tid + "_" + keys[0];
-      if (taken[tk] !== undefined) throw new Error("Questa biglia è già stata scelta da un compagno di squadra.");
-      taken[tk] = { u: me.uid, n: nm }; counts[tid] = (counts[tid] || 0) + 1;
+      if (keys.some(k => taken[k] !== undefined)) throw new Error("Una delle biglie è già stata scelta da un altro giocatore: scegline altre.");
+      keys.forEach(k => { taken[k] = { u: me.uid, n: nm, t: tid }; }); counts[tid] = (counts[tid] || 0) + 1;
       upd.teamCounts = counts;
       bet.teamId = tid; bet.teamTag = u.data().teamTag || "";
     } else {
       if (keys.length !== race.picksPerPlayer) throw new Error("Scegli esattamente " + race.picksPerPlayer + " biglie.");
-      if (keys.some(k => taken[k] !== undefined)) throw new Error("Una delle biglie è già stata scelta dall'avversario: scegline altre.");
+      if (keys.some(k => taken[k] !== undefined)) throw new Error("Una delle biglie è già stata scelta da un altro giocatore: scegline altre.");
       keys.forEach(k => { taken[k] = { u: me.uid, n: nm }; });
     }
     upd.taken = taken;
@@ -1254,8 +1251,10 @@ async function loadCatalog(){
 async function playRandom(mode, k){
   const cat = $("playCategory").value;
   if (Date.now() - catAt > 60000 || !catRows.length) await loadCatalog();
-  const pool = catRows.filter(c => mode === "multi" ? compatRow(c, cat, k) : (!c.suspended && (c.playedCount || 0) === 0 && (!cat || macroCat(c.category) === cat)));
-  if (mode === "multi" && !pool.length) throw new Error("Nessuna gara disponibile per " + k + " giocatori in questa categoria: prova un altro numero di giocatori o categoria.");
+  const tsize = mode === "team" ? (myTeam ? (myTeam.members || []).length : 0) : 0;
+  const tot = mode === "team" ? k * tsize : k;
+  const pool = catRows.filter(c => compatRow(c, cat, tot));
+  if (!pool.length) throw new Error(mode === "team" ? "Nessuna gara disponibile per " + tot + " giocatori totali in questa categoria: prova a cambiare categoria o numero di squadre." : "Nessuna gara disponibile per " + k + " giocatori in questa categoria: prova un altro numero di giocatori o categoria.");
   for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
   let newId = null;
   for (const c of pool.slice(0, 20)) {
@@ -1269,16 +1268,19 @@ async function playRandom(mode, k){
 }
 let playMode = "multi";
 async function updPreview(){
-  if (playMode !== "multi") { $("catPreview").textContent = ""; return; }
-  const cat = $("playCategory").value, k = Number($("catPlayers").value);
-  if (!cat || !Number.isInteger(k) || k < 2 || k > 12) { $("catPreview").textContent = ""; return; }
+  const cat = $("playCategory").value;
+  let k;
+  if (playMode === "team") { const size = myTeam ? (myTeam.members || []).length : 0, nt = Number($("catTeams").value); k = size * nt; if (!Number.isInteger(nt) || nt < 2 || nt > 6 || size < 2) k = 0; }
+  else k = Number($("catPlayers").value);
+  if (!cat || !Number.isInteger(k) || k < 2 || (playMode !== "team" && k > 12)) { $("catPreview").textContent = ""; return; }
   try { if (Date.now() - catAt > 60000 || !catRows.length) await loadCatalog(); } catch (e) { return; }
   const n = catRows.filter(c => compatRow(c, cat, k)).length;
-  $("catPreview").textContent = n ? "Gare disponibili: " + n : "Nessuna gara disponibile per " + k + " giocatori in questa categoria.";
+  $("catPreview").textContent = n ? "Gare disponibili: " + n : "Nessuna gara disponibile per " + k + " giocatori " + (playMode === "team" ? "totali " : "") + "in questa categoria.";
 }
 const compatRow = (c, cat, k) => !c.suspended && (c.playedCount || 0) === 0 && (!cat || macroCat(c.category) === cat) && (c.runners || []).length >= k && (c.runners || []).length % k === 0;
 $("playCategory").addEventListener("change", updPreview);
 $("catPlayers").addEventListener("input", updPreview);
+$("catTeams").addEventListener("input", updPreview);
 function openPlay(mode, info){
   playMode = mode;
   $("catErr").textContent = ""; $("playCategory").value = ""; $("catTeams").value = "";
@@ -1297,7 +1299,7 @@ $("btnPlayTeam").onclick = () => {
   if (!meDoc || !meDoc.teamId) { $("homeErr").textContent = "Per le Sfide a Squadre devi far parte di una Squadra."; openTeam(); return; }
   const size = myTeam ? (myTeam.members || []).length : 0;
   if (size < 2 || size > 4) { $("homeErr").textContent = "Per la sfida a squadre la tua squadra deve avere da 2 a 4 giocatori."; return; }
-  openPlay("team", "La tua squadra ha " + size + " giocatori: partecipano solo squadre da " + size + " giocatori. Ognuno sceglie 1 biglia.");
+  openPlay("team", "La tua squadra ha " + size + " giocatori: partecipano solo squadre da " + size + " giocatori. Verrà estratta una gara con un numero di biglie multiplo dei giocatori totali: ognuno sceglie la sua parte.");
 };
 $("btnCatCancel").onclick = () => { $("modalCat").classList.remove("on"); };
 
@@ -1322,7 +1324,7 @@ async function launchFromCatalog(cid, mode, k){
     }
     let mf;
     try { mf = modeFields(mode, k, cd.runners.length, size); }
-    catch (e) { if (mode === "team" && size >= 2 && cd.runners.length < size) throw skip(); if (mode === "multi") throw skip(); throw e; }
+    catch (e) { if (mode === "team" && size >= 2) throw skip(); if (mode === "multi") throw skip(); throw e; }
     const kc = cfg.exists() ? cfg.data() : {};
     const data = {
       name: cd.name, runners: cd.runners, status: "open", winner: null, hasVideo: true, youtubeLive: false,
