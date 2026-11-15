@@ -14,7 +14,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Murble Race">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Murble Race v4.05</title>
+<title>Murble Race v4.07</title>
 <style>
 :root{--bg:#090b10;--card:#121622;--line:#232b40;--txt:#eef0fa;--mut:#8f96b8;--acc:#ffb300;--ok:#00e676;--err:#ff3b5c}
 *{box-sizing:border-box}
@@ -209,7 +209,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
 
   <!-- AUTENTICAZIONE -->
   <div id="viewAuth" class="view on">
-    <h1>Murble <span>Race</span> <small class="ver">v4.05</small></h1>
+    <h1>Murble <span>Race</span> <small class="ver">v4.07</small></h1>
     <p class="sub">Tornei a punti sulle gare di biglie</p>
     <div class="card">
       <div class="tabs">
@@ -243,9 +243,10 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
     <div class="topbar">
       <div class="tleft">
         <button id="btnDrawer" class="ibtn" type="button" aria-label="Menu">☰</button>
-        <div class="ttl">Murble <span>Race</span> <small class="ver">v4.05</small></div>
+        <div class="ttl">Murble <span>Race</span> <small class="ver">v4.07</small></div>
       </div>
-      <button id="balPill" class="pill" type="button" aria-label="Punti totali: apri la classifica"><span id="hPts">0</span> <small>PT</small></button>
+      <div style="display:flex;align-items:center;gap:8px"><button id="btnPageReload" class="ibtn" type="button" aria-label="Aggiorna pagina">⟳</button>
+      <button id="balPill" class="pill" type="button" aria-label="Punti totali: apri la classifica"><span id="hPts">0</span> <small>PT</small></button></div>
     </div>
     <div id="hWait" class="banner" style="display:none">Account in attesa di attivazione da parte dell'admin: per ora non puoi creare né giocare tornei.</div>
     <div class="pgbody">
@@ -966,6 +967,10 @@ function renderHome(name, d){
   renderAll();
 }
 $("btnLogout").onclick = () => signOut(auth);
+$("btnPageReload").onclick = () => {
+  const go = () => location.reload();
+  try { navigator.serviceWorker.getRegistration().then(r => (r ? r.update() : null)).then(go, go); } catch (e) { go(); }
+};
 $("lnkShare").onclick = async ev => {
   ev.stopPropagation();
   const url = location.origin + location.pathname.replace(/index\.html$/, "");
@@ -1039,6 +1044,7 @@ async function ensureSecrets(r){
   if (!m.exists()) await setDoc(doc(db, "unlocks", uk), { uid: me.uid, raceId: r.id, catalogId: cid, createdAt: serverTimestamp() });
   const s = await getDoc(doc(db, "catalog_secrets", cid));
   secrets[cid] = s.exists() ? s.data() : {};
+  try { const c = await getDoc(doc(db, "catalog", cid)); if (c.exists()) secrets[cid]._dur = durOf(c.data()); } catch (e) {}
   return secrets[cid];
 }
 async function getPicks(rid, uid){
@@ -1530,7 +1536,7 @@ function raceParts(r, mode){
   if (!open || r.status === "cancelled") return { head: r.status === "cancelled" ? head + '<div class="mut" style="margin-top:6px">Gara annullata dall\'Admin: nessun punto.</div>' : head, res, body, yt };
   const sc = secrets[r.catalogId];
   if (!sc && !secReq[r.catalogId]) { secReq[r.catalogId] = 1; ensureSecrets(r).then(renderAll).catch(e => { secReq[r.catalogId] = 0; $("homeErr").textContent = msg(e); }); }
-  if ((mode !== "history" || replayOn[r.id]) && sc && sc.url) { const y = ytInfo(sc.url); if (y) yt = { ...y, dur: r.durSec || 0, replay: mode === "history" }; }
+  if ((mode !== "history" || replayOn[r.id]) && sc && sc.url) { const y = ytInfo(sc.url); if (y) yt = { ...y, dur: sc._dur || r.durSec || 0, replay: mode === "history" }; }
   if (!sc) body = '<div class="mut" style="margin-top:10px">Caricamento video…</div>';
   // risultato ufficiale (dopo il video)
   let team = "";
