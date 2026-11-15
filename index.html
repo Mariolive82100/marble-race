@@ -14,7 +14,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Murble Race">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Murble Race v4.00</title>
+<title>Murble Race v4.01</title>
 <style>
 :root{--bg:#090b10;--card:#121622;--line:#232b40;--txt:#eef0fa;--mut:#8f96b8;--acc:#ffb300;--ok:#00e676;--err:#ff3b5c}
 *{box-sizing:border-box}
@@ -207,7 +207,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
 
   <!-- AUTENTICAZIONE -->
   <div id="viewAuth" class="view on">
-    <h1>Murble <span>Race</span> <small class="ver">v4.00</small></h1>
+    <h1>Murble <span>Race</span> <small class="ver">v4.01</small></h1>
     <p class="sub">Tornei a punti sulle gare di biglie</p>
     <div class="card">
       <div class="tabs">
@@ -241,7 +241,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
     <div class="topbar">
       <div class="tleft">
         <button id="btnDrawer" class="ibtn" type="button" aria-label="Menu">☰</button>
-        <div class="ttl">Murble <span>Race</span> <small class="ver">v4.00</small></div>
+        <div class="ttl">Murble <span>Race</span> <small class="ver">v4.01</small></div>
       </div>
       <button id="balPill" class="pill" type="button" aria-label="Punti totali: apri la classifica"><span id="hPts">0</span> <small>PT</small></button>
     </div>
@@ -1163,7 +1163,7 @@ async function extractRaces(tid, count, opts){
   for (let i = 0; i < chosen.length; i += 4) {
     const chunk = chosen.slice(i, i + 4), b = writeBatch(db);
     chunk.forEach(s => {
-      const data = { tournamentId: tid, raceNumber: s.n, status: "pending_open", deadline: null, picksPerPlayer: 3, allowDuplicatePicks: true, catalogId: s.c.id, runners: s.c.runners, runnersCount: s.c.runners.length, category: macroCat(s.c.category), durSec: durOf(s.c), podiumPts: pp, pickedUids: [], resultsCount: 0, expectedPlayers: 0, createdAt: serverTimestamp(), createdBy: me.uid };
+      const data = { tournamentId: tid, raceNumber: s.n, status: "pending_open", deadline: null, picksPerPlayer: 3, allowDuplicatePicks: true, catalogId: s.c.id, runners: s.c.runners, runnersCount: s.c.runners.length, category: macroCat(s.c.category), durSec: durOf(s.c), podiumPts: pp, pickedUids: [], viewedUids: [], resultsCount: 0, expectedPlayers: 0, createdAt: serverTimestamp(), createdBy: me.uid };
       if (s.tb) { data.isTiebreak = true; data.tieUids = opts.tieUids; }
       b.set(doc(db, "races", s.id), data);
       b.update(doc(db, "catalog", s.c.id), { playedCount: increment(1), lastPlayedAt: serverTimestamp(), activeRaceId: s.id });
@@ -1514,7 +1514,24 @@ function raceParts(r, mode){
   } else if (sc && ["unlocked", "settled", "disputed"].includes(r.status)) {
     res = `<div class="mut" style="margin-top:8px;font-size:13px">Guarda il video: a fine corsa compare il risultato ufficiale. <a href="#" data-act="showres" style="color:var(--acc)">Video già terminato? Mostra risultato</a></div>`;
   }
+  if (r.status === "unlocked") res = (res || "") + viewedBar(r);
   return { head, res, body, yt };
+}
+async function markViewed(rid){
+  const r = racesById[rid];
+  if (!r || r.status !== "unlocked" || !me || !tourOf(r.tournamentId) || (r.viewedUids || []).includes(me.uid) || savingRes["v" + rid]) return;
+  savingRes["v" + rid] = 1;
+  try {
+    await updateDoc(doc(db, "races", rid), { viewedUids: arrayUnion(me.uid) });
+    r.viewedUids = [...(r.viewedUids || []), me.uid];
+    renderAll();
+  } catch (e) { savingRes["v" + rid] = 0; }
+}
+function viewedBar(r){
+  const t = tourOf(r.tournamentId), ids = r.pickedUids || [], seen = r.viewedUids || [];
+  if (!ids.length) return "";
+  const x = ids.filter(u => seen.includes(u)).length;
+  return `<div class="box"><b>👁️ Visto da ${x} / ${ids.length} partecipanti</b><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">${ids.map(u => { const v = seen.includes(u); return `<span class="tag" style="margin:0;${v ? "background:rgba(46,204,113,.18);color:var(--ok);border-color:var(--ok)" : "opacity:.55"}">${v ? "●" : "○"} ${esc(((t && t.names) || {})[u] || "?")}</span>`; }).join("")}</div></div>`;
 }
 let ytApiP = null;
 function loadYtApi(){
@@ -1537,7 +1554,7 @@ function ytSrc(y, autoplay){
 }
 function attachYt(raceId, iframe){
   loadYtApi().then(() => {
-    try { new YT.Player(iframe, { events: { onStateChange: ev => { if (ev.data === 0) { showRes[raceId] = true; renderAll(); } } } }); } catch (e) {}
+    try { new YT.Player(iframe, { events: { onStateChange: ev => { if (ev.data === 1) markViewed(raceId); if (ev.data === 0) { showRes[raceId] = true; renderAll(); } } } }); } catch (e) {}
   });
 }
 
