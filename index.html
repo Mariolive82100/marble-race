@@ -14,7 +14,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Murble Race">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Murble Race v3.41</title>
+<title>Murble Race v3.42</title>
 <style>
 :root{--bg:#090b10;--card:#121622;--line:#232b40;--txt:#eef0fa;--mut:#8f96b8;--acc:#ffb300;--ok:#00e676;--err:#ff3b5c}
 *{box-sizing:border-box}
@@ -208,7 +208,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
 
   <!-- AUTENTICAZIONE -->
   <div id="viewAuth" class="view on">
-    <h1>Murble <span>Race</span> <small class="ver">v3.41</small></h1>
+    <h1>Murble <span>Race</span> <small class="ver">v3.42</small></h1>
     <p class="sub">Pronostici a punti sulle gare di biglie</p>
     <div class="card">
       <div class="tabs">
@@ -242,7 +242,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
     <div class="topbar">
       <div class="tleft">
         <button id="btnDrawer" class="ibtn" type="button" aria-label="Menu">☰</button>
-        <div class="ttl">Murble <span>Race</span> <small class="ver">v3.41</small></div>
+        <div class="ttl">Murble <span>Race</span> <small class="ver">v3.42</small></div>
       </div>
       <button id="balPill" class="pill" type="button" aria-label="Punti totali: apri la classifica"><span id="hPts">0</span> <small>PT</small></button>
     </div>
@@ -520,14 +520,14 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
         </ul>
         <h3>2. Estrai gara (Partita libera da 2 a 12 giocatori)</h3>
         <ul>
-          <li>Indichi quanti giocatori partecipano (da 2 a 12). L'app estrae a caso una gara non ancora giocata della categoria scelta con un <b>numero di biglie multiplo esatto dei giocatori</b>, così le biglie si ripartiscono equamente (ad esempio su 8 biglie: 4 a testa in 2 giocatori, 2 a testa in 4, 1 a testa in 8).</li>
+          <li>Indichi quanti giocatori partecipano (da 2 a 12). L'app estrae a caso una gara non ancora giocata della categoria scelta con almeno una biglia per giocatore. L'app adatta automaticamente la distribuzione: se il numero di biglie è <b>divisibile</b> per i partecipanti vengono assegnate <b>tutte le biglie</b> (ad esempio su 8 biglie: 4 a testa in 2 giocatori, 2 a testa in 4, 1 a testa in 8); negli altri casi ognuno riceve lo <b>stesso numero massimo di biglie</b> e le <b>rimanenti restano neutrali</b>, cioè non assegnate a nessuno (ad esempio su 8 biglie con 6 giocatori: 1 a testa e 2 neutrali). A parità, hanno la precedenza le gare con distribuzione esatta.</li>
           <li><b>Chi prima arriva sceglie.</b> Ogni giocatore sceglie esattamente il suo numero di biglie; quelle già confermate dagli altri vengono bloccate. All'ultimo giocatore confermato la gara si chiude e il video si sblocca. Se non esiste una gara adatta per quel numero di giocatori, prova un altro numero o un'altra categoria.</li>
         </ul>
         <h3>3. Modalità Sfida a Squadre</h3>
         <ul>
           <li>Una squadra ha <b>al massimo 4 giocatori</b>. Chi lancia la partita indica <b>quante squadre si sfidano</b> (minimo 2): i partecipanti sono <i>numero di squadre × giocatori della sua squadra</i>.</li>
           <li>Possono partecipare solo squadre con <b>lo stesso numero di giocatori</b> della squadra che ha lanciato la partita, e ogni squadra non può superare quel numero.</li>
-          <li>Anche nelle Sfide a Squadre l'app estrae una gara con un numero di biglie <b>multiplo del totale dei partecipanti</b> (squadre × giocatori per squadra) e le ripartisce <b>equamente ed esclusivamente</b> tra tutti i giocatori. Ognuno sceglie lo stesso numero di biglie; quelle già scelte da chiunque (compagni o avversari) sono bloccate: <b>chi prima arriva sceglie</b>. Se non esiste una gara adatta, cambia categoria o numero di squadre.</li>
+          <li>Anche nelle Sfide a Squadre l'app estrae una gara con almeno una biglia per ciascun partecipante (squadre × giocatori per squadra) e adatta la distribuzione: se le biglie sono <b>divisibili</b> per il totale dei partecipanti le assegna <b>tutte, equamente ed esclusivamente</b>; altrimenti ognuno riceve lo <b>stesso numero massimo di biglie</b> e le <b>rimanenti restano neutrali</b>. Ognuno sceglie lo stesso numero di biglie; quelle già scelte da chiunque (compagni o avversari) sono bloccate: <b>chi prima arriva sceglie</b>. Se non esiste una gara adatta, cambia categoria o numero di squadre.</li>
         </ul>
         <h3>4. Podio e punti</h3>
         <p>A corsa terminata l'Admin conferma il <b>1°, 2° e 3° classificato</b> in base al video. Chi ha scelto quelle biglie guadagna i punti del podio, fissati dall'Admin (di default <b>100 PT</b> al 1°, <b>50 PT</b> al 2°, <b>25 PT</b> al 3°). Le altre biglie non danno punti e <b>non fanno perdere nulla</b>.</p>
@@ -596,7 +596,7 @@ const DOMAIN = "@murblerace.app";
 const ADMIN_EMAIL = "admin" + DOMAIN;
 const RESERVED = ["admin"];
 const MAX_BETS_SETTLE = 100;
-const TERMS_VERSION = 9; // incrementare per far riaccettare Regolamento e Termini a tutti
+const TERMS_VERSION = 10; // incrementare per far riaccettare Regolamento e Termini a tutti
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
@@ -1061,7 +1061,7 @@ function raceParts(r){
 
   let foot = "";
   if (canBet) {
-    const hint = `${is1v1 ? "" : "Giochi per <b>" + esc(meDoc.teamTag || "") + "</b>. "}Scegli <b>${esc(ppp)}</b> ${ppp === 1 ? "biglia" : "biglie"} su ${esc((r.runners || []).length)}: quelle che confermi vengono bloccate per tutti gli altri giocatori, compagni e avversari (chi prima arriva sceglie).`;
+    const hint = `${is1v1 ? "" : "Giochi per <b>" + esc(meDoc.teamTag || "") + "</b>. "}Scegli <b>${esc(ppp)}</b> ${ppp === 1 ? "biglia" : "biglie"} su ${esc((r.runners || []).length)}: quelle che confermi vengono bloccate per tutti gli altri giocatori, compagni e avversari (chi prima arriva sceglie).${ppp * (r.expectedPlayers || 0) < (r.runners || []).length ? " <i>(le biglie rimanenti restano neutrali)</i>" : ""}`;
     foot = `<div class="mut" style="margin-top:10px">${hint}</div><div class="betbox">
       <button class="full" data-act="bet" type="button">Conferma Pronostico</button>
       <div class="mut" style="margin-top:6px">Il pronostico non si può più modificare. Podio: 1° ${esc(pp[0])} · 2° ${esc(pp[1])} · 3° ${esc(pp[2])} PT.</div>
@@ -1078,7 +1078,7 @@ function raceParts(r){
     foot = !(meDoc && meDoc.active) ? `<div class="betbox mut">Account da attivare per poter avviare la gara.</div>`
       : `<div class="betbox"><label>Modalità</label>
       <select data-gmode><option value="multi">Estrai gara (partita libera)</option><option value="team" ${d.gmode === "team" ? "selected" : ""}>Sfida a Squadre</option></select>
-      <label>Quanti giocatori? (solo partita libera, da 2 a 12: le biglie devono essere un multiplo)</label>
+      <label>Quanti giocatori? (solo partita libera, da 2 a 12: le biglie in più restano neutrali)</label>
       <input type="number" step="1" min="2" max="12" inputmode="numeric" placeholder="es. 2" data-players value="${esc(d.players !== undefined ? d.players : "2")}">
       <label>Quante squadre si sfidano? (solo Squadre, minimo 2)</label>
       <input type="number" step="1" min="2" max="6" inputmode="numeric" placeholder="es. 2" data-teams value="${esc(d.teams !== undefined ? d.teams : "")}">
@@ -1315,18 +1315,18 @@ $("raceList").addEventListener("click", async ev => {
   });
 });
 
-// Campi di modalità: Estrai gara (k giocatori, biglie ripartite in parti uguali) oppure Squadre (k squadre da size giocatori, 1 biglia a testa)
+// Campi di modalità: Estrai gara (k giocatori, stesso numero massimo di biglie a testa, resto neutrale) oppure Squadre (k squadre da size giocatori, 1 biglia a testa)
 function modeFields(mode, k, nRunners, size){
   if (mode === "multi") {
     if (!Number.isInteger(k) || k < 2 || k > 12) throw new Error("Indica il numero di giocatori (da 2 a 12).");
-    if (nRunners < k || nRunners % k !== 0) throw new Error("Questa gara ha " + nRunners + " biglie: non si dividono equamente tra " + k + " giocatori.");
-    return { gameMode: "multi", expectedPlayers: k, picksPerPlayer: nRunners / k };
+    if (nRunners < k) throw new Error("Questa gara ha " + nRunners + " biglie: meno dei " + k + " giocatori.");
+    return { gameMode: "multi", expectedPlayers: k, picksPerPlayer: Math.floor(nRunners / k) };
   }
   if (!Number.isInteger(k) || k < 2 || k > 6) throw new Error("Indica quante squadre si sfidano (da 2 a 6).");
   if (size < 2 || size > 4) throw new Error("Per la sfida a squadre la tua squadra deve avere da 2 a 4 giocatori.");
   const tot = k * size;
-  if (nRunners < tot || nRunners % tot !== 0) throw new Error("Questa gara ha " + nRunners + " biglie: non si dividono equamente tra " + tot + " giocatori.");
-  return { gameMode: "team", teamsCount: k, teamSize: size, expectedPlayers: tot, picksPerPlayer: nRunners / tot };
+  if (nRunners < tot) throw new Error("Questa gara ha " + nRunners + " biglie: meno dei " + tot + " giocatori.");
+  return { gameMode: "team", teamsCount: k, teamSize: size, expectedPlayers: tot, picksPerPlayer: Math.floor(nRunners / tot) };
 }
 $("raceList").addEventListener("click", async ev => {
   const y = ev.target.closest("[data-yt]"), pb = ev.target.closest("button[data-act='replay'], button[data-act='confirmpod'], button[data-act='editpod'], button[data-act='cancelform'], button[data-act='sendpod'], button[data-act='showpod']");
@@ -1524,15 +1524,18 @@ async function updPreview(){
   if (!cat || !Number.isInteger(k) || k < 2 || (playMode !== "team" && k > 12)) { $("catPreview").textContent = ""; return; }
   try { if (Date.now() - catAt > 60000 || !catRows.length) await loadCatalog(); } catch (e) { return; }
   const cp = cyclePool(cat, k), n = cp.pool.length;
-  $("catPreview").textContent = n ? "Gare disponibili: " + n + (cp.minPlayed === 0 ? " (nuove)" : " (ciclo " + (cp.minPlayed + 1) + ")") : "Nessuna gara disponibile per " + k + " giocatori " + (playMode === "team" ? "totali " : "") + "in questa categoria.";
+  $("catPreview").textContent = n ? "Gare disponibili: " + n + (cp.minPlayed === 0 ? " (nuove)" : " (ciclo " + (cp.minPlayed + 1) + ")") + (cp.neutral ? " · biglie avanzate neutrali" : "") : "Nessuna gara disponibile per " + k + " giocatori " + (playMode === "team" ? "totali " : "") + "in questa categoria.";
 }
 const activeBusy = c => { if (!c.activeRaceId) return false; const r = races.find(x => x.id === c.activeRaceId); return !!r && !["settled", "cancelled"].includes(r.status); };
-const compatRow = (c, cat, k) => !c.suspended && !activeBusy(c) && (!cat || macroCat(c.category) === cat) && (c.runners || []).length >= k && (c.runners || []).length % k === 0;
+const compatRow = (c, cat, k) => !c.suspended && !activeBusy(c) && (!cat || macroCat(c.category) === cat) && (c.runners || []).length >= k;
 function cyclePool(cat, k){
   const el = catRows.filter(c => compatRow(c, cat, k));
-  if (!el.length) return { pool: [], minPlayed: 0 };
+  if (!el.length) return { pool: [], minPlayed: 0, neutral: 0 };
   const minPlayed = Math.min(...el.map(c => c.playedCount || 0));
-  return { pool: el.filter(c => (c.playedCount || 0) === minPlayed), minPlayed };
+  let pool = el.filter(c => (c.playedCount || 0) === minPlayed);
+  const exact = pool.filter(c => (c.runners || []).length % k === 0);
+  if (exact.length) pool = exact;
+  return { pool, minPlayed, neutral: (pool[0].runners || []).length % k };
 }
 $("playCategory").addEventListener("change", updPreview);
 $("catPlayers").addEventListener("input", updPreview);
@@ -1558,7 +1561,7 @@ $("btnCntOk").onclick = () => {
   if (!Number.isInteger(n) || n < 1 || n > 10) { $("cntErr").textContent = "Indica un numero di gare da 1 a 10."; return; }
   playCount = n;
   $("modalCount").classList.remove("on");
-  openPlay("multi", "Scegli categoria e numero di giocatori: verranno estratte a caso " + (n === 1 ? "una gara" : n + " gare diverse") + " non ancora giocate, con un numero di biglie multiplo dei giocatori. Chi prima arriva sceglie le proprie biglie.");
+  openPlay("multi", "Scegli categoria e numero di giocatori: verranno estratte a caso " + (n === 1 ? "una gara" : n + " gare diverse") + " non ancora giocate, con almeno una biglia per giocatore (se non si dividono esattamente, le biglie in più restano neutrali). Chi prima arriva sceglie le proprie biglie.");
 };
 $("btnPlay1v1").onclick = () => {
   $("homeErr").textContent = "";
@@ -1571,7 +1574,7 @@ $("btnPlayTeam").onclick = () => {
   if (!meDoc || !meDoc.teamId) { openTeam(); return; }
   const size = myTeam ? (myTeam.members || []).length : 0;
   if (size < 2 || size > 4) { $("homeErr").textContent = "Per la sfida a squadre la tua squadra deve avere da 2 a 4 giocatori."; return; }
-  openPlay("team", "La tua squadra ha " + size + " giocatori: partecipano solo squadre da " + size + " giocatori. Verrà estratta una gara con un numero di biglie multiplo dei giocatori totali: ognuno sceglie la sua parte.");
+  openPlay("team", "La tua squadra ha " + size + " giocatori: partecipano solo squadre da " + size + " giocatori. Verrà estratta una gara con almeno una biglia per giocatore (le biglie in più restano neutrali): ognuno sceglie la sua parte.");
 };
 $("btnCatCancel").onclick = () => { $("modalCat").classList.remove("on"); };
 
