@@ -14,7 +14,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Murble Race">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Murble Race v3.40</title>
+<title>Murble Race v3.41</title>
 <style>
 :root{--bg:#090b10;--card:#121622;--line:#232b40;--txt:#eef0fa;--mut:#8f96b8;--acc:#ffb300;--ok:#00e676;--err:#ff3b5c}
 *{box-sizing:border-box}
@@ -208,7 +208,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
 
   <!-- AUTENTICAZIONE -->
   <div id="viewAuth" class="view on">
-    <h1>Murble <span>Race</span> <small class="ver">v3.40</small></h1>
+    <h1>Murble <span>Race</span> <small class="ver">v3.41</small></h1>
     <p class="sub">Pronostici a punti sulle gare di biglie</p>
     <div class="card">
       <div class="tabs">
@@ -242,7 +242,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
     <div class="topbar">
       <div class="tleft">
         <button id="btnDrawer" class="ibtn" type="button" aria-label="Menu">☰</button>
-        <div class="ttl">Murble <span>Race</span> <small class="ver">v3.40</small></div>
+        <div class="ttl">Murble <span>Race</span> <small class="ver">v3.41</small></div>
       </div>
       <button id="balPill" class="pill" type="button" aria-label="Punti totali: apri la classifica"><span id="hPts">0</span> <small>PT</small></button>
     </div>
@@ -1503,7 +1503,7 @@ async function playRandom(mode, k){
   if (Date.now() - catAt > 60000 || !catRows.length) await loadCatalog();
   const tsize = mode === "team" ? (myTeam ? (myTeam.members || []).length : 0) : 0;
   const tot = mode === "team" ? k * tsize : k;
-  const pool = catRows.filter(c => compatRow(c, cat, tot));
+  const pool = cyclePool(cat, tot).pool;
   if (!pool.length) throw new Error(mode === "team" ? "Nessuna gara disponibile per " + tot + " giocatori totali in questa categoria: prova a cambiare categoria o numero di squadre." : "Nessuna gara disponibile per " + k + " giocatori in questa categoria: prova un altro numero di giocatori o categoria.");
   for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
   let newId = null;
@@ -1511,7 +1511,7 @@ async function playRandom(mode, k){
     try { newId = await launchFromCatalog(c.id, mode, k); break; }
     catch (e) { if (!e.skip) throw e; }
   }
-  if (!newId) { await loadCatalog(); throw new Error("Nessuna gara disponibile" + (cat ? " in \"" + cat + "\"" : "") + ": sono tutte già giocate o in corso. Chiedi all'Admin di aggiungerne o di azzerare il catalogo."); }
+  if (!newId) { await loadCatalog(); throw new Error("Nessuna gara disponibile" + (cat ? " in \"" + cat + "\"" : "") + ": al momento tutte le gare compatibili sono in corso. Riprova tra poco."); }
   catAt = 0;
   setRaceTab("open");
 }
@@ -1523,10 +1523,17 @@ async function updPreview(){
   else k = Number($("catPlayers").value);
   if (!cat || !Number.isInteger(k) || k < 2 || (playMode !== "team" && k > 12)) { $("catPreview").textContent = ""; return; }
   try { if (Date.now() - catAt > 60000 || !catRows.length) await loadCatalog(); } catch (e) { return; }
-  const n = catRows.filter(c => compatRow(c, cat, k)).length;
-  $("catPreview").textContent = n ? "Gare disponibili: " + n : "Nessuna gara disponibile per " + k + " giocatori " + (playMode === "team" ? "totali " : "") + "in questa categoria.";
+  const cp = cyclePool(cat, k), n = cp.pool.length;
+  $("catPreview").textContent = n ? "Gare disponibili: " + n + (cp.minPlayed === 0 ? " (nuove)" : " (ciclo " + (cp.minPlayed + 1) + ")") : "Nessuna gara disponibile per " + k + " giocatori " + (playMode === "team" ? "totali " : "") + "in questa categoria.";
 }
-const compatRow = (c, cat, k) => !c.suspended && (c.playedCount || 0) === 0 && (!cat || macroCat(c.category) === cat) && (c.runners || []).length >= k && (c.runners || []).length % k === 0;
+const activeBusy = c => { if (!c.activeRaceId) return false; const r = races.find(x => x.id === c.activeRaceId); return !!r && !["settled", "cancelled"].includes(r.status); };
+const compatRow = (c, cat, k) => !c.suspended && !activeBusy(c) && (!cat || macroCat(c.category) === cat) && (c.runners || []).length >= k && (c.runners || []).length % k === 0;
+function cyclePool(cat, k){
+  const el = catRows.filter(c => compatRow(c, cat, k));
+  if (!el.length) return { pool: [], minPlayed: 0 };
+  const minPlayed = Math.min(...el.map(c => c.playedCount || 0));
+  return { pool: el.filter(c => (c.playedCount || 0) === minPlayed), minPlayed };
+}
 $("playCategory").addEventListener("change", updPreview);
 $("catPlayers").addEventListener("input", updPreview);
 $("catTeams").addEventListener("input", updPreview);
@@ -1576,7 +1583,7 @@ async function launchFromCatalog(cid, mode, k){
     if (!c.exists()) throw skip();
     if (!u.exists() || !u.data().active) throw new Error("Account non ancora attivo.");
     const cd = c.data();
-    if (cd.suspended || (cd.playedCount || 0) > 0) throw skip();
+    if (cd.suspended) throw skip();
     if (cd.activeRaceId) {
       const a = await tx.get(doc(db, "races", cd.activeRaceId));
       if (a.exists() && !["settled", "cancelled"].includes(a.data().status)) throw skip();
@@ -2439,6 +2446,14 @@ function renderCatAdm(){
   $("cadmTabs").style.display = "";
   const rows = cadmVisible();
   $("cadmInfo").textContent = "Catalogo: " + cadm.length + " gare · " + rows.length + " mostrate";
+  let warn = "";
+  ["Murble race", "Street race"].forEach(cn => {
+    const cc = cadm.filter(c => !c.suspended && macroCat(c.category) === cn);
+    if (cc.length && !cc.some(c => (c.playedCount || 0) === 0)) warn += '<div class="err" style="margin-top:8px">⚠️ Tutte le gare di ' + cn + ' sono state giocate almeno una volta: l\'app sta riutilizzando il catalogo. Importa nuove gare per mantenere partite inedite.</div>';
+  });
+  let wEl = $("cadmWarn");
+  if (!wEl) { wEl = document.createElement("div"); wEl.id = "cadmWarn"; $("cadmInfo").parentNode.insertBefore(wEl, $("cadmTabs")); }
+  wEl.innerHTML = warn;
   $("cadmList").innerHTML = rows.map(c => {
     const open = cadmOpen === c.id, d = cadmDet[c.id];
     const locked = (c.playedCount || 0) > 0;
