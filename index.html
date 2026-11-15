@@ -14,7 +14,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Murble Race">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Murble Race v3.35</title>
+<title>Murble Race v3.36</title>
 <style>
 :root{--bg:#090b10;--card:#121622;--line:#232b40;--txt:#eef0fa;--mut:#8f96b8;--acc:#ffb300;--ok:#00e676;--err:#ff3b5c}
 *{box-sizing:border-box}
@@ -208,7 +208,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
 
   <!-- AUTENTICAZIONE -->
   <div id="viewAuth" class="view on">
-    <h1>Murble <span>Race</span> <small class="ver">v3.35</small></h1>
+    <h1>Murble <span>Race</span> <small class="ver">v3.36</small></h1>
     <p class="sub">Pronostici a punti sulle gare di biglie</p>
     <div class="card">
       <div class="tabs">
@@ -242,7 +242,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
     <div class="topbar">
       <div class="tleft">
         <button id="btnDrawer" class="ibtn" type="button" aria-label="Menu">☰</button>
-        <div class="ttl">Murble <span>Race</span> <small class="ver">v3.35</small></div>
+        <div class="ttl">Murble <span>Race</span> <small class="ver">v3.36</small></div>
       </div>
       <button id="balPill" class="pill" type="button" aria-label="Punti totali: apri la classifica"><span id="hPts">0</span> <small>PT</small></button>
     </div>
@@ -296,6 +296,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
     <div class="atabs" id="adminTabs">
       <button type="button" data-sec="races" class="on">Gare</button>
       <button type="button" data-sec="players">Giocatori</button>
+      <button type="button" data-sec="review">Revisione necessaria <span id="revCnt" class="cnt" style="display:none;background:var(--err);color:#fff">0</span></button>
       <button type="button" data-sec="cat">Catalogo</button>
       <button type="button" data-sec="opts">Impostazioni</button>
     </div>
@@ -339,6 +340,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
     </div>
     </div>
     </div>
+    <div id="adminReview" style="display:none"></div>
     <div id="adminOpts" style="display:none">
       <div class="card">
         <div class="row"><b>Impostazioni</b></div>
@@ -542,7 +544,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
           <li>Nelle Sfide a Squadre i punti (e le vittorie del 1° posto) di tutti i membri si sommano <b>anche al punteggio della squadra</b>.</li>
           <li>Se la gara viene <b>annullata</b> dall'Admin, i pronostici sono annullati e non assegnano punti. L'Admin può annullare anche un singolo pronostico.</li>
         </ul>
-        <p>Quando il video termina compare il <b>Risultato Ufficiale della Gara</b> con tre pulsanti. <b>Podio corretto</b> conferma subito il podio, chiude la gara e accredita i punti. Il tasto <b>↻</b> rivede la gara dall'inizio della batteria. <b>Podio non corretto</b> permette di proporre un altro podio (1°, 2° e 3° posto con biglie diverse): finché la proposta non è accettata non viene assegnato alcun punto. La proposta può essere accettata (<b>Podio proposto corretto</b>) solo da un partecipante avversario, o da un membro di un'altra squadra nelle Sfide a Squadre, oppure rifiutata (<b>Rifiuta modifica</b>) tornando al podio originale; chi l'ha inviata, o i suoi compagni di squadra, possono ritirarla con <b>Annulla proposta</b>.</p>
+        <p>Quando il video termina compare il <b>Risultato Ufficiale della Gara</b> con tre pulsanti. Il tasto <b>↻</b> rivede la gara dall'inizio della batteria. Con <b>Podio corretto</b> confermi il podio: la gara si chiude e i punti vengono assegnati quando <b>anche un avversario</b> (o un membro di un'altra squadra nelle Sfide a Squadre) conferma lo stesso podio. Con <b>Podio non corretto</b>, in qualsiasi momento e da qualsiasi partecipante, proponi un altro podio (1°, 2° e 3° posto con biglie diverse) e <b>Conferma modifica e invia all'Admin</b>: la gara passa in <b>Revisione necessaria</b> e non viene assegnato alcun punto finché l'Admin non ha controllato il video e deciso il podio definitivo, oppure annullato la gara.</p>
         <h3>5. Classifica e Storico Punti</h3>
         <p>La <b>Classifica Squadre</b> ordina le squadre per punti totali; la <b>Classifica Individuale</b> (MVP) ordina i singoli giocatori, con il tag della loro squadra. In <b>Storico Punti</b> vedi i punti ottenuti in ogni gara. L'Admin può azzerare i punti per iniziare una <b>nuova stagione</b>.</p>
         <h3>6. Biglia personale e Squadre</h3>
@@ -602,7 +604,7 @@ const DOMAIN = "@murblerace.app";
 const ADMIN_EMAIL = "admin" + DOMAIN;
 const RESERVED = ["admin"];
 const MAX_BETS_SETTLE = 100;
-const TERMS_VERSION = 8; // incrementare per far riaccettare Regolamento e Termini a tutti
+const TERMS_VERSION = 9; // incrementare per far riaccettare Regolamento e Termini a tutti
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
@@ -958,8 +960,8 @@ function renderHome(name, d){
 $("btnLogout").onclick = () => signOut(auth);
 
 // ---------- Gare (giocatore) ----------
-const STATUS_LABEL = { ready: "da avviare", open: "pronostici aperti", closed: "pronostici chiusi", settled: "conclusa", cancelled: "annullata" };
-const STATUS_CLASS = { ready: "wait", open: "ok", closed: "wait", settled: "off", cancelled: "off" };
+const STATUS_LABEL = { ready: "da avviare", open: "pronostici aperti", closed: "pronostici chiusi", review: "in revisione Admin", settled: "conclusa", cancelled: "annullata" };
+const STATUS_CLASS = { ready: "wait", open: "ok", closed: "wait", review: "wait", settled: "off", cancelled: "off" };
 
 // Il link del video sta in un documento separato (videos/{garaId}) che le regole rendono leggibile solo a pronostici chiusi o in Diretta Live
 async function fetchVideo(id){
@@ -1018,9 +1020,9 @@ const podiumPts = r => (Array.isArray(r.podiumPts) && r.podiumPts.length === 3) 
 const modeLabel = r => r.gameMode === "team" ? "Squadre " + r.teamsCount + "×" + r.teamSize : (r.gameMode === "multi" || r.gameMode === "1v1") ? "Libera · " + r.expectedPlayers + " giocatori" : "";
 // Titolo neutro: il nome reale della gara non si mostra mai ai giocatori
 function raceTitle(r){
-  if (!["ready", "open", "closed"].includes(r.status)) return "Gara";
+  if (!["ready", "open", "closed", "review"].includes(r.status)) return "Gara";
   const t = x => (x.createdAt && x.createdAt.toMillis) ? x.createdAt.toMillis() : Date.now();
-  const act = races.filter(x => ["ready", "open", "closed"].includes(x.status)).sort((a, b) => t(a) - t(b));
+  const act = races.filter(x => ["ready", "open", "closed", "review"].includes(x.status)).sort((a, b) => t(a) - t(b));
   const i = act.findIndex(x => x.id === r.id);
   return act.length > 1 && i >= 0 ? "Gara " + (i + 1) : "Gara";
 }
@@ -1085,7 +1087,7 @@ function raceParts(r){
     foot = teamMsg === "need" ? needTeam : `<div class="betbox mut">${esc(teamMsg)}</div>`;
   }
 
-  const isActive = r.status === "ready" || r.status === "open" || r.status === "closed";
+  const isActive = r.status === "ready" || r.status === "open" || r.status === "closed" || r.status === "review";
   const isOpen = !!expanded[r.id];
   const arrow = isOpen ? " ▲" : " ▼";
   const teamsPart = r.gameMode === "team" ? ` · Squadre: <b style="color:var(--txt)">${esc(Object.keys(counts).length)} / ${esc(r.teamsCount)}</b>` : "";
@@ -1102,26 +1104,29 @@ function raceParts(r){
   if (r.status === "closed" && b && r.catalogId && presetPod[r.id] === undefined && !(podReq[r.id] > Date.now() - 20000)) fetchPodium(r);
   let resHtml = "";
   const podSet = presetPod[r.id];
-  const pr = (r.status === "closed" && b && Array.isArray(r.proposedPodium) && r.proposedPodium.length === 3) ? r.proposedPodium : null;
   const podList = arr => arr.map((i, p) => `<div class="row" style="margin-top:6px"><span style="display:flex;align-items:center;gap:8px">${MEDALS[p]} ${runnerMarbleSvg((r.runners || [])[i], 22)} <b>${p + 1}° Posto:</b> ${esc((r.runners || [])[i] ?? "?")}</span><span class="res-won">+${esc(pp[p])} PT</span></div>`).join("");
   const bar = (l, c, rr) => `<div style="display:flex;gap:8px;align-items:center;margin-top:12px">${l}${c}${rr}</div>`;
   const bL = (act, t) => `<button class="full" data-act="${act}" type="button" style="flex:1;margin-top:0">${t}</button>`;
   const bR = (act, t) => `<button class="full sec" data-act="${act}" type="button" style="flex:1;margin-top:0">${t}</button>`;
   const bC = `<button class="full sec" data-act="replay" type="button" title="Rivedi questa gara" aria-label="Rivedi questa gara" style="width:44px;flex:none;margin-top:0;padding-left:0;padding-right:0">↻</button>`;
   const boxS = '<div class="betbox" style="border:1px solid var(--acc);border-radius:12px;padding:12px;margin-top:10px">';
-  if (pr) {
-    const myT = (b && b.teamId) || (meDoc && meDoc.teamId) || "";
-    const mine = r.proposedBy === (me && me.uid) || (r.gameMode === "team" && r.proposedByTeam && r.proposedByTeam === myT);
-    const opp = r.gameMode === "team" ? (!!myT && myT !== r.proposedByTeam) : r.proposedBy !== (me && me.uid);
-    resHtml = boxS + `<b>Podio Proposto</b><div class="mut" style="margin-top:4px">Proposto da ${esc(r.proposedByName || "?")}</div>${podList(pr)}`
-      + (mine ? `<div class="mut" style="margin-top:10px">In attesa che un avversario (o un membro dell'altra squadra) confermi la modifica.</div><div style="margin-top:8px">${bR("cancelprop", "Annulla proposta")}</div>`
-        : opp ? bar(bL("acceptprop", "Podio proposto corretto"), bC, bR("rejectprop", "Rifiuta modifica")) : "") + '</div>';
+  const myT = (b && b.teamId) || (meDoc && meDoc.teamId) || "";
+  const isTm = r.gameMode === "team";
+  const rv = (r.status === "review" && b && Array.isArray(r.proposedPodium) && r.proposedPodium.length === 3) ? r.proposedPodium : null;
+  const vote = (r.status === "closed" && b && r.podiumVote && r.podiumVote.status === "g1_yes") ? r.podiumVote : null;
+  if (rv) {
+    resHtml = boxS + `<div style="display:flex;justify-content:space-between;align-items:center"><b>Podio proposto</b><span class="badge wait">In revisione Admin</span></div><div class="mut" style="margin-top:4px">Proposto da ${esc(r.proposedByName || "?")}. L'Admin verificherà il video e deciderà: nessun punto viene assegnato finché non convalida.</div>${podList(rv)}</div>`;
   } else if (r.status === "closed" && b && showRes[r.id] && Array.isArray(podSet) && podSet.length) {
     const ep = editPod[r.id];
     let tail;
     if (ep) {
       const sel = k => `<label>${k + 1}° Posto</label><select data-pp="${k}"><option value="">Seleziona…</option>${(r.runners || []).map((n, i) => `<option value="${i}" ${String(ep.v[k]) === String(i) ? "selected" : ""}>${esc(n)}</option>`).join("")}</select>`;
-      tail = `<div style="margin-top:10px">${sel(0)}${sel(1)}${sel(2)}</div><div style="display:flex;gap:8px;margin-top:12px">${bL("sendpod", "Invia proposta podio")}${bR("cancelform", "Annulla")}</div>`;
+      tail = `<div style="margin-top:10px">${sel(0)}${sel(1)}${sel(2)}</div><div style="display:flex;gap:8px;margin-top:12px">${bL("sendpod", "Conferma modifica e invia all'Admin")}${bR("cancelform", "Annulla")}</div>`;
+    } else if (vote) {
+      const mine = vote.g1Uid === (me && me.uid) || (isTm && !!vote.g1Team && vote.g1Team === myT);
+      const opp = isTm ? (!!myT && myT !== vote.g1Team) : vote.g1Uid !== (me && me.uid);
+      tail = mine ? `<div class="mut" style="margin-top:10px">Hai confermato il podio: in attesa di conferma dall'avversario / dall'altra squadra.</div>`
+        : opp ? bar(bL("confirmpod", "Podio corretto"), bC, bR("editpod", "Podio non corretto")) : "";
     } else tail = bar(bL("confirmpod", "Podio corretto"), bC, bR("editpod", "Podio non corretto"));
     resHtml = boxS + `<b>Risultato Ufficiale della Gara</b>${podList(podSet)}${tail}</div>`;
   }
@@ -1168,14 +1173,14 @@ function boardHtml(){
 function renderRaces(){
   const box = $("raceList");
   if (!meDoc) return;
-  const nOp = races.filter(r => r.status === "ready" || r.status === "open").length, nCl = races.filter(r => r.status === "closed").length;
+  const nOp = races.filter(r => r.status === "ready" || r.status === "open").length, nCl = races.filter(r => r.status === "closed" || r.status === "review").length;
   $("openCnt").textContent = nOp; $("openCnt").style.display = nOp ? "" : "none";
   $("closedCnt").textContent = nCl; $("closedCnt").style.display = nCl ? "" : "none";
   if (raceTab === "start") { box.innerHTML = ""; return; }
   if (raceTab === "moves") { box.innerHTML = movesHtml(); return; }
   if (raceTab === "board") { box.innerHTML = boardHtml(); return; }
   const isHist = r => r.status === "settled" || r.status === "cancelled";
-  const list = races.filter(r => raceTab === "history" ? isHist(r) : raceTab === "closed" ? r.status === "closed" : (r.status === "ready" || r.status === "open"));
+  const list = races.filter(r => raceTab === "history" ? isHist(r) : raceTab === "closed" ? (r.status === "closed" || r.status === "review") : (r.status === "ready" || r.status === "open"));
   if (!list.length) { box.innerHTML = '<div class="card mut">' + (raceTab === "history" ? "Nessuna gara conclusa." : raceTab === "closed" ? "Nessuna gara pronta al momento." : "Nessuna gara aperta al momento.") + '</div>'; return; }
   list.forEach((r, i) => {
     const parts = raceParts(r);
@@ -1306,7 +1311,7 @@ function modeFields(mode, k, nRunners, size){
   return { gameMode: "team", teamsCount: k, teamSize: size, expectedPlayers: tot, picksPerPlayer: nRunners / tot };
 }
 $("raceList").addEventListener("click", async ev => {
-  const y = ev.target.closest("[data-yt]"), pb = ev.target.closest("button[data-act='replay'], button[data-act='confirmpod'], button[data-act='editpod'], button[data-act='cancelform'], button[data-act='sendpod'], button[data-act='cancelprop'], button[data-act='acceptprop'], button[data-act='rejectprop']");
+  const y = ev.target.closest("[data-yt]"), pb = ev.target.closest("button[data-act='replay'], button[data-act='confirmpod'], button[data-act='editpod'], button[data-act='cancelform'], button[data-act='sendpod']");
   if (!y && !pb) return;
   ev.preventDefault();
   const id = ev.target.closest(".race").dataset.id;
@@ -1319,21 +1324,19 @@ $("raceList").addEventListener("click", async ev => {
     const rc = races.find(x => x.id === id);
     if (!rc || rc.status !== "closed" || !myBets[id] || !Array.isArray(presetPod[id])) { $("homeErr").textContent = "Risultato non ancora disponibile per questa gara."; return; }
     showRes[id] = true; renderRaces();
-  } else if (kind === "confirmpod" || kind === "acceptprop") {
+  } else if (kind === "confirmpod") {
     await busy(pb, async () => {
-      try { await confirmRacePodium(id, kind === "acceptprop"); showRes[id] = false; }
-      catch (e) { $("homeErr").textContent = msg(e); }
+      try {
+        const rc = races.find(x => x.id === id);
+        if (rc && rc.podiumVote) { await confirmRacePodium(id); showRes[id] = false; }
+        else await castPodiumVote(id);
+      } catch (e) { $("homeErr").textContent = msg(e); }
     });
   } else if (kind === "editpod") { editPod[id] = { v: ["", "", ""] }; renderRaces();
   } else if (kind === "cancelform") { delete editPod[id]; renderRaces();
   } else if (kind === "sendpod") {
     await busy(pb, async () => {
       try { await proposeRacePodium(id); delete editPod[id]; }
-      catch (e) { $("homeErr").textContent = msg(e); }
-    });
-  } else if (kind === "cancelprop" || kind === "rejectprop") {
-    await busy(pb, async () => {
-      try { await updateDoc(doc(db, "races", id), { proposedPodium: deleteField(), proposedBy: deleteField(), proposedByName: deleteField(), proposedByTeam: deleteField() }); }
       catch (e) { $("homeErr").textContent = msg(e); }
     });
   }
@@ -1344,26 +1347,31 @@ $("raceList").addEventListener("change", ev => {
   const id = ev.target.closest(".race").dataset.id;
   if (editPod[id]) editPod[id].v[Number(ev.target.dataset.pp)] = ev.target.value;
 });
-// Proposta di rettifica del podio: resta in attesa dell'approvazione di un avversario
+// "Podio corretto" del primo lato: registra il voto e attende la conferma dell'avversario / dell'altra squadra
+async function castPodiumVote(raceId){
+  const b = myBets[raceId];
+  await updateDoc(doc(db, "races", raceId), { podiumVote: { status: "g1_yes", g1Uid: me.uid, g1Name: (meDoc && meDoc.username) || me.name, g1Team: (b && b.teamId) || "" } });
+}
+// "Podio non corretto": invia la proposta e porta la gara in revisione Admin (nessun punto)
 async function proposeRacePodium(raceId){
   const ep = editPod[raceId], rc = races.find(x => x.id === raceId);
   if (!ep || !rc) throw new Error("Gara non trovata.");
   const v = ep.v.map(x => x === "" ? NaN : Number(x));
   if (v.some(x => !Number.isInteger(x) || x < 0 || x >= (rc.runners || []).length) || new Set(v).size !== 3) throw new Error("Scegli 3 biglie diverse per 1°, 2° e 3° posto.");
   const b = myBets[raceId];
-  await updateDoc(doc(db, "races", raceId), { proposedPodium: v, proposedBy: me.uid, proposedByName: (meDoc && meDoc.username) || me.name, proposedByTeam: (b && b.teamId) || "" });
+  await updateDoc(doc(db, "races", raceId), { status: "review", proposedPodium: v, proposedBy: me.uid, proposedByName: (meDoc && meDoc.username) || me.name, proposedByTeam: (b && b.teamId) || "" });
 }
-// Conferma del podio ufficiale da parte di un partecipante: chiude la gara e accredita i punti in un'unica transazione
-async function confirmRacePodium(raceId, useProposed){
-  let pod = presetPod[raceId];
-  if (!useProposed && (!Array.isArray(pod) || !pod.length)) throw new Error("Risultato non disponibile.");
+// Conferma del podio ufficiale da parte del secondo lato: chiude la gara e accredita i punti in un'unica transazione
+async function confirmRacePodium(raceId){
+  const pod = presetPod[raceId];
+  if (!Array.isArray(pod) || !pod.length) throw new Error("Risultato non disponibile.");
   const rr = doc(db, "races", raceId);
   await runTransaction(db, async tx => {
     const rs = await tx.get(rr);
     if (!rs.exists()) throw new Error("Gara non trovata.");
     const race = rs.data();
     if (race.status !== "closed") throw new Error("La gara è già stata confermata.");
-    if (useProposed) { pod = race.proposedPodium; if (!Array.isArray(pod) || pod.length !== 3) throw new Error("La proposta è stata ritirata."); }
+    if (!race.podiumVote) throw new Error("Attende prima la conferma dell'altro lato.");
     if (pod.some(i => !Number.isInteger(i) || i < 0 || i >= race.runners.length) || new Set(pod).size !== pod.length) throw new Error("Podio non valido.");
     const pp = podiumPts(race), isTeam = race.gameMode === "team";
     const players = {};
@@ -1399,8 +1407,6 @@ async function confirmRacePodium(raceId, useProposed){
       tx.update(tSnaps[i].ref, { stats: { picks: (st.picks || 0) + a.picks, wins: (st.wins || 0) + a.wins, points: (st.points || 0) + a.points }, creditRace: raceId });
     });
     tx.update(rr, { status: "settled", winner: pod[0], podium: pod, settledAt: serverTimestamp() });
-    // podio rettificato e approvato: resta salvato anche in archivio per le stagioni future
-    if (useProposed && race.catalogId) tx.set(doc(db, "catalog_w", race.catalogId), { presetPodium: pod });
   });
 }
 
@@ -1837,6 +1843,8 @@ function showAdminSec(n){
   $("adminColPlayers").style.display = n === "players" ? "" : "none";
   $("adminOpts").style.display = n === "opts" ? "" : "none";
   $("adminCat").style.display = n === "cat" ? "" : "none";
+  $("adminReview").style.display = n === "review" ? "" : "none";
+  if (n === "review") renderReview();
   document.querySelectorAll("#adminTabs button").forEach(b => b.classList.toggle("on", b.dataset.sec === n));
   if (n === "cat" && !cadm.length) loadCatAdm().catch(e => { $("adminErr").textContent = msg(e); });
   $("optMsg").textContent = "";
@@ -1948,7 +1956,7 @@ async function loadConfig(){
 async function loadRaces(){
   const rs = await getDocs(query(collection(adminDb, "races"), orderBy("createdAt", "desc"), limit(30)));
   adminRaces = rs.docs.map(d => ({ id: d.id, ...d.data() }));
-  await Promise.all(adminRaces.filter(r => r.status === "closed" && !(r.id in adminPreset)).map(async r => {
+  await Promise.all(adminRaces.filter(r => (r.status === "closed" || r.status === "review") && !(r.id in adminPreset)).map(async r => {
     try {
       const d = await getDoc(r.catalogId ? doc(adminDb, "catalog_w", r.catalogId) : doc(adminDb, "videos", r.id + "_w"));
       const wd = d.exists() ? d.data() : {};
@@ -1958,7 +1966,9 @@ async function loadRaces(){
     } catch (e) { adminPreset[r.id] = null; }
   }));
   await Promise.all(adminRaces.filter(r => adminExp[r.id] && (r.status === "open" || r.status === "closed")).map(r => loadRaceBets(r.id)));
+  await loadReviewMeta();
   renderAdminRaces();
+  renderReview();
 }
 
 async function loadAdmin(){
@@ -2103,10 +2113,78 @@ function fillPodium(pre, n){
   for (let i = 0; out.length < Math.min(3, n) && i < n; i++) if (!out.includes(i)) out.push(i);
   return out;
 }
+// ---------- Admin: Revisione necessaria (gare con podio contestato) ----------
+let adminVid = {}, adminTag = {}, adminRevSel = {};
+function renderReview(){
+  const rv = adminRaces.filter(r => r.status === "review");
+  $("revCnt").textContent = rv.length; $("revCnt").style.display = rv.length ? "" : "none";
+  const box = $("adminReview");
+  if (!box || box.style.display === "none") return;
+  if (!rv.length) { box.innerHTML = '<div class="card mut">Nessuna gara in revisione.</div>'; return; }
+  box.innerHTML = rv.map(r => {
+    const nr = (r.runners || []).length, pp = podiumPts(r);
+    const orig = Array.isArray(adminPreset[r.id]) && adminPreset[r.id].length ? adminPreset[r.id].map(i => MEDALS[adminPreset[r.id].indexOf(i)] + " " + esc((r.runners || [])[i])).join(" · ") : "—";
+    const prop = Array.isArray(r.proposedPodium) ? r.proposedPodium : [];
+    const ch = adminRevSel[r.id] || fillPodium(prop, nr);
+    const y = adminVid[r.id] ? ytInfo(adminVid[r.id]) : null;
+    const link = y && y.id ? `<a href="https://www.youtube.com/watch?v=${esc(y.id)}&t=${safeStartOf(y)}s" target="_blank" rel="noopener" style="color:var(--acc)">Apri il video al secondo di partenza ↗</a>` : '<span class="mut">Video non disponibile.</span>';
+    const tag = adminTag[r.proposedByTeam] ? " [" + esc(adminTag[r.proposedByTeam]) + "]" : "";
+    const sels = ch.map((v, p) => `<label class="mut" style="width:100%">${MEDALS[p]} ${p + 1}° posto (${esc(pp[p])} PT)</label><select data-rpod="${p}">${(r.runners || []).map((n, i) => `<option value="${i}" ${v === i ? "selected" : ""}>${esc(n)}</option>`).join("")}</select>`).join("");
+    return `<div class="card urow" data-id="${esc(r.id)}"><div class="row"><span><b>${esc(r.name)}</b><span class="tag">${esc(macroCat(r.category))}</span>${r.gameMode ? `<span class="tag">${esc(modeLabel(r))}</span>` : ""}</span><span class="badge wait">in revisione</span></div>
+      <div class="mut" style="margin-top:8px">Podio originale (catalogo): <b style="color:var(--txt)">${orig}</b></div>
+      <div class="mut" style="margin-top:4px">Podio proposto da <b style="color:var(--txt)">${esc(r.proposedByName || "?")}${tag}</b>: <b style="color:var(--txt)">${prop.map((i, p) => MEDALS[p] + " " + esc((r.runners || [])[i])).join(" · ")}</b></div>
+      <div style="margin:8px 0">${link}</div>
+      ${sels}
+      <div class="uactions" style="margin-top:12px"><button class="small" data-ract="ok">Convalida e assegna punti</button><button class="small danger" data-ract="cancel">Annulla gara</button></div></div>`;
+  }).join("");
+}
+async function loadReviewMeta(){
+  const rv = adminRaces.filter(r => r.status === "review");
+  await Promise.all(rv.map(async r => {
+    if (!(r.id in adminVid)) {
+      try {
+        let d = r.catalogId ? await getDoc(doc(adminDb, "catalog_v", r.catalogId)) : null;
+        if (!d || !d.exists()) d = await getDoc(doc(adminDb, "videos", r.id));
+        adminVid[r.id] = d.exists() ? d.data().url || "" : "";
+      } catch (e) { adminVid[r.id] = ""; }
+    }
+    if (r.proposedByTeam && !(r.proposedByTeam in adminTag)) {
+      try { const t = await getDoc(doc(adminDb, "teams", r.proposedByTeam)); adminTag[r.proposedByTeam] = t.exists() ? t.data().tag || "" : ""; } catch (e) { adminTag[r.proposedByTeam] = ""; }
+    }
+  }));
+}
+$("adminReview").addEventListener("change", ev => {
+  const sel = ev.target.closest("select[data-rpod]"); if (!sel) return;
+  const row = sel.closest(".urow");
+  adminRevSel[row.dataset.id] = [...row.querySelectorAll("[data-rpod]")].map(x => Number(x.value));
+});
+$("adminReview").addEventListener("click", async ev => {
+  const btn = ev.target.closest("button[data-ract]"); if (!btn) return;
+  const row = btn.closest(".urow"), id = row.dataset.id, r = adminRaces.find(x => x.id === id);
+  if (!r) return;
+  $("adminErr").textContent = "";
+  await busy(btn, async () => {
+    try {
+      if (btn.dataset.ract === "ok") {
+        const podium = [...row.querySelectorAll("[data-rpod]")].map(x => Number(x.value));
+        if (new Set(podium).size !== podium.length) { $("adminErr").textContent = "Il podio deve avere biglie diverse."; return; }
+        if (!confirm("Convalidare il podio: " + podium.map((i, p) => (p + 1) + "° " + r.runners[i]).join(", ") + "? Assegna i punti e salva il podio anche nel catalogo.")) return;
+        await finalizeRace(id, "settle", podium, true);
+      } else {
+        if (!confirm("Annullare la gara? Tutti i pronostici vengono annullati (nessun punto).")) return;
+        await finalizeRace(id, "cancel", null);
+      }
+      delete adminRevSel[id];
+      await loadRaces();
+    } catch (e) { $("adminErr").textContent = msg(e); await loadRaces().catch(() => {}); }
+  });
+});
+
 function renderAdminRaces(){
   const box = $("raceAdminList");
-  if (!adminRaces.length) { box.innerHTML = '<div class="mut" style="margin-top:10px">Nessuna gara creata.</div>'; return; }
-  box.innerHTML = adminRaces.map(r => {
+  const shown = adminRaces.filter(r => r.status !== "review");
+  if (!shown.length) { box.innerHTML = '<div class="mut" style="margin-top:10px">Nessuna gara creata.</div>'; return; }
+  box.innerHTML = shown.map(r => {
     const pp = podiumPts(r);
     const nr = (r.runners || []).length;
     const list = (r.runners || []).map(n => esc(n)).join(" · ");
@@ -2230,7 +2308,7 @@ async function refundBet(raceId, betId){
 }
 
 // Chiusura gara atomica: assegnazione punti, classifiche e stato gara in un'unica transazione
-async function finalizeRace(raceId, mode, podium){
+async function finalizeRace(raceId, mode, podium, saveCatalog){
   const bs = await getDocs(query(collection(adminDb, "bets"), where("raceId", "==", raceId)));
   if (bs.size > MAX_BETS_SETTLE) throw new Error("Troppi pronostici (max " + MAX_BETS_SETTLE + ") per una chiusura atomica.");
   const betRefs = bs.docs.map(d => d.ref);
@@ -2239,7 +2317,7 @@ async function finalizeRace(raceId, mode, podium){
     const rs = await tx.get(rr);
     if (!rs.exists()) throw new Error("Gara non trovata.");
     const race = rs.data();
-    if (race.status !== "closed") throw new Error("La gara deve essere chiusa ai pronostici.");
+    if (race.status !== "closed" && race.status !== "review") throw new Error("La gara deve essere chiusa ai pronostici.");
     const bSnaps = await Promise.all(betRefs.map(r => tx.get(r)));
     const bets = bSnaps.filter(s => s.exists() && s.data().status === "pending").map(s => ({ ref: s.ref, ...s.data() }));
     const pp = podiumPts(race);
@@ -2282,6 +2360,8 @@ async function finalizeRace(raceId, mode, podium){
     tx.update(rr, voided
       ? { status: "cancelled", winner: null, settledAt: serverTimestamp() }
       : { status: "settled", winner: pod[0], podium: pod, settledAt: serverTimestamp() });
+    // podio convalidato dall'Admin: resta salvato anche in archivio
+    if (saveCatalog && !voided && race.catalogId) tx.set(doc(adminDb, "catalog_w", race.catalogId), { presetPodium: pod });
   });
 }
 
