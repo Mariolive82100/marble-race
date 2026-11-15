@@ -14,7 +14,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Murble Race">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Murble Race v3.43</title>
+<title>Murble Race v3.44</title>
 <style>
 :root{--bg:#090b10;--card:#121622;--line:#232b40;--txt:#eef0fa;--mut:#8f96b8;--acc:#ffb300;--ok:#00e676;--err:#ff3b5c}
 *{box-sizing:border-box}
@@ -112,7 +112,6 @@ details.rsx[open] summary::after{content:"▲"}
   #adminColRaces,#adminColPlayers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 24px;align-items:start}
   #adminColPlayers>.card:last-child{grid-column:1/-1}
   #adminOpts{max-width:720px}
-  #cadmList{display:grid;grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:0 24px;align-items:start}
   .card{padding:16px;margin-bottom:12px}
   .rhead:hover{opacity:.92}
   .rn:hover{border-color:var(--acc)}
@@ -208,7 +207,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
 
   <!-- AUTENTICAZIONE -->
   <div id="viewAuth" class="view on">
-    <h1>Murble <span>Race</span> <small class="ver">v3.43</small></h1>
+    <h1>Murble <span>Race</span> <small class="ver">v3.44</small></h1>
     <p class="sub">Pronostici a punti sulle gare di biglie</p>
     <div class="card">
       <div class="tabs">
@@ -242,7 +241,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
     <div class="topbar">
       <div class="tleft">
         <button id="btnDrawer" class="ibtn" type="button" aria-label="Menu">☰</button>
-        <div class="ttl">Murble <span>Race</span> <small class="ver">v3.43</small></div>
+        <div class="ttl">Murble <span>Race</span> <small class="ver">v3.44</small></div>
       </div>
       <button id="balPill" class="pill" type="button" aria-label="Punti totali: apri la classifica"><span id="hPts">0</span> <small>PT</small></button>
     </div>
@@ -388,8 +387,13 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
         <button type="button" class="small sec" data-cf="new">Non ancora giocate</button>
         <button type="button" class="small sec" data-cf="played">Già giocate</button>
         <button type="button" class="small sec" data-cf="susp">Sospese</button>
+        <button type="button" class="small sec" data-cf="pod">Con podio</button>
+        <button type="button" class="small sec" data-cf="nopod">Senza podio</button>
       </div>
-      <select id="cadmCat" style="margin-top:10px;display:none"><option value="">Tutte le categorie</option><option value="Murble race">Murble race</option><option value="Street race">Street race</option></select>
+      <div id="cadmFlt" style="display:none;gap:8px;margin-top:10px">
+        <select id="cadmCat" style="flex:1;min-width:0;margin:0"><option value="">Tutte le categorie</option><option value="Murble race">Murble race</option><option value="Street race">Street race</option></select>
+        <select id="cadmRunners" style="flex:1;min-width:0;margin:0"><option value="">Tutte le biglie</option></select>
+      </div>
       <input id="cadmSearch" placeholder="Cerca per nome, categoria o biglia" style="margin-top:10px;display:none">
       <div id="cadmBar" class="uactions" style="display:none;margin-top:10px">
         <button class="small sec" type="button" id="cadmAll">Seleziona tutte</button>
@@ -2440,12 +2444,27 @@ async function finalizeRace(raceId, mode, podium, saveCatalog){
 }
 
 // ---------- Admin: catalogo (visualizza, modifica, elimina) ----------
-let cadm = [], cadmOpen = null, cadmDet = {};
+let cadm = [], cadmOpen = null, cadmDet = {}, cadmPods = {};
+function fillRunnersSel(){
+  const sel = $("cadmRunners"), cur = sel.value;
+  const sizes = [...new Set(cadm.map(c => (c.runners || []).length).filter(n => n > 0))].sort((a, b) => a - b);
+  sel.innerHTML = '<option value="">Tutte le biglie</option>' + sizes.map(n => '<option value="' + n + '">' + n + ' biglie</option>').join("");
+  sel.value = sizes.map(String).includes(cur) ? cur : "";
+}
 async function loadCatAdm(){
   const qs = await getDocs(query(collection(adminDb, "catalog"), limit(500)));
   cadm = qs.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (a.name || "").localeCompare(b.name || ""));
   cadmDet = {};
-  $("cadmSearch").style.display = ""; $("cadmCat").style.display = "";
+  cadmPods = {};
+  try {
+    const ws = await getDocs(query(collection(adminDb, "catalog_w"), limit(500)));
+    ws.docs.forEach(d => {
+      const wd = d.data();
+      cadmPods[d.id] = Array.isArray(wd.presetPodium) ? wd.presetPodium : (Number.isInteger(wd.presetWinner) ? [wd.presetWinner] : []);
+    });
+  } catch (e) {}
+  fillRunnersSel();
+  $("cadmSearch").style.display = ""; $("cadmFlt").style.display = "flex";
   renderCatAdm();
   if (cadmOpen && cadm.some(c => c.id === cadmOpen)) await openCatAdm(cadmOpen); else cadmOpen = null;
 }
@@ -2458,13 +2477,17 @@ async function openCatAdm(id){
   renderCatAdm();
 }
 let cadmFilter = "all", cadmSel = new Set();
-function cadmStatus(c){ return c.suspended ? ["Sospesa", "off"] : (c.playedCount || 0) > 0 ? ["Già giocata", "wait"] : ["Disponibile / Da giocare", "ok"]; }
+function cadmStatus(c){ return c.suspended ? ["Sospesa", "off"] : (c.playedCount || 0) > 0 ? ["Giocata · " + c.playedCount, "wait"] : ["Disponibile", "ok"]; }
+const cadmHasPod = c => Array.isArray(cadmPods[c.id]) && cadmPods[c.id].length >= 1;
 function cadmVisible(){
   const t = $("cadmSearch").value.trim().toLowerCase();
   return cadm.filter(c => {
     if (cadmFilter === "new" && (c.playedCount || 0) > 0) return false;
     if (cadmFilter === "played" && !((c.playedCount || 0) > 0)) return false;
     if (cadmFilter === "susp" && !c.suspended) return false;
+    if (cadmFilter === "pod" && !cadmHasPod(c)) return false;
+    if (cadmFilter === "nopod" && cadmHasPod(c)) return false;
+    if ($("cadmRunners").value && String((c.runners || []).length) !== $("cadmRunners").value) return false;
     if ($("cadmCat").value && macroCat(c.category) !== $("cadmCat").value) return false;
     return !t || (c.name || "").toLowerCase().includes(t) || (c.category || "").toLowerCase().includes(t) || (c.runners || []).some(r => String(r).toLowerCase().includes(t));
   });
@@ -2509,11 +2532,14 @@ function renderCatAdm(){
         <div class="uactions" style="margin-top:12px"><button class="small" data-act="csave">Salva</button><button class="small danger" data-act="cdel">Elimina</button></div>
       </div>`;
     }
-    return `<div class="urow" data-id="${esc(c.id)}"><div style="display:flex;gap:10px;align-items:flex-start">
-      <input type="checkbox" data-sel ${cadmSel.has(c.id) ? "checked" : ""} style="width:22px;height:22px;flex:none;margin-top:4px">
-      <div class="rhead" data-tgl style="flex:1;min-width:0">
-        <div class="row"><span><b>${esc(c.name || "?")}</b>${c.duration ? `<span class="dur">⏱ ${esc(c.duration)}</span>` : ""}${c.category ? `<span class="tag">${esc(c.category)}</span>` : ""}</span><span class="mut">${open ? "▲" : "▼"}</span></div>
-        <div class="mut">${esc(c.runnersCount || (c.runners || []).length)} biglie · giocata ${esc(c.playedCount || 0)} volte · <span class="badge ${st[1]}">${st[0]}</span></div>
+    const pd = cadmHasPod(c) ? cadmPods[c.id].map((x, k) => ["🥇", "🥈", "🥉"][k] + " " + esc((c.runners || [])[x] || "?")).join(" · ") : "";
+    const podHtml = pd ? `<span class="mut" style="font-size:14px">${pd}</span>` : '<span class="badge wait" style="background:rgba(255,140,0,.15);color:#ff9f1c">⚠️ Senza podio</span>';
+    return `<div class="urow" data-id="${esc(c.id)}"><div style="display:flex;gap:10px;align-items:center">
+      <input type="checkbox" data-sel ${cadmSel.has(c.id) ? "checked" : ""} style="width:22px;height:22px;flex:none;margin:0">
+      <div class="rhead" data-tgl style="flex:1;min-width:0;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+        <div style="flex:1 1 220px;min-width:0"><b>${esc(c.name || "?")}</b>${c.category ? `<span class="tag">${esc(macroCat(c.category))}</span>` : ""}${c.duration ? `<span class="dur">⏱ ${esc(c.duration)}</span>` : ""}<span class="tag" style="border-color:var(--line);color:var(--mut)">${esc((c.runners || []).length)} biglie</span></div>
+        <div style="flex:1 1 200px;min-width:0">${podHtml}</div>
+        <div style="display:flex;align-items:center;gap:10px"><span class="badge ${st[1]}">${esc(st[0])}</span><span class="mut">${open ? "▲" : "▼"}</span></div>
       </div></div>${body}</div>`;
   }).join("");
   cadmBar();
@@ -2565,6 +2591,7 @@ $("btnCatLoad").onclick = async () => {
 };
 $("cadmSearch").addEventListener("input", renderCatAdm);
 $("cadmCat").addEventListener("change", renderCatAdm);
+$("cadmRunners").addEventListener("change", renderCatAdm);
 $("cadmList").addEventListener("click", async ev => {
   const row = ev.target.closest(".urow");
   if (!row) return;
@@ -2596,7 +2623,7 @@ $("cadmList").addEventListener("click", async ev => {
         const b = writeBatch(adminDb);
         b.delete(doc(adminDb, "catalog", id)); b.delete(doc(adminDb, "catalog_v", id)); b.delete(doc(adminDb, "catalog_w", id));
         await b.commit();
-        cadm = cadm.filter(x => x.id !== id); delete cadmDet[id]; cadmSel.delete(id); cadmOpen = null;
+        cadm = cadm.filter(x => x.id !== id); delete cadmDet[id]; delete cadmPods[id]; fillRunnersSel(); cadmSel.delete(id); cadmOpen = null;
         renderCatAdm(); flashOk("Gara eliminata dal catalogo.");
         return;
       }
@@ -2634,6 +2661,8 @@ $("cadmList").addEventListener("click", async ev => {
       await b.commit();
       Object.assign(c, { name, runners, runnersCount: runners.length, category: category || undefined, duration: sec ? fmtDur(sec) : undefined, durationSec: sec || undefined });
       cadmDet[id] = { url, winner: pod.map(i => runners[i]).join(", ") };
+      if (pod.length) cadmPods[id] = pod; else delete cadmPods[id];
+      fillRunnersSel();
       renderCatAdm(); flashOk("Gara del catalogo salvata.");
     } catch (e) { $("adminErr").textContent = msg(e); }
   });
