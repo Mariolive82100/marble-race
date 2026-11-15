@@ -14,7 +14,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Murble Race">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Murble Race v4.02</title>
+<title>Murble Race v4.03</title>
 <style>
 :root{--bg:#090b10;--card:#121622;--line:#232b40;--txt:#eef0fa;--mut:#8f96b8;--acc:#ffb300;--ok:#00e676;--err:#ff3b5c}
 *{box-sizing:border-box}
@@ -83,6 +83,8 @@ button:disabled{opacity:.5;cursor:default}
 .rhead.static{cursor:default}
 .yt{position:relative;padding-top:56.25%;margin-top:10px;border-radius:10px;overflow:hidden;background:#000}
 .yt iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.yt-ov{position:absolute;inset:0;background:rgba(0,0,0,.86);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:12px;text-align:center;z-index:2}
+.sech{margin:18px 0 8px;font-size:16px}
 details.rsx summary{cursor:pointer;font-weight:600;padding:10px 12px;border:1px solid var(--line);border-radius:10px;list-style:none;display:flex;justify-content:space-between;align-items:center}
 details.rsx summary::-webkit-details-marker{display:none}
 details.rsx summary::after{content:"▼";font-size:12px;color:var(--mut)}
@@ -207,7 +209,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
 
   <!-- AUTENTICAZIONE -->
   <div id="viewAuth" class="view on">
-    <h1>Murble <span>Race</span> <small class="ver">v4.02</small></h1>
+    <h1>Murble <span>Race</span> <small class="ver">v4.03</small></h1>
     <p class="sub">Tornei a punti sulle gare di biglie</p>
     <div class="card">
       <div class="tabs">
@@ -241,23 +243,29 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
     <div class="topbar">
       <div class="tleft">
         <button id="btnDrawer" class="ibtn" type="button" aria-label="Menu">☰</button>
-        <div class="ttl">Murble <span>Race</span> <small class="ver">v4.02</small></div>
+        <div class="ttl">Murble <span>Race</span> <small class="ver">v4.03</small></div>
       </div>
       <button id="balPill" class="pill" type="button" aria-label="Punti totali: apri la classifica"><span id="hPts">0</span> <small>PT</small></button>
     </div>
     <div id="hWait" class="banner" style="display:none">Account in attesa di attivazione da parte dell'admin: per ora non puoi creare né giocare tornei.</div>
     <div class="pgbody">
       <nav class="bnav" id="raceTabs">
-        <button id="tabStart" type="button" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg>START</button>
-        <button id="tabOpen" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg><span>Scegli<span id="openCnt" class="cnt" style="display:none">0</span></span></button>
-        <button id="tabClosed" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg><span>In gara<span id="closedCnt" class="cnt" style="display:none">0</span></span></button>
-        <button id="tabHistory" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h9"/></svg>Esiti</button>
+        <button id="tabStart" type="button" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg>TORNEO</button>
+        <button id="tabOpen" type="button" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg><span>Scegli<span id="openCnt" class="cnt" style="display:none">0</span></span></button>
+        <button id="tabClosed" type="button" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg><span>In gara<span id="closedCnt" class="cnt" style="display:none">0</span></span></button>
+        <button id="tabHistory" type="button" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h9"/></svg>Esiti</button>
         <button id="tabBoard" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4zM17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg>Classifica</button>
       </nav>
       <main>
         <div id="startCard" style="display:none">
           <div id="passCard" class="card pass" role="button" tabindex="0" aria-label="Personalizza la biglia"></div>
           <div id="tourDetail" style="display:none"></div>
+          <h3 id="tdActiveH" class="sech" style="display:none">🎯 Gara attiva</h3>
+          <div id="tdActiveMsg" class="card mut" style="display:none"></div>
+          <div id="tdActive" style="display:none"></div>
+          <h3 id="tdHistH" class="sech" style="display:none">📋 Esiti delle batterie giocate</h3>
+          <div id="tdHist" style="display:none"></div>
+          <div id="tdAdmin" style="display:none"></div>
           <div id="tourHome">
             <div id="catCard" class="bigbtns"><button id="btnNewTour" class="btn-go" type="button">Crea Torneo</button><button id="btnJoinTour" class="btn-team" type="button">Unisciti con codice</button></div>
             <div id="newsCard" class="card news"></div>
@@ -504,15 +512,15 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
         </ul>
         <h3>3. Estrazione delle gare "al buio"</h3>
         <p>Il Direttore estrae dal catalogo le gare del torneo (una alla volta o tutte insieme), senza poterle vedere: video, titolo e podio restano nascosti a tutti fino allo sblocco. Le gare già estratte in un torneo non si ripetono; vengono estratte per prime quelle mai giocate e, finite quelle, si riparte dal ciclo successivo.</p>
-        <p>Il Direttore apre le scelte <b>una gara alla volta</b>, indicando facoltativamente un <b>limite di tempo</b> per confermare la squadra.</p>
+        <p>Le gare estratte sono <b>subito aperte alle scelte</b>: ogni giocatore vede la gara attiva del momento e conferma la sua squadra, senza passaggi intermedi.</p>
         <h3>4. La squadra di 3 scelte</h3>
         <ul>
           <li>Quando le scelte sono aperte vedi solo l'elenco delle nazioni in pista e confermi una <b>squadra di 3 scelte</b> diverse tra loro. Le scelte <b>non sono esclusive</b>: più giocatori possono scegliere le stesse nazioni.</li>
-          <li>La squadra confermata non si modifica. Chi non conferma entro la scadenza ottiene <b>0 PT</b> su quella gara.</li>
+          <li>La squadra confermata non si modifica. Chi non conferma la squadra ottiene <b>0 PT</b> su quella gara.</li>
         </ul>
         <h3>5. Sblocco del video e punti</h3>
         <ul>
-          <li>Il video si sblocca da solo quando <b>tutti i partecipanti</b> hanno confermato la squadra, oppure alla <b>scadenza</b> se almeno 1 squadra è stata confermata. Se alla scadenza nessuno ha confermato, la gara resta bloccata e il Direttore può riaprirla o sostituirla.</li>
+          <li>Il video si sblocca da solo quando <b>tutti i partecipanti</b> hanno confermato la squadra; il Direttore può forzare lo sblocco se almeno 1 squadra è stata confermata. Il video parte dal pulsante <b>Guarda la gara</b>, dal secondo esatto della batteria.</li>
           <li>Per ogni tua scelta che sale sul podio guadagni i punti del posto (di default <b>100 PT</b> al 1°, <b>50 PT</b> al 2°, <b>25 PT</b> al 3°, fissati dall'Admin): con 3 scelte sul podio puoi totalizzare fino alla somma dei tre premi.</li>
           <li>Quando finisci di guardare il video vedi il podio e i tuoi punti vengono registrati. Chi non guarda il video può essere accreditato dal Direttore di Gara.</li>
         </ul>
@@ -573,7 +581,7 @@ const adminDb = getFirestore(adminApp);
 const DOMAIN = "@murblerace.app";
 const ADMIN_EMAIL = "admin" + DOMAIN;
 const RESERVED = ["admin"];
-const TERMS_VERSION = 11; // incrementare per far riaccettare Regolamento e Termini a tutti
+const TERMS_VERSION = 12; // incrementare per far riaccettare Regolamento e Termini a tutti
 const POLL_MS = 30000;
 
 const $ = id => document.getElementById(id);
@@ -1164,7 +1172,7 @@ async function extractRaces(tid, count, opts){
   for (let i = 0; i < chosen.length; i += 4) {
     const chunk = chosen.slice(i, i + 4), b = writeBatch(db);
     chunk.forEach(s => {
-      const data = { tournamentId: tid, raceNumber: s.n, status: "pending_open", deadline: null, picksPerPlayer: 3, allowDuplicatePicks: true, catalogId: s.c.id, runners: s.c.runners, runnersCount: s.c.runners.length, category: macroCat(s.c.category), durSec: durOf(s.c), podiumPts: pp, pickedUids: [], viewedUids: [], resultsCount: 0, expectedPlayers: 0, createdAt: serverTimestamp(), createdBy: me.uid };
+      const data = { tournamentId: tid, raceNumber: s.n, status: "picking", deadline: null, picksPerPlayer: 3, allowDuplicatePicks: true, catalogId: s.c.id, runners: s.c.runners, runnersCount: s.c.runners.length, category: macroCat(s.c.category), durSec: durOf(s.c), podiumPts: pp, pickedUids: [], viewedUids: [], resultsCount: 0, expectedPlayers: opts.tiebreak ? opts.tieUids.length : t.expectedPlayers, createdAt: serverTimestamp(), createdBy: me.uid };
       if (s.tb) { data.isTiebreak = true; data.tieUids = opts.tieUids; }
       b.set(doc(db, "races", s.id), data);
       b.update(doc(db, "catalog", s.c.id), { playedCount: increment(1), lastPlayedAt: serverTimestamp(), activeRaceId: s.id });
@@ -1202,10 +1210,10 @@ function topTie(arr){
   const still = tied.filter(p => p.tb === mx);
   return still.length > 1 ? still : [];
 }
-function standingsHtml(t){
-  const arr = computeStandings(t);
+function standingsHtml(t, limit){
+  const all = computeStandings(t), arr = limit ? all.slice(0, limit) : all;
   if (!arr.length) return '<div class="mut">Nessun iscritto.</div>';
-  const susp = arr.some(p => p.susp > 0);
+  const susp = all.some(p => p.susp > 0);
   return `<table class="stbl"><thead><tr><th>#</th><th>Giocatore</th><th class="n">Vittorie</th>${arr.some(p => p.tb > 0) ? '<th class="n">Spareggio</th>' : ""}<th class="n">Punti</th></tr></thead><tbody>${arr.map((p, i) => `<tr><td>${i + 1}</td><td><b${p.uid === me.uid ? ' style="color:var(--acc)"' : ""}>${esc(p.name)}</b>${p.susp ? ` <span class="mut">(+${esc(p.susp)} sospesi)</span>` : ""}</td><td class="n">${esc(p.wins)}</td>${arr.some(x => x.tb > 0) ? `<td class="n">${esc(p.tb)}</td>` : ""}<td class="n"><b class="res-won">${esc(p.points)}</b></td></tr>`).join("")}</tbody></table>${susp ? '<div class="mut" style="margin-top:6px">Le gare in revisione Admin sono sospese: i loro punti rientrano alla convalida.</div>' : ""}`;
 }
 
@@ -1262,11 +1270,6 @@ async function loadBoard(){
 
 function renderAll(){
   if (!meDoc) return;
-  const pick = Object.values(racesById).filter(r => r.status === "picking" && tourOf(r.tournamentId) && eligible(r));
-  const live = Object.values(racesById).filter(r => ["unlocked", "disputed"].includes(r.status) && tourOf(r.tournamentId) && !inEsiti(r));
-  const nOp = pick.filter(r => !picked(r)).length;
-  $("openCnt").textContent = nOp; $("openCnt").style.display = nOp ? "" : "none";
-  $("closedCnt").textContent = live.length; $("closedCnt").style.display = live.length ? "" : "none";
   const st = raceTab === "start";
   $("startCard").style.display = st ? "" : "none";
   $("raceList").style.display = st ? "none" : "";
@@ -1279,12 +1282,15 @@ function renderStart(){
   $("passCard").innerHTML = `<div>${marbleSvg(d.marble, 56)}</div><div style="min-width:0;flex:1"><div class="pn">${esc(d.username || "")}</div><div style="margin:4px 0"><span class="badge ${d.active ? "ok" : "wait"}">${d.active ? "Account attivo" : "In attesa di attivazione"}</span></div><div class="mut" style="font-size:12px">Tocca per personalizzare la biglia</div></div><div class="pp" style="padding-right:12px;text-align:right">${esc(d.points || 0)}<br><small>PT</small></div>`;
   const ann = String(cfgApp.announcements || "").trim();
   $("newsCard").innerHTML = '<h4>🏁 Bacheca Paddock &amp; Novità</h4><div class="nt">' + (ann ? esc(ann) : "Benvenuto al Paddock! Crea un torneo o unisciti con un codice invito: chi porta le sue 3 scelte sul podio guadagna punti. Buona fortuna in pista!") + '</div>';
-  $("tourDetail").style.display = selTid ? "" : "none";
-  $("tourHome").style.display = selTid ? "none" : "";
-  if (selTid) { const t = tourOf(selTid); if (t) $("tourDetail").innerHTML = tourDetailHtml(t); return; }
+  const showT = !!selTid && !!tourOf(selTid);
+  ["tourDetail", "tdActiveH", "tdActive", "tdHistH", "tdHist", "tdAdmin"].forEach(i => { $(i).style.display = showT ? "" : "none"; });
+  $("passCard").style.display = showT ? "none" : "";
+  $("tourHome").style.display = showT ? "none" : "";
+  if (!showT) $("tdActiveMsg").style.display = "none";
+  if (showT) { renderTourScreen(tourOf(selTid)); return; }
   $("tourList").innerHTML = myTours.length ? myTours.map(t => {
     const s = TSTATUS[t.status] || [t.status, "off"];
-    return `<div class="card" data-tid="${esc(t.id)}" role="button" style="cursor:pointer"><div class="row"><b>${esc(t.name)}</b><span class="badge ${s[1]}">${s[0]}</span></div><div class="mut" style="margin-top:4px"><span class="tag" style="margin-left:0">${esc(t.category)}</span>${isDir(t) ? '<span class="tag blue">Direttore di Gara</span>' : ""}</div><div class="mut" style="margin-top:6px">Giocatori ${esc((t.members || []).length)} / ${esc(t.maxPlayers)} · Gare concluse ${esc(t.settledCount || 0)} / ${esc(t.totalRaces)}</div></div>`;
+    return `<div class="card" data-tid="${esc(t.id)}" role="button" style="cursor:pointer"><div class="row"><b>${esc(t.name)}</b><span class="badge ${s[1]}">${s[0]}</span></div><div class="mut" style="margin-top:4px"><span class="tag" style="margin-left:0">${esc(t.category)}</span>${isDir(t) ? '<span class="tag blue">Direttore di Gara</span>' : ""}${needsAction(t) ? '<span class="tag" style="background:rgba(46,204,113,.18);color:var(--ok)">▶ Tocca a te</span>' : ""}</div><div class="mut" style="margin-top:6px">Giocatori ${esc((t.members || []).length)} / ${esc(t.maxPlayers)} · Gare concluse ${esc(t.settledCount || 0)} / ${esc(t.totalRaces)}</div></div>`;
   }).join("") : '<div class="card mut">Non sei ancora iscritto a nessun torneo: creane uno oppure unisciti con un codice invito.</div>';
 }
 $("passCard").onclick = () => openAccount();
@@ -1296,72 +1302,93 @@ $("tourList").addEventListener("click", ev => {
 });
 
 // ---------- Dettaglio torneo ----------
+const stdOpen = {};
+function needsAction(t){
+  return racesOfTour(t.id).some(r => eligible(r) && ((r.status === "picking" && !picked(r) && meDoc && meDoc.active) || (r.status === "unlocked" && picked(r) && !inEsiti(r))));
+}
+function activeRaceOf(tid){
+  const rs = racesOfTour(tid).filter(r => eligible(r));
+  return rs.find(r => r.status === "unlocked" && picked(r) && !inEsiti(r))
+    || rs.find(r => r.status === "picking" && !picked(r) && meDoc.active)
+    || rs.find(r => r.status === "picking" && picked(r))
+    || rs.find(r => r.status === "unlocked" && !inEsiti(r))
+    || null;
+}
 function raceRowHtml(t, r){
   const dir = isDir(t), n = (r.pickedUids || []).length;
   let info = "", act = "";
-  if (r.status === "pending_open") {
-    info = "In attesa di apertura delle scelte.";
+  if (r.status === "pending_open") info = "In attesa.";
+  else if (r.status === "picking") {
+    const need = r.expectedPlayers || 1;
+    info = `Partecipanti pronti: <b style="color:var(--txt)">${n} / ${esc(need)}</b><div class="prog"><i style="width:${Math.min(100, Math.round(n * 100 / need))}%"></i></div>`;
     if (dir) {
-      const busyPick = racesOfTour(t.id).some(x => x.status === "picking");
-      act = `<select data-dl="${esc(r.id)}"><option value="">Nessuna scadenza</option><option value="5">5 minuti</option><option value="15">15 minuti</option><option value="30">30 minuti</option><option value="60">1 ora</option><option value="180">3 ore</option><option value="720">12 ore</option><option value="1440">24 ore</option></select>
-        <button class="small" data-t="openpick" data-rid="${esc(r.id)}" ${busyPick ? "disabled" : ""}>Apri scelte</button>${r.isTiebreak ? "" : `<button class="small danger" data-t="replace" data-rid="${esc(r.id)}">Sostituisci</button>`}`;
+      if (n >= 1) act += `<button class="small sec" data-t="forceunlock" data-rid="${esc(r.id)}">Forza sblocco video</button>`;
+      if (n === 0 && !r.isTiebreak) act += `<button class="small danger" data-t="replace" data-rid="${esc(r.id)}">Sostituisci</button>`;
     }
-  } else if (r.status === "picking") {
-    const need = r.expectedPlayers || 1, dl = tsMs(r.deadline), over = dl && Date.now() >= dl;
-    info = `Squadre confermate: <b style="color:var(--txt)">${n} / ${esc(need)}</b>${dl ? " · scadenza " + fmtClock(dl) + " (" + cdSpan(dl) + ")" : " · nessuna scadenza"}<div class="prog"><i style="width:${Math.min(100, Math.round(n * 100 / need))}%"></i></div>`;
-    if (picked(r)) info += '<div class="mut" style="margin-top:6px">✓ La tua squadra è confermata.</div>';
-    else if (eligible(r) && meDoc.active) act = `<button class="small" data-t="gopick">Scegli la squadra</button>`;
-    if (dir && over && n === 0) act += `<button class="small" data-t="reopen" data-rid="${esc(r.id)}">Riapri (+1 ora)</button>${r.isTiebreak ? "" : `<button class="small danger" data-t="replace" data-rid="${esc(r.id)}">Sostituisci</button>`}`;
   } else if (r.status === "unlocked") {
     info = `Video sbloccato · punti registrati <b style="color:var(--txt)">${esc(r.resultsCount || 0)} / ${esc(n)}</b>`;
-    act = `<button class="small" data-t="golive">Guarda</button>`;
     if (dir) act += `<button class="small sec" data-t="forceclose" data-rid="${esc(r.id)}">Chiudi gara</button>`;
   } else if (r.status === "disputed") info = "Podio segnalato: in revisione Admin (punti sospesi).";
   else if (r.status === "settled") info = "Conclusa" + (r.finalPodium ? " · podio convalidato dall'Admin" : "") + ".";
   else if (r.status === "cancelled") info = "Annullata dall'Admin.";
   return `<div class="urow"><div class="row"><b>${r.isTiebreak ? "Spareggio" : "Gara " + esc(r.raceNumber)}</b><span class="badge ${STATUS_CLASS[r.status] || "off"}">${STATUS_LABEL[r.status] || esc(r.status)}</span></div><div class="mut" style="margin-top:4px">${info}</div>${act ? `<div class="uactions">${act}</div>` : ""}</div>`;
 }
-function tourDetailHtml(t){
+function topHtml(t){
   const dir = isDir(t), s = TSTATUS[t.status] || [t.status, "off"], races = racesOfTour(t.id);
-  const regular = races.filter(r => !r.isTiebreak), extracted = regular.length, left = t.totalRaces - extracted;
   let h = `<div class="row" style="margin-bottom:10px"><button class="small sec" data-t="back" type="button">← Tornei</button><button class="small sec" data-t="refresh" type="button">Aggiorna</button></div>`;
   h += `<div class="card"><div class="row"><b style="font-size:20px">${esc(t.name)}</b><span class="badge ${s[1]}">${s[0]}</span></div>
     <div class="mut" style="margin-top:6px"><span class="tag" style="margin-left:0">${esc(t.category)}</span>${dir ? '<span class="tag blue">Direttore di Gara</span>' : ""}</div>
-    <div class="mut" style="margin-top:8px">Giocatori ${esc((t.members || []).length)} / ${esc(t.maxPlayers)}${t.status !== "registration" ? " · partecipanti fissati: " + esc(t.expectedPlayers) : ""} · Gare concluse ${esc(t.settledCount || 0)} / ${esc(t.totalRaces)}</div>
-    <label>Codice invito</label><div class="row"><span class="code">${esc(tourCode[t.id] || "…")}</span><button class="small sec" data-t="copy" type="button">Copia</button></div></div>`;
-  // iscritti
-  h += `<div class="card"><b>Iscritti</b>${(t.members || []).map(u => `<div class="urow"><div class="row"><span>${u === t.creatorUid ? "👑 " : "• "}${esc((t.names || {})[u] || "?")}${u === me.uid ? " (tu)" : ""}</span>${dir && u !== t.creatorUid && t.status !== "finished" ? `<button class="small danger" data-t="kick" data-uid="${esc(u)}" type="button">Rimuovi</button>` : ""}</div></div>`).join("")}`;
-  if (t.status === "registration") h += dir ? `<button class="full" data-t="start" type="button" ${(t.members || []).length < 2 ? "disabled" : ""}>Chiudi iscrizioni e Avvia Torneo</button>${(t.members || []).length < 2 ? '<div class="mut" style="margin-top:6px">Servono almeno 2 iscritti.</div>' : ""}` : '<div class="mut" style="margin-top:10px">In attesa che il Direttore di Gara avvii il torneo.</div>';
-  h += `</div>`;
-  // estrazione
-  if (dir && t.status === "active") {
-    h += `<div class="card"><b>Estrazione gare "al buio"</b><div class="mut" style="margin-top:4px">Estratte ${esc(extracted)} su ${esc(t.totalRaces)}: titolo, video e podio restano nascosti.</div>${left > 0 ? `<div class="uactions"><select id="exCount">${Array.from({ length: left }, (_, i) => `<option value="${i + 1}">${i + 1} ${i ? "gare" : "gara"}</option>`).join("")}</select><button class="small" data-t="extract" type="button">Estrai</button><button class="small sec" data-t="extractall" type="button">Estrai tutte le rimanenti (${esc(left)})</button></div>` : '<div class="mut" style="margin-top:6px">Tutte le gare sono state estratte.</div>'}</div>`;
-  }
-  // gare
-  if (t.status !== "registration") h += `<div class="card"><b>Gare</b>${races.length ? races.map(r => raceRowHtml(t, r)).join("") : '<div class="mut" style="margin-top:8px">Nessuna gara estratta.</div>'}</div>`;
-  // classifica
+    <div class="mut" style="margin-top:8px">Giocatori ${esc((t.members || []).length)} / ${esc(t.maxPlayers)} · Gare concluse ${esc(t.settledCount || 0)} / ${esc(t.totalRaces)}</div></div>`;
   if (t.status !== "registration") {
     const arr = computeStandings(t), tie = topTie(arr), tbOpen = races.some(r => r.isTiebreak && r.status !== "settled" && r.status !== "cancelled");
-    h += `<div class="card"><div class="row"><b>${t.status === "finished" ? "Classifica finale" : "Classifica del torneo"}</b><button class="small sec" data-t="refreshres" type="button">Aggiorna</button></div>${standingsHtml(t)}`;
+    const open = !!stdOpen[t.id];
+    h += `<div class="card"><div class="row"><b>${t.status === "finished" ? "🏆 Classifica finale" : "🏁 Classifica Live"}</b><button class="small sec" data-t="togstd" type="button">${open ? "Comprimi" : "Dettaglio completo"}</button></div>${standingsHtml(t, open || t.status === "finished" ? 0 : 3)}`;
     if (t.status === "finished") {
       if (tie.length) h += `<div class="box"><b>Parità al 1° posto</b><div class="mut" style="margin-top:4px">${tie.map(p => esc(p.name)).join(", ")}${dir ? "" : " · il Direttore di Gara può avviare lo spareggio."}</div>${dir && !tbOpen ? `<button class="full" data-t="tiebreak" type="button">Avvia gara di spareggio</button>` : ""}${tbOpen ? '<div class="mut" style="margin-top:6px">Spareggio in corso.</div>' : ""}</div>`;
       else if (arr.length && races.length) h += `<div class="box"><b>🏆 Vincitore: ${esc(arr[0].name)}</b></div>`;
     }
-    if (dir) h += `<button class="full sec" data-t="credit" type="button">Accredita i punti ai giocatori che non hanno guardato il video</button>`;
     h += `</div>`;
   }
   return h;
 }
+function adminHtml(t){
+  const dir = isDir(t), races = racesOfTour(t.id);
+  const regular = races.filter(r => !r.isTiebreak), extracted = regular.length, left = t.totalRaces - extracted;
+  let h = `<div class="card"><b>Codice invito</b><div class="row" style="margin-top:6px"><span class="code">${esc(tourCode[t.id] || "…")}</span><button class="small sec" data-t="copy" type="button">Copia</button></div></div>`;
+  h += `<div class="card"><b>Iscritti</b>${(t.members || []).map(u => `<div class="urow"><div class="row"><span>${u === t.creatorUid ? "👑 " : "• "}${esc((t.names || {})[u] || "?")}${u === me.uid ? " (tu)" : ""}</span>${dir && u !== t.creatorUid && t.status !== "finished" ? `<button class="small danger" data-t="kick" data-uid="${esc(u)}" type="button">Rimuovi</button>` : ""}</div></div>`).join("")}`;
+  if (t.status === "registration") h += dir ? `<button class="full" data-t="start" type="button" ${(t.members || []).length < 2 ? "disabled" : ""}>Chiudi iscrizioni e Avvia Torneo</button>${(t.members || []).length < 2 ? '<div class="mut" style="margin-top:6px">Servono almeno 2 iscritti.</div>' : ""}` : '<div class="mut" style="margin-top:10px">In attesa che il Direttore di Gara avvii il torneo.</div>';
+  h += `</div>`;
+  if (dir && t.status === "active") {
+    h += `<div class="card"><b>Estrazione gare "al buio"</b><div class="mut" style="margin-top:4px">Estratte ${esc(extracted)} su ${esc(t.totalRaces)}: titolo, video e podio restano nascosti. Le gare estratte sono subito aperte alle scelte.</div>${left > 0 ? `<div class="uactions"><select id="exCount">${Array.from({ length: left }, (_, i) => `<option value="${i + 1}">${i + 1} ${i ? "gare" : "gara"}</option>`).join("")}</select><button class="small" data-t="extract" type="button">Estrai</button><button class="small sec" data-t="extractall" type="button">Estrai tutte le rimanenti (${esc(left)})</button></div>` : '<div class="mut" style="margin-top:6px">Tutte le gare sono state estratte.</div>'}</div>`;
+  }
+  if (dir && t.status !== "registration") {
+    h += `<div class="card"><b>Gestione gare</b>${races.length ? races.map(r => raceRowHtml(t, r)).join("") : '<div class="mut" style="margin-top:8px">Nessuna gara estratta.</div>'}<button class="full sec" data-t="credit" type="button">Accredita i punti ai giocatori che non hanno guardato il video</button></div>`;
+  }
+  return h;
+}
+function renderTourScreen(t){
+  $("tourDetail").innerHTML = topHtml(t);
+  $("tdAdmin").innerHTML = adminHtml(t);
+  const act = t.status === "registration" ? null : activeRaceOf(t.id);
+  const hist = racesOfTour(t.id).filter(r => ["settled", "cancelled", "disputed"].includes(r.status) || inEsiti(r))
+    .sort((a, b) => (tsMs(b.settledAt) || Infinity) - (tsMs(a.settledAt) || Infinity));
+  $("tdActiveH").style.display = t.status === "registration" ? "none" : "";
+  const msg0 = $("tdActiveMsg");
+  if (!act && t.status !== "registration") { msg0.style.display = ""; msg0.textContent = t.status === "finished" ? "Torneo concluso." : "Nessuna gara attiva: attendi che il Direttore di Gara estragga le prossime gare."; }
+  else msg0.style.display = "none";
+  renderCards($("tdActive"), act ? [act] : [], act && act.status === "picking" ? "open" : "closed");
+  $("tdHistH").style.display = hist.length ? "" : "none";
+  renderCards($("tdHist"), hist, "history");
+}
 $("tourDetail").addEventListener("change", ev => { if (ev.target.id === "exCount") exSel.n = ev.target.value; });
-$("tourDetail").addEventListener("click", async ev => {
+const tdClick = async ev => {
   const b = ev.target.closest("[data-t]"); if (!b) return;
   const t = tourOf(selTid), act = b.dataset.t, rid = b.dataset.rid;
   $("homeErr").textContent = "";
   if (act === "back") { selTid = null; renderAll(); return; }
   if (!t) return;
   if (act === "copy") { try { await navigator.clipboard.writeText(tourCode[t.id] || ""); b.textContent = "Copiato ✓"; } catch (e) { $("homeErr").textContent = "Copia non riuscita: seleziona il codice a mano."; } return; }
-  if (act === "gopick") { setRaceTab("open"); return; }
-  if (act === "golive") { setRaceTab("closed"); return; }
+  if (act === "togstd") { stdOpen[t.id] = !stdOpen[t.id]; renderAll(); return; }
   if (act === "refresh") { await busy(b, async () => { try { await pollLive(); await loadTourFull(t.id, true); } catch (e) { $("homeErr").textContent = msg(e); } }); return; }
   if (act === "refreshres") { await busy(b, async () => { try { await loadTourFull(t.id, true); } catch (e) { $("homeErr").textContent = msg(e); } }); return; }
   await busy(b, async () => {
@@ -1380,12 +1407,9 @@ $("tourDetail").addEventListener("click", async ev => {
         const k = await extractRaces(t.id, n);
         $("homeErr").textContent = "";
         flashHome(k + (k === 1 ? " gara estratta." : " gare estratte."));
-      } else if (act === "openpick") {
-        const r = racesById[rid], sel = $("tourDetail").querySelector(`[data-dl="${rid}"]`), mins = sel && sel.value ? Number(sel.value) : 0;
-        await updateDoc(doc(db, "races", rid), { status: "picking", deadline: mins ? Timestamp.fromMillis(Date.now() + mins * 60000) : null, expectedPlayers: r.isTiebreak ? (r.tieUids || []).length : t.expectedPlayers });
-        await refreshRace(rid);
-      } else if (act === "reopen") {
-        await updateDoc(doc(db, "races", rid), { deadline: Timestamp.fromMillis(Date.now() + 3600000) });
+      } else if (act === "forceunlock") {
+        if (!confirm("Sbloccare il video? Chi non ha ancora confermato la squadra otterrà 0 PT su questa gara.")) return;
+        await updateDoc(doc(db, "races", rid), { status: "unlocked", unlockedAt: serverTimestamp() });
         await refreshRace(rid);
       } else if (act === "replace") {
         const r = racesById[rid];
@@ -1419,7 +1443,8 @@ $("tourDetail").addEventListener("click", async ev => {
       }
     } catch (e) { $("homeErr").textContent = msg(e); }
   });
-});
+};
+$("tourDetail").addEventListener("click", tdClick); $("tdAdmin").addEventListener("click", tdClick);
 function flashHome(t){
   const el = $("homeErr"); el.textContent = ""; el.style.color = "var(--ok)"; el.style.borderColor = "var(--ok)"; el.textContent = t;
   setTimeout(() => { if (el.textContent === t) { el.textContent = ""; el.style.color = ""; el.style.borderColor = ""; } }, 3500);
@@ -1465,17 +1490,17 @@ function raceParts(r, mode){
   const n = (r.pickedUids || []).length;
   if (r.status === "picking") {
     const need = r.expectedPlayers || 1, dl = tsMs(r.deadline);
-    head += `<div class="mut" style="margin-top:4px">Squadre confermate: <b style="color:var(--txt)">${n} / ${esc(need)}</b>${dl ? " · scadenza " + fmtClock(dl) + " (" + cdSpan(dl) + ")" : " · nessuna scadenza"}</div><div class="prog"><i style="width:${Math.min(100, Math.round(n * 100 / need))}%"></i></div>`;
+    head += `<div class="mut" style="margin-top:4px">Partecipanti pronti: <b style="color:var(--txt)">${n} / ${esc(need)}</b></div><div class="prog"><i style="width:${Math.min(100, Math.round(n * 100 / need))}%"></i></div>`;
     if (picked(r)) {
       const pk = picksCache[r.id + "_" + me.uid];
       if (pk === undefined) getPicks(r.id, me.uid).then(renderAll).catch(() => {});
-      body = `<div class="betbox mut">✓ Squadra confermata. Il video si sblocca quando tutti hanno scelto o alla scadenza.</div>` + (Array.isArray(pk) ? pk.map(i => `<div class="rn mine"><span class="nm">${runnerMarbleSvg(r.runners[i], 28)}<span>${esc(r.runners[i])} ★</span></span></div>`).join("") : "");
+      body = `<div class="betbox mut">✓ Squadra confermata. Il video si sblocca quando tutti hanno scelto.</div>` + (Array.isArray(pk) ? pk.map(i => `<div class="rn mine"><span class="nm">${runnerMarbleSvg(r.runners[i], 28)}<span>${esc(r.runners[i])} ★</span></span></div>`).join("") : "");
     } else if (!meDoc.active) body = `<div class="betbox mut">Account da attivare per poter giocare.</div>`;
     else {
       const sel = draft[r.id] || [];
       body = `<div class="mut" style="margin-top:10px">Scegli <b>3</b> nazioni diverse tra loro (altri giocatori possono scegliere le stesse).</div>` +
         (r.runners || []).map((nm, i) => `<label class="rn"><input type="checkbox" value="${i}" ${sel.includes(i) ? "checked" : ""}><span class="nm">${runnerMarbleSvg(nm, 28)}<span>${esc(nm)}</span></span></label>`).join("") +
-        `<button class="full" data-act="pick" type="button">Conferma squadra (${sel.length}/3)</button><div class="mut" style="margin-top:6px">La squadra confermata non si può più modificare. Chi non conferma entro la scadenza totalizza 0 PT.</div>`;
+        `<button class="full" data-act="pick" type="button">Conferma squadra (${sel.length}/3)</button><div class="mut" style="margin-top:6px">La squadra confermata non si può più modificare. Il video si sblocca quando tutti hanno confermato.</div>`;
     }
     return { head, res, body, yt };
   }
@@ -1553,16 +1578,6 @@ function othersHtml(r, pod, pp){
   }).join("");
   return rows ? `<div style="margin-top:12px"><b>Scelte degli altri partecipanti</b>${rows}</div>` : "";
 }
-function finishRace(rid){
-  const r = racesById[rid]; if (!r) return;
-  showRes[rid] = true; expanded[rid] = true;
-  setRaceTab("history");
-  const done = () => {
-    renderAll();
-    setTimeout(() => { const el = $("raceList").querySelector('[data-id="' + rid + '"]'); if (el) { el.style.borderColor = "var(--acc)"; el.scrollIntoView({ behavior: "smooth", block: "start" }); } }, 150);
-  };
-  if (picked(r)) autoSaveMine(r).then(done); else done();
-}
 let ytApiP = null;
 function loadYtApi(){
   if (window.YT && window.YT.Player) return Promise.resolve();
@@ -1582,28 +1597,60 @@ function ytSrc(y, autoplay){
   const st = safeStartOf(y), en = safeEndOf(y);
   return "https://www.youtube.com/embed/" + y.id + "?rel=0&modestbranding=1&playsinline=1" + (st ? "&start=" + st : "") + (en ? "&end=" + en : "") + (autoplay ? "&autoplay=1" : "") + "&enablejsapi=1&origin=" + encodeURIComponent(location.origin);
 }
+const ytPl = {}, ytReady = {}, ytTick = {}, finishing = {};
 function attachYt(raceId, iframe){
+  ytReady[raceId] = false;
   loadYtApi().then(() => {
-    try { new YT.Player(iframe, { events: { onStateChange: ev => { if (ev.data === 1) markViewed(raceId); if (ev.data === 0) finishRace(raceId); } } }); } catch (e) {}
+    try {
+      ytPl[raceId] = new YT.Player(iframe, { events: {
+        onReady: () => { ytReady[raceId] = true; },
+        onStateChange: ev => {
+          const y = ytCur[raceId], p = ytPl[raceId];
+          clearInterval(ytTick[raceId]);
+          if (ev.data === 1 && y && p) {
+            const st = safeStartOf(y), en = safeEndOf(y);
+            try { if (p.getCurrentTime() < st - 2) p.seekTo(st, true); } catch (e) {}
+            if (en) ytTick[raceId] = setInterval(() => { try { if (p.getCurrentTime() >= en - 0.5) endVideo(raceId); } catch (e) {} }, 1000);
+          }
+          if (ev.data === 0) endVideo(raceId);
+        }
+      } });
+    } catch (e) {}
   });
+}
+function endVideo(rid){
+  clearInterval(ytTick[rid]);
+  try { ytPl[rid].pauseVideo(); } catch (e) {}
+  finishRace(rid);
+}
+function watchRace(rid, card){
+  const y = ytCur[rid]; if (!y) return;
+  const p = ytPl[rid], st = safeStartOf(y);
+  if (p && ytReady[rid] && p.seekTo && p.playVideo) { try { p.seekTo(st, true); p.playVideo(); } catch (e) {} }
+  else { const ifr = card.querySelector(".yt iframe"); if (ifr) { ifr.src = ytSrc(y, true); attachYt(rid, ifr); } }
+  markViewed(rid);
+}
+function finishRace(rid){
+  const r = racesById[rid]; if (!r || finishing[rid]) return;
+  finishing[rid] = 1;
+  showRes[rid] = true; expanded[rid] = true; selTid = r.tournamentId;
+  setRaceTab("start");
+  const done = () => {
+    renderAll();
+    setTimeout(() => {
+      const el = $("tdHist").querySelector('[data-id="' + rid + '"]');
+      if (el) { el.style.borderColor = "var(--acc)"; el.scrollIntoView({ behavior: "smooth", block: "start" }); }
+      finishing[rid] = 0;
+    }, 150);
+  };
+  if (picked(r)) autoSaveMine(r).then(done); else done();
 }
 
 function renderRaces(){
-  const box = $("raceList");
-  if (raceTab === "board") { box.innerHTML = boardHtml(); return; }
-  let list = [], empty = "";
-  if (raceTab === "open") {
-    list = Object.values(racesById).filter(r => r.status === "picking" && tourOf(r.tournamentId) && eligible(r));
-    empty = "Nessuna gara con le scelte aperte al momento.";
-  } else if (raceTab === "closed") {
-    list = Object.values(racesById).filter(r => ["unlocked", "disputed"].includes(r.status) && tourOf(r.tournamentId) && !inEsiti(r));
-    empty = "Nessuna gara in corso al momento.";
-  } else {
-    list = Object.values(racesById).filter(r => (["settled", "cancelled", "disputed"].includes(r.status) || inEsiti(r)) && tourOf(r.tournamentId)).sort((a, b) => (tsMs(b.settledAt) || Infinity) - (tsMs(a.settledAt) || Infinity));
-    empty = "Nessuna gara conclusa.";
-  }
-  if (!list.length) { box.innerHTML = '<div class="card mut">' + empty + '</div>'; return; }
-  const mode = raceTab === "open" ? "open" : raceTab === "closed" ? "closed" : "history";
+  $("raceList").innerHTML = raceTab === "board" ? boardHtml() : "";
+}
+function renderCards(box, list, mode){
+  if (!list.length) { box.innerHTML = ""; return; }
   const ids = new Set(list.map(r => r.id));
   [...box.children].forEach(c => { if (!c.dataset || !ids.has(c.dataset.id)) c.remove(); });
   list.forEach((r, i) => {
@@ -1627,7 +1674,7 @@ function renderRaces(){
       if (slot.dataset.id !== key) {
         const st = safeStartOf(parts.yt);
         ytCur[r.id] = parts.yt;
-        slot.innerHTML = '<div class="yt"><iframe src="' + ytSrc(parts.yt, false) + '" title="Video gara" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div><div class="mut" style="margin-top:6px;font-size:13px"><a href="https://www.youtube.com/watch?v=' + parts.yt.id + (st ? '&t=' + st + 's' : '') + '" target="_blank" rel="noopener noreferrer" style="color:var(--mut)">Apri su YouTube ↗</a> · <button class="small sec" type="button" data-act="replay" style="margin:0 0 0 4px">Rivedi la gara ↻</button></div>';
+        slot.innerHTML = '<div class="yt"><iframe src="' + ytSrc(parts.yt, false) + '" title="Video gara" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe><div class="yt-ov"><button class="btn-go" data-act="watch" type="button" style="font-size:20px;padding:14px 22px">▶ Guarda la gara</button><div class="mut" style="font-size:13px">Avvia dal secondo esatto della batteria</div></div></div><div class="mut" style="margin-top:6px;font-size:13px"><a href="https://www.youtube.com/watch?v=' + parts.yt.id + (st ? '&t=' + st + 's' : '') + '" target="_blank" rel="noopener noreferrer" style="color:var(--mut)">Apri su YouTube ↗</a> · <button class="small sec" type="button" data-act="replay" style="margin:0 0 0 4px">Rivedi la gara ↻</button></div>';
         attachYt(r.id, slot.querySelector("iframe"));
         slot.dataset.id = key;
       }
@@ -1647,7 +1694,7 @@ function boardHtml(){
   }
   return h + "</div>";
 }
-$("raceList").addEventListener("click", async ev => {
+const raceClick = async ev => {
   const bs = ev.target.closest("[data-bsub]");
   if (bs) { boardSub = bs.dataset.bsub; boardAt = 0; loadBoard(); renderAll(); return; }
   const tg = ev.target.closest("[data-toggle]");
@@ -1658,6 +1705,7 @@ $("raceList").addEventListener("click", async ev => {
   ev.preventDefault();
   const id = card.dataset.id, r = racesById[id], act = a.dataset.act;
   $("homeErr").textContent = "";
+  if (act === "watch") { const ov = card.querySelector(".yt-ov"); if (ov) ov.remove(); watchRace(id, card); return; }
   if (act === "showres") { finishRace(id); return; }
   if (act === "replay") { const ifr = card.querySelector(".yt iframe"), cur = ytCur[id]; if (ifr && cur) { showRes[id] = false; ifr.src = ytSrc(cur, true); attachYt(id, ifr); renderAll(); } return; }
   if (act === "editpod") { editPod[id] = ["", "", ""]; renderAll(); return; }
@@ -1688,8 +1736,8 @@ $("raceList").addEventListener("click", async ev => {
       } catch (e) { $("homeErr").textContent = /permission/.test(String(e.code)) ? "Non è stato possibile confermare: le scelte potrebbero essere chiuse o scadute." : msg(e); await refreshRace(id).catch(() => {}); }
     });
   }
-});
-$("raceList").addEventListener("input", ev => {
+};
+const raceInput = ev => {
   const card = ev.target.closest(".race");
   if (ev.target.matches("[data-btour]")) { boardTid = ev.target.value; loadBoard(); return; }
   if (!card) return;
@@ -1700,12 +1748,13 @@ $("raceList").addEventListener("input", ev => {
     draft[id] = all;
     const btn = card.querySelector('[data-act="pick"]'); if (btn) btn.textContent = "Conferma squadra (" + all.length + "/3)";
   }
-});
-$("raceList").addEventListener("change", ev => {
+};
+const raceChange = ev => {
   if (!ev.target.matches("select[data-pp]")) return;
   const id = ev.target.closest(".race").dataset.id;
   if (editPod[id]) editPod[id][Number(ev.target.dataset.pp)] = ev.target.value;
-});
+};
+for (const id of ['raceList', 'tdActive', 'tdHist']) { $(id).addEventListener('click', raceClick); $(id).addEventListener('input', raceInput); $(id).addEventListener('change', raceChange); }
 
 // ---------- Account & Biglia ----------
 let accDraft = null;
