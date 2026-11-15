@@ -14,7 +14,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Murble Race">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Murble Race v4.01</title>
+<title>Murble Race v4.02</title>
 <style>
 :root{--bg:#090b10;--card:#121622;--line:#232b40;--txt:#eef0fa;--mut:#8f96b8;--acc:#ffb300;--ok:#00e676;--err:#ff3b5c}
 *{box-sizing:border-box}
@@ -207,7 +207,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
 
   <!-- AUTENTICAZIONE -->
   <div id="viewAuth" class="view on">
-    <h1>Murble <span>Race</span> <small class="ver">v4.01</small></h1>
+    <h1>Murble <span>Race</span> <small class="ver">v4.02</small></h1>
     <p class="sub">Tornei a punti sulle gare di biglie</p>
     <div class="card">
       <div class="tabs">
@@ -241,7 +241,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
     <div class="topbar">
       <div class="tleft">
         <button id="btnDrawer" class="ibtn" type="button" aria-label="Menu">☰</button>
-        <div class="ttl">Murble <span>Race</span> <small class="ver">v4.01</small></div>
+        <div class="ttl">Murble <span>Race</span> <small class="ver">v4.02</small></div>
       </div>
       <button id="balPill" class="pill" type="button" aria-label="Punti totali: apri la classifica"><span id="hPts">0</span> <small>PT</small></button>
     </div>
@@ -1040,6 +1040,7 @@ async function loadResults(tid, force){
   resCache[tid] = { at: Date.now(), rows: qs.docs.map(d => ({ id: d.id, ...d.data() })) };
   return resCache[tid].rows;
 }
+const inEsiti = r => r.status === "unlocked" && ((picked(r) && hasResult(r)) || !!showRes[r.id]);
 const hasResult = r => { const c = resCache[r.tournamentId]; return !!c && c.rows.some(x => x.id === r.id + "_" + me.uid); };
 async function loadTourFull(tid, force){
   if (!force && fullAt[tid] && Date.now() - fullAt[tid] < 20000) return;
@@ -1237,7 +1238,7 @@ async function loadHist(){
   histAt = Date.now();
   try {
     for (const t of myTours) {
-      const qs = await getDocs(query(collection(db, "races"), where("tournamentId", "==", t.id), where("status", "in", ["settled", "cancelled"])));
+      const qs = await getDocs(query(collection(db, "races"), where("tournamentId", "==", t.id), where("status", "in", ["settled", "cancelled", "disputed"])));
       qs.docs.forEach(d => { racesById[d.id] = { id: d.id, ...d.data() }; });
       await loadResults(t.id);
     }
@@ -1262,7 +1263,7 @@ async function loadBoard(){
 function renderAll(){
   if (!meDoc) return;
   const pick = Object.values(racesById).filter(r => r.status === "picking" && tourOf(r.tournamentId) && eligible(r));
-  const live = Object.values(racesById).filter(r => ["unlocked", "disputed"].includes(r.status) && tourOf(r.tournamentId));
+  const live = Object.values(racesById).filter(r => ["unlocked", "disputed"].includes(r.status) && tourOf(r.tournamentId) && !inEsiti(r));
   const nOp = pick.filter(r => !picked(r)).length;
   $("openCnt").textContent = nOp; $("openCnt").style.display = nOp ? "" : "none";
   $("closedCnt").textContent = live.length; $("closedCnt").style.display = live.length ? "" : "none";
@@ -1486,10 +1487,16 @@ function raceParts(r, mode){
   if (!open || r.status === "cancelled") return { head: r.status === "cancelled" ? head + '<div class="mut" style="margin-top:6px">Gara annullata dall\'Admin: nessun punto.</div>' : head, res, body, yt };
   const sc = secrets[r.catalogId];
   if (!sc && !secReq[r.catalogId]) { secReq[r.catalogId] = 1; ensureSecrets(r).then(renderAll).catch(e => { secReq[r.catalogId] = 0; $("homeErr").textContent = msg(e); }); }
-  if (sc && sc.url) { const y = ytInfo(sc.url); if (y) yt = { ...y, dur: r.durSec || 0 }; }
+  if (mode !== "history" && sc && sc.url) { const y = ytInfo(sc.url); if (y) yt = { ...y, dur: r.durSec || 0 }; }
   if (!sc) body = '<div class="mut" style="margin-top:10px">Caricamento video…</div>';
   // risultato ufficiale (dopo il video)
-  if (showRes[r.id] && sc) {
+  let team = "";
+  if (mode !== "history" && r.status === "unlocked" && myP && !showRes[r.id]) {
+    const pk0 = picksCache[r.id + "_" + me.uid];
+    if (pk0 === undefined) getPicks(r.id, me.uid).then(renderAll).catch(() => {});
+    else if (pk0) team = `<div class="box"><b>La tua squadra</b>${pk0.map(i => `<div class="rn mine"><span class="nm">${runnerMarbleSvg(r.runners[i], 28)}<span>${esc(r.runners[i])}</span></span></div>`).join("")}</div>`;
+  }
+  if ((showRes[r.id] || mode === "history") && sc) {
     const pod = podOf(r), pp = podiumPts(r);
     if (Array.isArray(pod) && pod.length >= 3) {
       let mine = "";
@@ -1509,12 +1516,12 @@ function raceParts(r, mode){
           res += `<div style="margin-top:10px">${sel(0)}${sel(1)}${sel(2)}</div><div style="display:flex;gap:8px;margin-top:12px"><button class="full" data-act="sendpod" type="button" style="flex:1;margin-top:0">Invia segnalazione all'Admin</button><button class="full sec" data-act="cancelform" type="button" style="flex:1;margin-top:0">Annulla</button></div>`;
         } else res += `<button class="full sec" data-act="editpod" type="button">Segnala podio non corretto</button>`;
       }
-      res += "</div>";
+      res += (mode === "history" ? othersHtml(r, pod, pp) : "") + "</div>";
     }
   } else if (sc && ["unlocked", "settled", "disputed"].includes(r.status)) {
     res = `<div class="mut" style="margin-top:8px;font-size:13px">Guarda il video: a fine corsa compare il risultato ufficiale. <a href="#" data-act="showres" style="color:var(--acc)">Video già terminato? Mostra risultato</a></div>`;
   }
-  if (r.status === "unlocked") res = (res || "") + viewedBar(r);
+  if (r.status === "unlocked") res = team + (res || "") + viewedBar(r);
   return { head, res, body, yt };
 }
 async function markViewed(rid){
@@ -1532,6 +1539,29 @@ function viewedBar(r){
   if (!ids.length) return "";
   const x = ids.filter(u => seen.includes(u)).length;
   return `<div class="box"><b>👁️ Visto da ${x} / ${ids.length} partecipanti</b><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">${ids.map(u => { const v = seen.includes(u); return `<span class="tag" style="margin:0;${v ? "background:rgba(46,204,113,.18);color:var(--ok);border-color:var(--ok)" : "opacity:.55"}">${v ? "●" : "○"} ${esc(((t && t.names) || {})[u] || "?")}</span>`; }).join("")}</div></div>`;
+}
+const othersReq = {};
+function othersHtml(r, pod, pp){
+  const t = tourOf(r.tournamentId), ids = (r.pickedUids || []).filter(u => u !== me.uid);
+  if (!ids.length) return "";
+  if (!othersReq[r.id]) { othersReq[r.id] = 1; Promise.all(ids.map(u => getPicks(r.id, u).catch(() => { picksCache[r.id + "_" + u] = null; }))).then(renderAll); }
+  const rows = ids.map(u => {
+    const pk = picksCache[r.id + "_" + u];
+    if (!pk) return "";
+    const c = calcPts(pk, pod, pp);
+    return `<div class="mut" style="margin-top:6px"><b style="color:var(--txt)">${esc(((t && t.names) || {})[u] || "?")}</b>: ${pk.map(i => esc(r.runners[i])).join(", ")} — ${r.status === "disputed" ? "sospesi" : "+" + esc(c.pts) + " PT"}</div>`;
+  }).join("");
+  return rows ? `<div style="margin-top:12px"><b>Scelte degli altri partecipanti</b>${rows}</div>` : "";
+}
+function finishRace(rid){
+  const r = racesById[rid]; if (!r) return;
+  showRes[rid] = true; expanded[rid] = true;
+  setRaceTab("history");
+  const done = () => {
+    renderAll();
+    setTimeout(() => { const el = $("raceList").querySelector('[data-id="' + rid + '"]'); if (el) { el.style.borderColor = "var(--acc)"; el.scrollIntoView({ behavior: "smooth", block: "start" }); } }, 150);
+  };
+  if (picked(r)) autoSaveMine(r).then(done); else done();
 }
 let ytApiP = null;
 function loadYtApi(){
@@ -1554,7 +1584,7 @@ function ytSrc(y, autoplay){
 }
 function attachYt(raceId, iframe){
   loadYtApi().then(() => {
-    try { new YT.Player(iframe, { events: { onStateChange: ev => { if (ev.data === 1) markViewed(raceId); if (ev.data === 0) { showRes[raceId] = true; renderAll(); } } } }); } catch (e) {}
+    try { new YT.Player(iframe, { events: { onStateChange: ev => { if (ev.data === 1) markViewed(raceId); if (ev.data === 0) finishRace(raceId); } } }); } catch (e) {}
   });
 }
 
@@ -1566,10 +1596,10 @@ function renderRaces(){
     list = Object.values(racesById).filter(r => r.status === "picking" && tourOf(r.tournamentId) && eligible(r));
     empty = "Nessuna gara con le scelte aperte al momento.";
   } else if (raceTab === "closed") {
-    list = Object.values(racesById).filter(r => ["unlocked", "disputed"].includes(r.status) && tourOf(r.tournamentId));
+    list = Object.values(racesById).filter(r => ["unlocked", "disputed"].includes(r.status) && tourOf(r.tournamentId) && !inEsiti(r));
     empty = "Nessuna gara in corso al momento.";
   } else {
-    list = Object.values(racesById).filter(r => ["settled", "cancelled"].includes(r.status) && tourOf(r.tournamentId)).sort((a, b) => tsMs(b.settledAt) - tsMs(a.settledAt));
+    list = Object.values(racesById).filter(r => (["settled", "cancelled", "disputed"].includes(r.status) || inEsiti(r)) && tourOf(r.tournamentId)).sort((a, b) => (tsMs(b.settledAt) || Infinity) - (tsMs(a.settledAt) || Infinity));
     empty = "Nessuna gara conclusa.";
   }
   if (!list.length) { box.innerHTML = '<div class="card mut">' + empty + '</div>'; return; }
@@ -1628,7 +1658,7 @@ $("raceList").addEventListener("click", async ev => {
   ev.preventDefault();
   const id = card.dataset.id, r = racesById[id], act = a.dataset.act;
   $("homeErr").textContent = "";
-  if (act === "showres") { showRes[id] = true; renderAll(); return; }
+  if (act === "showres") { finishRace(id); return; }
   if (act === "replay") { const ifr = card.querySelector(".yt iframe"), cur = ytCur[id]; if (ifr && cur) { showRes[id] = false; ifr.src = ytSrc(cur, true); attachYt(id, ifr); renderAll(); } return; }
   if (act === "editpod") { editPod[id] = ["", "", ""]; renderAll(); return; }
   if (act === "cancelform") { delete editPod[id]; renderAll(); return; }
