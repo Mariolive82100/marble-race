@@ -14,7 +14,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Murble Race">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Murble Race v3.44</title>
+<title>Murble Race v3.45</title>
 <style>
 :root{--bg:#090b10;--card:#121622;--line:#232b40;--txt:#eef0fa;--mut:#8f96b8;--acc:#ffb300;--ok:#00e676;--err:#ff3b5c}
 *{box-sizing:border-box}
@@ -51,6 +51,14 @@ button:disabled{opacity:.5;cursor:default}
 .foot a[data-info]{color:var(--mut)}
 .urow{border-top:1px solid var(--line);padding:12px 0}
 .urow:first-child{border-top:0}
+#cadmList table{width:100%;border-collapse:collapse;min-width:1020px;margin-top:8px}
+#cadmList th{text-align:left;font-size:13px;color:var(--mut);padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap;cursor:pointer;user-select:none}
+#cadmList th.ns{cursor:default}
+#cadmList td{padding:10px;border-top:1px solid var(--line);vertical-align:middle}
+#cadmList tr.urow{border-top:0;padding:0}
+#cadmList .tag,#cadmList .dur{margin-left:0}
+#cadmList .qa{display:flex;gap:6px;flex-wrap:wrap}
+#cadmList .cgrp{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px}
 .uactions{display:flex;gap:8px;margin-top:8px;align-items:center;flex-wrap:wrap}
 .uactions input{width:90px;padding:8px}
 .uactions select{width:auto;flex:1;min-width:120px;padding:8px}
@@ -207,7 +215,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
 
   <!-- AUTENTICAZIONE -->
   <div id="viewAuth" class="view on">
-    <h1>Murble <span>Race</span> <small class="ver">v3.44</small></h1>
+    <h1>Murble <span>Race</span> <small class="ver">v3.45</small></h1>
     <p class="sub">Pronostici a punti sulle gare di biglie</p>
     <div class="card">
       <div class="tabs">
@@ -241,7 +249,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
     <div class="topbar">
       <div class="tleft">
         <button id="btnDrawer" class="ibtn" type="button" aria-label="Menu">☰</button>
-        <div class="ttl">Murble <span>Race</span> <small class="ver">v3.44</small></div>
+        <div class="ttl">Murble <span>Race</span> <small class="ver">v3.45</small></div>
       </div>
       <button id="balPill" class="pill" type="button" aria-label="Punti totali: apri la classifica"><span id="hPts">0</span> <small>PT</small></button>
     </div>
@@ -296,8 +304,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
     <div class="atabs" id="adminTabs">
       <button type="button" data-sec="races" class="on">Gare</button>
       <button type="button" data-sec="players">Giocatori</button>
-      <button type="button" data-sec="review">Revisione necessaria <span id="revCnt" class="cnt" style="display:none;background:var(--err);color:#fff">0</span></button>
-      <button type="button" data-sec="cat">Catalogo</button>
+      <button type="button" data-sec="cat">Catalogo <span id="revCnt" class="cnt" style="display:none;background:var(--err);color:#fff">0</span></button>
       <button type="button" data-sec="opts">Impostazioni</button>
     </div>
     <div id="adminMain">
@@ -340,7 +347,6 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
     </div>
     </div>
     </div>
-    <div id="adminReview" style="display:none"></div>
     <div id="adminOpts" style="display:none">
       <div class="card">
         <div class="row"><b>Impostazioni</b></div>
@@ -382,24 +388,16 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
     <div id="adminCat" style="display:none">
     <div class="card">
       <div class="row"><b>Gestione Catalogo</b><span class="uactions" style="margin:0"><button id="btnCatLoad" class="sec small" type="button">Aggiorna</button></span></div>
-      <div class="tabs" id="cadmTabs" style="margin-top:10px;display:none">
-        <button type="button" class="small" data-cf="all">Tutte</button>
-        <button type="button" class="small sec" data-cf="new">Non ancora giocate</button>
-        <button type="button" class="small sec" data-cf="played">Già giocate</button>
-        <button type="button" class="small sec" data-cf="susp">Sospese</button>
-        <button type="button" class="small sec" data-cf="pod">Con podio</button>
-        <button type="button" class="small sec" data-cf="nopod">Senza podio</button>
-      </div>
+      <div id="cadmFilters" style="display:none;margin-top:10px"></div>
       <div id="cadmFlt" style="display:none;gap:8px;margin-top:10px">
-        <select id="cadmCat" style="flex:1;min-width:0;margin:0"><option value="">Tutte le categorie</option><option value="Murble race">Murble race</option><option value="Street race">Street race</option></select>
         <select id="cadmRunners" style="flex:1;min-width:0;margin:0"><option value="">Tutte le biglie</option></select>
       </div>
       <input id="cadmSearch" placeholder="Cerca per nome, categoria o biglia" style="margin-top:10px;display:none">
       <div id="cadmBar" class="uactions" style="display:none;margin-top:10px">
         <button class="small sec" type="button" id="cadmAll">Seleziona tutte</button>
         <span id="cadmSelN" class="mut"></span>
-        <button class="small" type="button" data-bulk="new">Segna "Non ancora giocata"</button>
-        <button class="small" type="button" data-bulk="played">Segna "Già giocata"</button>
+        <button class="small" type="button" data-bulk="new">Segna "Da giocare"</button>
+        <button class="small" type="button" data-bulk="played">Segna "Giocata"</button>
         <button class="small sec" type="button" data-bulk="susp">Sospendi</button>
         <button class="small sec" type="button" data-bulk="unsusp">Riattiva</button>
         <button class="small danger" type="button" data-bulk="del">Elimina selezionate</button>
@@ -1387,7 +1385,18 @@ async function proposeRacePodium(raceId){
   const v = ep.v.map(x => x === "" ? NaN : Number(x));
   if (v.some(x => !Number.isInteger(x) || x < 0 || x >= (rc.runners || []).length) || new Set(v).size !== 3) throw new Error("Scegli 3 biglie diverse per 1°, 2° e 3° posto.");
   const b = myBets[raceId];
-  await updateDoc(doc(db, "races", raceId), { status: "review", proposedPodium: v, proposedBy: me.uid, proposedByName: (meDoc && meDoc.username) || me.name, proposedByTeam: (b && b.teamId) || "" });
+  const pname = (meDoc && meDoc.username) || me.name;
+  const rdata = { status: "review", proposedPodium: v, proposedBy: me.uid, proposedByName: pname, proposedByTeam: (b && b.teamId) || "" };
+  if (rc.catalogId) {
+    try {
+      const bt = writeBatch(db);
+      bt.update(doc(db, "races", raceId), rdata);
+      bt.update(doc(db, "catalog", rc.catalogId), { reviewStatus: "review", proposedPodium: v, proposedByName: pname, reviewRaceId: raceId });
+      await bt.commit();
+      return;
+    } catch (e) { /* fallback: solo la gara */ }
+  }
+  await updateDoc(doc(db, "races", raceId), rdata);
 }
 // Conferma del podio ufficiale da parte del secondo lato: chiude la gara e accredita i punti in un'unica transazione
 async function confirmRacePodium(raceId){
@@ -1618,7 +1627,7 @@ async function launchFromCatalog(cid, mode, k){
     if (cd.duration) data.duration = cd.duration;
     if (cd.category) data.category = cd.category;
     tx.set(rr, data);
-    tx.update(cr, { playedCount: (cd.playedCount || 0) + 1, activeRaceId: rr.id });
+    tx.update(cr, { playedCount: (cd.playedCount || 0) + 1, activeRaceId: rr.id, lastPlayedAt: serverTimestamp() });
   });
   return rr.id;
 }
@@ -1881,8 +1890,6 @@ function showAdminSec(n){
   $("adminColPlayers").style.display = n === "players" ? "" : "none";
   $("adminOpts").style.display = n === "opts" ? "" : "none";
   $("adminCat").style.display = n === "cat" ? "" : "none";
-  $("adminReview").style.display = n === "review" ? "" : "none";
-  if (n === "review") renderReview();
   document.querySelectorAll("#adminTabs button").forEach(b => b.classList.toggle("on", b.dataset.sec === n));
   if (n === "cat" && !cadm.length) loadCatAdm().catch(e => { $("adminErr").textContent = msg(e); });
   $("optMsg").textContent = "";
@@ -1911,7 +1918,7 @@ async function resetCatalogPlays(){
   const qs = await getDocs(collection(adminDb, "catalog"));
   for (let i = 0; i < qs.docs.length; i += 400) {
     const b = writeBatch(adminDb);
-    qs.docs.slice(i, i + 400).forEach(d => b.update(d.ref, { playedCount: 0, activeRaceId: deleteField() }));
+    qs.docs.slice(i, i + 400).forEach(d => b.update(d.ref, { playedCount: 0, activeRaceId: deleteField(), lastPlayedAt: deleteField() }));
     await b.commit();
   }
 }
@@ -1983,7 +1990,7 @@ $("adminOpts").addEventListener("click", async ev => {
         }
         for (let i = 0; i < updOps.length; i += 400) {
           const b = writeBatch(adminDb);
-          updOps.slice(i, i + 400).forEach(o => b.update(o.ref, { playedCount: o.n, activeRaceId: deleteField() }));
+          updOps.slice(i, i + 400).forEach(o => b.update(o.ref, o.n === 0 ? { playedCount: 0, activeRaceId: deleteField(), lastPlayedAt: deleteField() } : { playedCount: o.n, activeRaceId: deleteField() }));
           await b.commit();
         }
         for (let i = 0; i < delRefs.length; i += 400) {
@@ -2044,9 +2051,8 @@ async function loadRaces(){
     } catch (e) { adminPreset[r.id] = null; }
   }));
   await Promise.all(adminRaces.filter(r => adminExp[r.id] && (r.status === "open" || r.status === "closed")).map(r => loadRaceBets(r.id)));
-  await loadReviewMeta();
   renderAdminRaces();
-  renderReview();
+  updRevBadge();
 }
 
 async function loadAdmin(){
@@ -2191,76 +2197,15 @@ function fillPodium(pre, n){
   for (let i = 0; out.length < Math.min(3, n) && i < n; i++) if (!out.includes(i)) out.push(i);
   return out;
 }
-// ---------- Admin: Revisione necessaria (gare con podio contestato) ----------
-let adminVid = {}, adminTag = {}, adminRevSel = {};
-function renderReview(){
-  const rv = adminRaces.filter(r => r.status === "review");
-  $("revCnt").textContent = rv.length; $("revCnt").style.display = rv.length ? "" : "none";
-  const box = $("adminReview");
-  if (!box || box.style.display === "none") return;
-  if (!rv.length) { box.innerHTML = '<div class="card mut">Nessuna gara in revisione.</div>'; return; }
-  box.innerHTML = rv.map(r => {
-    const nr = (r.runners || []).length, pp = podiumPts(r);
-    const orig = Array.isArray(adminPreset[r.id]) && adminPreset[r.id].length ? adminPreset[r.id].map(i => MEDALS[adminPreset[r.id].indexOf(i)] + " " + esc((r.runners || [])[i])).join(" · ") : "—";
-    const prop = Array.isArray(r.proposedPodium) ? r.proposedPodium : [];
-    const ch = adminRevSel[r.id] || fillPodium(prop, nr);
-    const y = adminVid[r.id] ? ytInfo(adminVid[r.id]) : null;
-    const link = y && y.id ? `<a href="https://www.youtube.com/watch?v=${esc(y.id)}&t=${safeStartOf(y)}s" target="_blank" rel="noopener" style="color:var(--acc)">Apri il video al secondo di partenza ↗</a>` : '<span class="mut">Video non disponibile.</span>';
-    const tag = adminTag[r.proposedByTeam] ? " [" + esc(adminTag[r.proposedByTeam]) + "]" : "";
-    const sels = ch.map((v, p) => `<label class="mut" style="width:100%">${MEDALS[p]} ${p + 1}° posto (${esc(pp[p])} PT)</label><select data-rpod="${p}">${(r.runners || []).map((n, i) => `<option value="${i}" ${v === i ? "selected" : ""}>${esc(n)}</option>`).join("")}</select>`).join("");
-    return `<div class="card urow" data-id="${esc(r.id)}"><div class="row"><span><b>${esc(r.name)}</b><span class="tag">${esc(macroCat(r.category))}</span>${r.gameMode ? `<span class="tag">${esc(modeLabel(r))}</span>` : ""}</span><span class="badge wait">in revisione</span></div>
-      <div class="mut" style="margin-top:8px">Podio originale (catalogo): <b style="color:var(--txt)">${orig}</b></div>
-      <div class="mut" style="margin-top:4px">Podio proposto da <b style="color:var(--txt)">${esc(r.proposedByName || "?")}${tag}</b>: <b style="color:var(--txt)">${prop.map((i, p) => MEDALS[p] + " " + esc((r.runners || [])[i])).join(" · ")}</b></div>
-      <div style="margin:8px 0">${link}</div>
-      ${sels}
-      <div class="uactions" style="margin-top:12px"><button class="small" data-ract="ok">Convalida e assegna punti</button><button class="small danger" data-ract="cancel">Annulla gara</button></div></div>`;
-  }).join("");
+// Badge "revisioni in attesa" sulla tab Catalogo
+function updRevBadge(){
+  const n = adminRaces.filter(r => r.status === "review").length;
+  $("revCnt").textContent = n; $("revCnt").style.display = n ? "" : "none";
 }
-async function loadReviewMeta(){
-  const rv = adminRaces.filter(r => r.status === "review");
-  await Promise.all(rv.map(async r => {
-    if (!(r.id in adminVid)) {
-      try {
-        let d = r.catalogId ? await getDoc(doc(adminDb, "catalog_v", r.catalogId)) : null;
-        if (!d || !d.exists()) d = await getDoc(doc(adminDb, "videos", r.id));
-        adminVid[r.id] = d.exists() ? d.data().url || "" : "";
-      } catch (e) { adminVid[r.id] = ""; }
-    }
-    if (r.proposedByTeam && !(r.proposedByTeam in adminTag)) {
-      try { const t = await getDoc(doc(adminDb, "teams", r.proposedByTeam)); adminTag[r.proposedByTeam] = t.exists() ? t.data().tag || "" : ""; } catch (e) { adminTag[r.proposedByTeam] = ""; }
-    }
-  }));
-}
-$("adminReview").addEventListener("change", ev => {
-  const sel = ev.target.closest("select[data-rpod]"); if (!sel) return;
-  const row = sel.closest(".urow");
-  adminRevSel[row.dataset.id] = [...row.querySelectorAll("[data-rpod]")].map(x => Number(x.value));
-});
-$("adminReview").addEventListener("click", async ev => {
-  const btn = ev.target.closest("button[data-ract]"); if (!btn) return;
-  const row = btn.closest(".urow"), id = row.dataset.id, r = adminRaces.find(x => x.id === id);
-  if (!r) return;
-  $("adminErr").textContent = "";
-  await busy(btn, async () => {
-    try {
-      if (btn.dataset.ract === "ok") {
-        const podium = [...row.querySelectorAll("[data-rpod]")].map(x => Number(x.value));
-        if (new Set(podium).size !== podium.length) { $("adminErr").textContent = "Il podio deve avere biglie diverse."; return; }
-        if (!confirm("Convalidare il podio: " + podium.map((i, p) => (p + 1) + "° " + r.runners[i]).join(", ") + "? Assegna i punti e salva il podio anche nel catalogo.")) return;
-        await finalizeRace(id, "settle", podium, true);
-      } else {
-        if (!confirm("Annullare la gara? Tutti i pronostici vengono annullati (nessun punto).")) return;
-        await finalizeRace(id, "cancel", null);
-      }
-      delete adminRevSel[id];
-      await loadRaces();
-    } catch (e) { $("adminErr").textContent = msg(e); await loadRaces().catch(() => {}); }
-  });
-});
 
 function renderAdminRaces(){
   const box = $("raceAdminList");
-  const shown = adminRaces.filter(r => r.status !== "review");
+  const shown = adminRaces.filter(r => r.status !== "review" || !r.catalogId);
   if (!shown.length) { box.innerHTML = '<div class="mut" style="margin-top:10px">Nessuna gara creata.</div>'; return; }
   box.innerHTML = shown.map(r => {
     const pp = podiumPts(r);
@@ -2273,7 +2218,7 @@ function renderAdminRaces(){
     } else if (r.status === "open") {
       actions = `<button class="small" data-act="close">Chiudi pronostici</button>
                  <button class="small danger" data-act="cancel">Annulla gara</button>`;
-    } else if (r.status === "closed") {
+    } else if (r.status === "closed" || r.status === "review") {
       const ch = fillPodium(adminSel[r.id] || adminPreset[r.id], nr);
       const pre = Array.isArray(adminPreset[r.id]) && adminPreset[r.id].length
         ? `<span class="mut" style="width:100%">Podio preimpostato: <b>${esc(adminPreset[r.id].map(i => (r.runners || [])[i]).join(", "))}</b></span>` : "";
@@ -2391,10 +2336,12 @@ async function finalizeRace(raceId, mode, podium, saveCatalog){
   if (bs.size > MAX_BETS_SETTLE) throw new Error("Troppi pronostici (max " + MAX_BETS_SETTLE + ") per una chiusura atomica.");
   const betRefs = bs.docs.map(d => d.ref);
   const rr = doc(adminDb, "races", raceId);
+  let catIdFin = "";
   await runTransaction(adminDb, async tx => {
     const rs = await tx.get(rr);
     if (!rs.exists()) throw new Error("Gara non trovata.");
     const race = rs.data();
+    catIdFin = race.catalogId || "";
     if (race.status !== "closed" && race.status !== "review") throw new Error("La gara deve essere chiusa ai pronostici.");
     const bSnaps = await Promise.all(betRefs.map(r => tx.get(r)));
     const bets = bSnaps.filter(s => s.exists() && s.data().status === "pending").map(s => ({ ref: s.ref, ...s.data() }));
@@ -2441,10 +2388,31 @@ async function finalizeRace(raceId, mode, podium, saveCatalog){
     // podio convalidato dall'Admin: resta salvato anche in archivio
     if (saveCatalog && !voided && race.catalogId) tx.set(doc(adminDb, "catalog_w", race.catalogId), { presetPodium: pod });
   });
+  if (catIdFin) await resolveCatReview(catIdFin, raceId);
+}
+// Chiude lo stato "in revisione" del catalogo quando la gara collegata è conclusa o annullata
+async function resolveCatReview(cid, raceId){
+  try {
+    const cr = doc(adminDb, "catalog", cid), c = await getDoc(cr);
+    if (!c.exists()) return;
+    const cd = c.data();
+    if (cd.reviewStatus !== "review" || (cd.reviewRaceId && cd.reviewRaceId !== raceId)) return;
+    const w = await getDoc(doc(adminDb, "catalog_w", cid));
+    const has = w.exists() && Array.isArray(w.data().presetPodium) && w.data().presetPodium.length > 0;
+    await updateDoc(cr, { reviewStatus: has ? "confirmed" : "unconfirmed", proposedPodium: deleteField(), proposedByName: deleteField(), reviewRaceId: deleteField() });
+  } catch (e) { /* non bloccante */ }
 }
 
 // ---------- Admin: catalogo (visualizza, modifica, elimina) ----------
-let cadm = [], cadmOpen = null, cadmDet = {}, cadmPods = {};
+let cadm = [], cadmOpen = null, cadmDet = {}, cadmPods = {}, cadmBusy = {};
+let cadmF = { st: "all", cat: "all", rev: "all" }, cadmSort = { key: "name", dir: 1 };
+const tsMs = v => !v ? 0 : (typeof v.toMillis === "function" ? v.toMillis() : (v instanceof Date ? v.getTime() : (v.seconds ? v.seconds * 1000 : 0)));
+function fmtPlayed(c){
+  const t = tsMs(c.lastPlayedAt);
+  if (!t) return (c.playedCount || 0) > 0 ? "n/d" : "Mai";
+  const d = new Date(t), p = n => String(n).padStart(2, "0");
+  return p(d.getDate()) + "/" + p(d.getMonth() + 1) + " " + p(d.getHours()) + ":" + p(d.getMinutes());
+}
 function fillRunnersSel(){
   const sel = $("cadmRunners"), cur = sel.value;
   const sizes = [...new Set(cadm.map(c => (c.runners || []).length).filter(n => n > 0))].sort((a, b) => a - b);
@@ -2456,6 +2424,7 @@ async function loadCatAdm(){
   cadm = qs.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (a.name || "").localeCompare(b.name || ""));
   cadmDet = {};
   cadmPods = {};
+  cadmBusy = {};
   try {
     const ws = await getDocs(query(collection(adminDb, "catalog_w"), limit(500)));
     ws.docs.forEach(d => {
@@ -2463,8 +2432,12 @@ async function loadCatAdm(){
       cadmPods[d.id] = Array.isArray(wd.presetPodium) ? wd.presetPodium : (Number.isInteger(wd.presetWinner) ? [wd.presetWinner] : []);
     });
   } catch (e) {}
+  try {
+    const rs = await getDocs(query(collection(adminDb, "races"), where("status", "in", ["open", "closed", "review"])));
+    rs.docs.forEach(d => { const x = d.data(); if (x.catalogId) cadmBusy[x.catalogId] = { id: d.id, status: x.status }; });
+  } catch (e) {}
   fillRunnersSel();
-  $("cadmSearch").style.display = ""; $("cadmFlt").style.display = "flex";
+  $("cadmSearch").style.display = ""; $("cadmFlt").style.display = "flex"; $("cadmFilters").style.display = "";
   renderCatAdm();
   if (cadmOpen && cadm.some(c => c.id === cadmOpen)) await openCatAdm(cadmOpen); else cadmOpen = null;
 }
@@ -2476,21 +2449,49 @@ async function openCatAdm(id){
   cadmDet[id] = { url: v.exists() ? v.data().url || "" : "", winner: c ? pi.map(i => (c.runners || [])[i]).filter(Boolean).join(", ") : "" };
   renderCatAdm();
 }
-let cadmFilter = "all", cadmSel = new Set();
+let cadmSel = new Set();
 function cadmStatus(c){ return c.suspended ? ["Sospesa", "off"] : (c.playedCount || 0) > 0 ? ["Giocata · " + c.playedCount, "wait"] : ["Disponibile", "ok"]; }
 const cadmHasPod = c => Array.isArray(cadmPods[c.id]) && cadmPods[c.id].length >= 1;
-function cadmVisible(){
+const cadmRev = c => c.reviewStatus === "review" ? "review" : (cadmHasPod(c) ? "confirmed" : "unconfirmed");
+const CF = {
+  st: { all: () => true, new: c => !((c.playedCount || 0) > 0), played: c => (c.playedCount || 0) > 0, susp: c => !!c.suspended },
+  cat: { all: () => true, "Murble race": c => macroCat(c.category) === "Murble race", "Street race": c => macroCat(c.category) === "Street race" },
+  rev: { all: () => true, confirmed: c => cadmRev(c) === "confirmed", unconfirmed: c => cadmRev(c) === "unconfirmed", review: c => cadmRev(c) === "review" }
+};
+const CF_LBL = {
+  st: [["all", "Tutte"], ["new", "Non giocate"], ["played", "Giocate"], ["susp", "Sospese"]],
+  cat: [["all", "Tutte"], ["Murble race", "Murble race"], ["Street race", "Street race"]],
+  rev: [["all", "Tutte"], ["confirmed", "Confermato"], ["unconfirmed", "Non confermato"], ["review", "In revisione"]]
+};
+const CF_TTL = { st: "Stato", cat: "Categorie", rev: "Revisione" };
+function cadmPass(c, skip){
+  for (const g of ["st", "cat", "rev"]) if (g !== skip && !CF[g][cadmF[g]](c)) return false;
+  const rn = $("cadmRunners").value;
+  if (rn && String((c.runners || []).length) !== rn) return false;
   const t = $("cadmSearch").value.trim().toLowerCase();
-  return cadm.filter(c => {
-    if (cadmFilter === "new" && (c.playedCount || 0) > 0) return false;
-    if (cadmFilter === "played" && !((c.playedCount || 0) > 0)) return false;
-    if (cadmFilter === "susp" && !c.suspended) return false;
-    if (cadmFilter === "pod" && !cadmHasPod(c)) return false;
-    if (cadmFilter === "nopod" && cadmHasPod(c)) return false;
-    if ($("cadmRunners").value && String((c.runners || []).length) !== $("cadmRunners").value) return false;
-    if ($("cadmCat").value && macroCat(c.category) !== $("cadmCat").value) return false;
-    return !t || (c.name || "").toLowerCase().includes(t) || (c.category || "").toLowerCase().includes(t) || (c.runners || []).some(r => String(r).toLowerCase().includes(t));
+  return !t || (c.name || "").toLowerCase().includes(t) || (c.category || "").toLowerCase().includes(t) || (c.runners || []).some(r => String(r).toLowerCase().includes(t));
+}
+const CSORT = {
+  name: c => (c.name || "").toLowerCase(),
+  cat: c => macroCat(c.category),
+  runners: c => (c.runners || []).length,
+  pod: c => cadmHasPod(c) ? 0 : 1,
+  played: c => tsMs(c.lastPlayedAt) || ((c.playedCount || 0) > 0 ? 0 : Infinity),
+  rev: c => ({ review: 0, unconfirmed: 1, confirmed: 2 })[cadmRev(c)]
+};
+function cadmVisible(){
+  const f = CSORT[cadmSort.key] || CSORT.name;
+  return cadm.filter(c => cadmPass(c, null)).sort((a, b) => {
+    const x = f(a), y = f(b);
+    const r = x < y ? -1 : x > y ? 1 : 0;
+    return r ? r * cadmSort.dir : (a.name || "").localeCompare(b.name || "");
   });
+}
+function renderCadmFilters(){
+  $("cadmFilters").innerHTML = ["st", "cat", "rev"].map(g => `<div class="cgrp"><span class="mut" style="min-width:84px"><b>${CF_TTL[g]}</b></span>${CF_LBL[g].map(([v, l]) => {
+    const n = cadm.filter(c => cadmPass(c, g) && CF[g][v](c)).length;
+    return `<button type="button" class="small ${cadmF[g] === v ? "" : "sec"}" data-fg="${g}" data-fv="${esc(v)}">${esc(l)} (${n})</button>`;
+  }).join("")}</div>`).join("");
 }
 function cadmBar(){
   const vis = cadmVisible();
@@ -2501,25 +2502,40 @@ function cadmBar(){
   document.querySelectorAll("#cadmBar [data-bulk]").forEach(b => { b.disabled = n === 0; });
 }
 function renderCatAdm(){
-  document.querySelectorAll("#cadmTabs [data-cf]").forEach(b => b.classList.toggle("sec", b.dataset.cf !== cadmFilter));
-  $("cadmTabs").style.display = "";
+  renderCadmFilters();
   const rows = cadmVisible();
   $("cadmInfo").textContent = "Catalogo: " + cadm.length + " gare · " + rows.length + " mostrate";
   let warn = "";
   ["Murble race", "Street race"].forEach(cn => {
     const cc = cadm.filter(c => !c.suspended && macroCat(c.category) === cn);
-    if (cc.length && !cc.some(c => (c.playedCount || 0) === 0)) warn += '<div class="err" style="margin-top:8px">⚠️ Tutte le gare di ' + cn + ' sono state giocate almeno una volta: l\'app sta riutilizzando il catalogo. Importa nuove gare per mantenere partite inedite.</div>';
+    if (cc.length && !cc.some(c => (c.playedCount || 0) === 0)) warn += '<div class="err" style="margin-top:8px">⚠️ Tutte le gare di ' + cn + " sono state giocate almeno una volta: l'app sta riutilizzando il catalogo. Importa nuove gare per mantenere partite inedite.</div>";
   });
   let wEl = $("cadmWarn");
-  if (!wEl) { wEl = document.createElement("div"); wEl.id = "cadmWarn"; $("cadmInfo").parentNode.insertBefore(wEl, $("cadmTabs")); }
+  if (!wEl) { wEl = document.createElement("div"); wEl.id = "cadmWarn"; $("cadmInfo").parentNode.insertBefore(wEl, $("cadmFilters")); }
   wEl.innerHTML = warn;
-  $("cadmList").innerHTML = rows.map(c => {
+  const th = (k, lbl) => k ? `<th data-sort="${k}">${lbl}${cadmSort.key === k ? (cadmSort.dir > 0 ? " ▲" : " ▼") : ""}</th>` : `<th class="ns">${lbl}</th>`;
+  const allSel = rows.length && rows.every(c => cadmSel.has(c.id));
+  let html = `<div style="overflow-x:auto"><table><thead><tr><th class="ns"><input type="checkbox" data-selall ${allSel ? "checked" : ""} style="width:20px;height:20px;margin:0"></th>${th("name", "Gara")}${th("cat", "Categoria")}${th("runners", "Biglie / Durata")}${th("pod", "Podio")}${th("played", "Ultima giocata")}${th("rev", "Stato / Revisione")}${th(null, "Azioni rapide")}</tr></thead><tbody>`;
+  rows.forEach(c => {
     const open = cadmOpen === c.id, d = cadmDet[c.id];
     const locked = (c.playedCount || 0) > 0;
-    const st = cadmStatus(c);
+    const st = cadmStatus(c), rv = cadmRev(c), bz = cadmBusy[c.id];
+    const prop = Array.isArray(c.proposedPodium) ? c.proposedPodium : [];
+    let revBox = "";
+    if (rv === "review") {
+      const y = d && d.url ? ytInfo(d.url) : null;
+      const link = y && y.id ? `<a href="https://www.youtube.com/watch?v=${esc(y.id)}&t=${safeStartOf(y)}s" target="_blank" rel="noopener" style="color:var(--acc)">Apri il video al secondo di partenza ↗</a>` : "";
+      const cur = cadmHasPod(c) ? cadmPods[c.id].map((x, k) => MEDALS[k] + " " + esc((c.runners || [])[x] || "?")).join(" · ") : "—";
+      revBox = `<div style="border:1px solid #ff7a00;border-radius:12px;padding:12px;margin-bottom:12px"><b>⚠️ Podio contestato</b>
+        <div class="mut" style="margin-top:6px">Podio attuale: <b style="color:var(--txt)">${cur}</b></div>
+        <div class="mut" style="margin-top:4px">Proposto da <b style="color:var(--txt)">${esc(c.proposedByName || "?")}</b>: <b style="color:var(--txt)">${prop.length ? prop.map((x, k) => MEDALS[k] + " " + esc((c.runners || [])[x] || "?")).join(" · ") : "—"}</b></div>
+        <div style="margin:8px 0">${link}</div>
+        <div class="uactions"><button class="small" data-act="crevok">Convalida proposta e assegna punti</button><button class="small danger" data-act="crevcancel">Annulla gara</button></div>
+        <div class="mut" style="margin-top:8px">Oppure correggi il podio qui sotto e premi Salva: la partita collegata viene conclusa con quel podio.</div></div>`;
+    }
     let body = "";
     if (open) {
-      body = !d ? '<div class="mut" style="margin-top:8px">Caricamento…</div>' : `<div style="margin-top:8px">
+      body = !d ? '<div class="mut" style="margin-top:8px">Caricamento…</div>' : `<div style="margin-top:8px">${revBox}
         <label>Nome gara</label><input data-f="name" maxlength="60" value="${esc(c.name || "")}">
         <label>Categoria</label><select data-f="category"><option value="Murble race" ${macroCat(c.category) === "Murble race" ? "selected" : ""}>Murble race</option><option value="Street race" ${macroCat(c.category) === "Street race" ? "selected" : ""}>Street race</option></select>
         <label>Secondo di inizio (startSec)</label>
@@ -2532,19 +2548,31 @@ function renderCatAdm(){
         <div class="uactions" style="margin-top:12px"><button class="small" data-act="csave">Salva</button><button class="small danger" data-act="cdel">Elimina</button></div>
       </div>`;
     }
-    const pd = cadmHasPod(c) ? cadmPods[c.id].map((x, k) => ["🥇", "🥈", "🥉"][k] + " " + esc((c.runners || [])[x] || "?")).join(" · ") : "";
-    const podHtml = pd ? `<span class="mut" style="font-size:14px">${pd}</span>` : '<span class="badge wait" style="background:rgba(255,140,0,.15);color:#ff9f1c">⚠️ Senza podio</span>';
-    return `<div class="urow" data-id="${esc(c.id)}"><div style="display:flex;gap:10px;align-items:center">
-      <input type="checkbox" data-sel ${cadmSel.has(c.id) ? "checked" : ""} style="width:22px;height:22px;flex:none;margin:0">
-      <div class="rhead" data-tgl style="flex:1;min-width:0;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
-        <div style="flex:1 1 220px;min-width:0"><b>${esc(c.name || "?")}</b>${c.category ? `<span class="tag">${esc(macroCat(c.category))}</span>` : ""}${c.duration ? `<span class="dur">⏱ ${esc(c.duration)}</span>` : ""}<span class="tag" style="border-color:var(--line);color:var(--mut)">${esc((c.runners || []).length)} biglie</span></div>
-        <div style="flex:1 1 200px;min-width:0">${podHtml}</div>
-        <div style="display:flex;align-items:center;gap:10px"><span class="badge ${st[1]}">${esc(st[0])}</span><span class="mut">${open ? "▲" : "▼"}</span></div>
-      </div></div>${body}</div>`;
-  }).join("");
+    const pd = cadmHasPod(c) ? cadmPods[c.id].map((x, k) => MEDALS[k] + " " + esc((c.runners || [])[x] || "?")).join(" · ") : "";
+    const podHtml = pd ? `<span class="mut" style="font-size:14px">${pd}</span>` : '<span class="badge wait" style="background:rgba(255,140,0,.15);color:#ff9f1c">⚠️ Da impostare</span>';
+    const revB = rv === "review" ? '<span class="badge wait" style="background:rgba(255,122,0,.18);color:#ff7a00">⚠️ In revisione</span>' : rv === "confirmed" ? '<span class="badge ok">Confermato</span>' : '<span class="badge off">Non confermato</span>';
+    const lock = bz && bz.status !== "review" ? '<span class="badge wait">🔒 In corso</span>' : "";
+    const dis = bz ? "disabled" : "";
+    const qa = `<div class="qa">${locked ? `<button class="small sec" type="button" data-act="qnew" ${dis}>Da giocare</button>` : `<button class="small" type="button" data-act="qplay" ${dis}>Giocata</button>`}${c.suspended ? `<button class="small" type="button" data-act="qunsusp" ${dis}>Riattiva</button>` : `<button class="small sec" type="button" data-act="qsusp" ${dis}>Sospendi</button>`}<button class="small ${rv === "review" ? "" : "sec"}" type="button" data-act="qrev" ${rv === "review" ? 'style="background:#ff7a00;border-color:#ff7a00;color:#0b0d14"' : ""}>Revisiona</button></div>`;
+    html += `<tr class="urow" data-id="${esc(c.id)}">
+      <td><input type="checkbox" data-sel ${cadmSel.has(c.id) ? "checked" : ""} style="width:20px;height:20px;margin:0"></td>
+      <td data-tgl style="cursor:pointer;min-width:170px"><b>${esc(c.name || "?")}</b> <span class="mut">${open ? "▲" : "▼"}</span></td>
+      <td>${c.category ? `<span class="tag">${esc(macroCat(c.category))}</span>` : '<span class="mut">—</span>'}</td>
+      <td style="white-space:nowrap">${esc((c.runners || []).length)} biglie${c.duration ? `<span class="dur" style="margin-left:6px">⏱ ${esc(c.duration)}</span>` : ""}</td>
+      <td style="min-width:200px">${podHtml}</td>
+      <td style="white-space:nowrap">${esc(fmtPlayed(c))}</td>
+      <td><div style="display:flex;gap:6px;flex-wrap:wrap"><span class="badge ${st[1]}">${esc(st[0])}</span>${revB}${lock}</div></td>
+      <td>${qa}</td></tr>`;
+    if (open) html += `<tr class="urow cdet" data-id="${esc(c.id)}"><td colspan="8">${body}</td></tr>`;
+  });
+  html += "</tbody></table></div>";
+  $("cadmList").innerHTML = rows.length ? html : '<div class="mut" style="margin-top:10px">Nessuna gara con questi filtri.</div>';
   cadmBar();
 }
-document.querySelectorAll("#cadmTabs [data-cf]").forEach(b => { b.onclick = () => { cadmFilter = b.dataset.cf; renderCatAdm(); }; });
+$("cadmFilters").addEventListener("click", ev => {
+  const b = ev.target.closest("button[data-fg]"); if (!b) return;
+  cadmF[b.dataset.fg] = b.dataset.fv; renderCatAdm();
+});
 $("cadmAll").onclick = () => {
   const vis = cadmVisible();
   const all = vis.length && vis.every(c => cadmSel.has(c.id));
@@ -2555,8 +2583,11 @@ $("cadmBar").addEventListener("click", async ev => {
   const btn = ev.target.closest("button[data-bulk]");
   if (!btn) return;
   const kind = btn.dataset.bulk;
-  const ids = cadm.filter(c => cadmSel.has(c.id)).map(c => c.id);
-  if (!ids.length) return;
+  let list = cadmVisible().filter(c => cadmSel.has(c.id));
+  if (kind === "new") list = list.filter(c => !cadmBusy[c.id] && (c.playedCount || 0) > 0);
+  else if (kind === "played") list = list.filter(c => !cadmBusy[c.id] && !((c.playedCount || 0) > 0));
+  const ids = list.map(c => c.id);
+  if (!ids.length) { $("adminErr").textContent = "Nessuna gara selezionata a cui applicare l'operazione (le gare in corso non cambiano stato)."; return; }
   if (kind === "del" && !confirm("Eliminare " + ids.length + " gare dal catalogo? Operazione definitiva.")) return;
   $("adminErr").textContent = "";
   await busy(btn, async () => {
@@ -2566,18 +2597,20 @@ $("cadmBar").addEventListener("click", async ev => {
         const b = writeBatch(adminDb);
         ids.slice(i, i + size).forEach(id => {
           const r = doc(adminDb, "catalog", id);
-          if (kind === "new") b.update(r, { playedCount: 0 });
-          else if (kind === "played") b.update(r, { playedCount: 1 });
+          if (kind === "new") b.update(r, { playedCount: 0, lastPlayedAt: deleteField() });
+          else if (kind === "played") b.update(r, { playedCount: 1, lastPlayedAt: serverTimestamp() });
           else if (kind === "susp") b.update(r, { suspended: true });
           else if (kind === "unsusp") b.update(r, { suspended: deleteField() });
           else { b.delete(r); b.delete(doc(adminDb, "catalog_v", id)); b.delete(doc(adminDb, "catalog_w", id)); }
         });
         await b.commit();
       }
-      if (kind === "del") { cadm = cadm.filter(c => !cadmSel.has(c.id)); cadmSel.clear(); cadmOpen = null; }
+      const idSet = new Set(ids);
+      if (kind === "del") { cadm = cadm.filter(c => !idSet.has(c.id)); idSet.forEach(id => { cadmSel.delete(id); delete cadmPods[id]; }); cadmOpen = null; fillRunnersSel(); }
       else cadm.forEach(c => {
-        if (!cadmSel.has(c.id)) return;
-        if (kind === "new") c.playedCount = 0; else if (kind === "played") c.playedCount = 1;
+        if (!idSet.has(c.id)) return;
+        if (kind === "new") { c.playedCount = 0; delete c.lastPlayedAt; }
+        else if (kind === "played") { c.playedCount = 1; c.lastPlayedAt = new Date(); }
         else if (kind === "susp") c.suspended = true; else delete c.suspended;
       });
       renderCatAdm();
@@ -2590,15 +2623,29 @@ $("btnCatLoad").onclick = async () => {
   await busy($("btnCatLoad"), async () => { try { await loadCatAdm(); } catch (e) { $("adminErr").textContent = msg(e); } });
 };
 $("cadmSearch").addEventListener("input", renderCatAdm);
-$("cadmCat").addEventListener("change", renderCatAdm);
 $("cadmRunners").addEventListener("change", renderCatAdm);
 $("cadmList").addEventListener("click", async ev => {
+  const thS = ev.target.closest("th[data-sort]");
+  if (thS) {
+    const k = thS.dataset.sort;
+    if (cadmSort.key === k) cadmSort.dir = -cadmSort.dir; else cadmSort = { key: k, dir: 1 };
+    renderCatAdm();
+    return;
+  }
+  if (ev.target.matches("[data-selall]")) {
+    const vis = cadmVisible();
+    vis.forEach(c => { if (ev.target.checked) cadmSel.add(c.id); else cadmSel.delete(c.id); });
+    renderCatAdm();
+    return;
+  }
   const row = ev.target.closest(".urow");
   if (!row) return;
   const id = row.dataset.id;
   if (ev.target.matches("[data-sel]")) {
     if (ev.target.checked) cadmSel.add(id); else cadmSel.delete(id);
     cadmBar();
+    const vv = cadmVisible(), sa = document.querySelector("#cadmList [data-selall]");
+    if (sa) sa.checked = vv.length > 0 && vv.every(x => cadmSel.has(x.id));
     return;
   }
   if (ev.target.matches("button[data-step]")) {
@@ -2618,6 +2665,44 @@ $("cadmList").addEventListener("click", async ev => {
   $("adminErr").textContent = "";
   await busy(btn, async () => {
     try {
+      const act = btn.dataset.act;
+      if (act === "qplay" || act === "qnew" || act === "qsusp" || act === "qunsusp") {
+        if (cadmBusy[id]) { $("adminErr").textContent = "La gara è impegnata in una partita attiva: non si può cambiare stato."; return; }
+        const cr = doc(adminDb, "catalog", id);
+        if (act === "qplay") { await updateDoc(cr, { playedCount: (c.playedCount || 0) + 1, lastPlayedAt: serverTimestamp() }); c.playedCount = (c.playedCount || 0) + 1; c.lastPlayedAt = new Date(); }
+        else if (act === "qnew") { await updateDoc(cr, { playedCount: 0, lastPlayedAt: deleteField() }); c.playedCount = 0; delete c.lastPlayedAt; }
+        else if (act === "qsusp") { await updateDoc(cr, { suspended: true }); c.suspended = true; }
+        else { await updateDoc(cr, { suspended: deleteField() }); delete c.suspended; }
+        renderCatAdm();
+        return;
+      }
+      if (act === "qrev") {
+        cadmOpen = id; renderCatAdm();
+        if (!cadmDet[id]) await openCatAdm(id);
+        const el = document.querySelector('#cadmList tr.cdet[data-id="' + id + '"]');
+        if (el && el.scrollIntoView) el.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        return;
+      }
+      if (act === "crevok" || act === "crevcancel") {
+        const rid = c.reviewRaceId || (cadmBusy[id] && cadmBusy[id].id) || "";
+        if (!rid) throw new Error("Partita collegata non trovata.");
+        const rs = await getDoc(doc(adminDb, "races", rid));
+        if (!rs.exists() || rs.data().status !== "review") throw new Error("La partita non è più in revisione: aggiorna il catalogo.");
+        const rd = rs.data();
+        if (act === "crevok") {
+          const podium = Array.isArray(rd.proposedPodium) ? rd.proposedPodium : [];
+          if (podium.length !== 3 || new Set(podium).size !== 3 || podium.some(x => !Number.isInteger(x) || x < 0 || x >= (rd.runners || []).length)) throw new Error("Podio proposto non valido: correggilo qui sotto e premi Salva.");
+          if (!confirm("Convalidare il podio: " + podium.map((x, k) => (k + 1) + "° " + rd.runners[x]).join(", ") + "? Assegna i punti e salva il podio nel catalogo.")) return;
+          await finalizeRace(rid, "settle", podium, true);
+        } else {
+          if (!confirm("Annullare la gara? Tutti i pronostici vengono annullati (nessun punto).")) return;
+          await finalizeRace(rid, "cancel", null);
+        }
+        await loadRaces().catch(() => {});
+        await loadCatAdm();
+        flashOk(act === "crevok" ? "Podio convalidato e punti assegnati." : "Gara annullata.");
+        return;
+      }
       if (btn.dataset.act === "cdel") {
         if (!confirm("Eliminare \"" + c.name + "\" dal catalogo?" + ((c.playedCount || 0) > 0 ? "\nÈ già stata giocata: se ha una partita in corso, il video non sarà più disponibile." : ""))) return;
         const b = writeBatch(adminDb);
@@ -2652,18 +2737,36 @@ $("cadmList").addEventListener("click", async ev => {
         pod = names.map(pn => runners.findIndex(r => r.toLowerCase() === pn.toLowerCase()));
         if (names.length > 3 || pod.some(k => k < 0) || new Set(pod).size !== pod.length) { $("adminErr").textContent = "Podio non valido: da 1 a 3 biglie diverse, tra quelle della gara."; return; }
       }
+      const prevPod = cadmPods[id] || [];
+      const podChanged = JSON.stringify(prevPod) !== JSON.stringify(pod);
+      const wasRev = c.reviewStatus === "review";
+      const rid = (wasRev && c.reviewRaceId) || (cadmBusy[id] && cadmBusy[id].id) || c.activeRaceId || "";
+      let linked = "";
+      if (pod.length === 3 && rid) {
+        const rs = await getDoc(doc(adminDb, "races", rid));
+        if (rs.exists() && rs.data().catalogId === id && (rs.data().status === "review" || (rs.data().status === "closed" && podChanged))) linked = rid;
+      }
+      if (linked && !confirm("La partita collegata a questa gara verrà conclusa con il podio indicato e i punti assegnati ai partecipanti. Procedere?")) return;
+      if (linked) { await finalizeRace(linked, "settle", pod, true); delete cadmBusy[id]; }
+      const keepRev = wasRev && !linked;
       const upd = { name, runners, runnersCount: runners.length,
         category: category || deleteField(), duration: sec ? fmtDur(sec) : deleteField(), durationSec: sec || deleteField() };
+      if (!keepRev) {
+        upd.reviewStatus = pod.length ? "confirmed" : "unconfirmed";
+        if (wasRev) { upd.proposedPodium = deleteField(); upd.proposedByName = deleteField(); upd.reviewRaceId = deleteField(); }
+      }
       const b = writeBatch(adminDb);
       b.update(doc(adminDb, "catalog", id), upd);
       b.set(doc(adminDb, "catalog_v", id), { url });
       if (pod.length) b.set(doc(adminDb, "catalog_w", id), { presetPodium: pod }); else b.delete(doc(adminDb, "catalog_w", id));
       await b.commit();
       Object.assign(c, { name, runners, runnersCount: runners.length, category: category || undefined, duration: sec ? fmtDur(sec) : undefined, durationSec: sec || undefined });
+      if (!keepRev) { c.reviewStatus = upd.reviewStatus; if (wasRev) { delete c.proposedPodium; delete c.proposedByName; delete c.reviewRaceId; } }
       cadmDet[id] = { url, winner: pod.map(i => runners[i]).join(", ") };
       if (pod.length) cadmPods[id] = pod; else delete cadmPods[id];
       fillRunnersSel();
-      renderCatAdm(); flashOk("Gara del catalogo salvata.");
+      if (linked) await loadRaces().catch(() => {});
+      renderCatAdm(); flashOk(linked ? "Gara salvata e partita conclusa con i punti." : "Gara del catalogo salvata.");
     } catch (e) { $("adminErr").textContent = msg(e); }
   });
 });
