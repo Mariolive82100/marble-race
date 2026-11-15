@@ -14,7 +14,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Murble Race">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Murble Race v3.38</title>
+<title>Murble Race v3.39</title>
 <style>
 :root{--bg:#090b10;--card:#121622;--line:#232b40;--txt:#eef0fa;--mut:#8f96b8;--acc:#ffb300;--ok:#00e676;--err:#ff3b5c}
 *{box-sizing:border-box}
@@ -208,7 +208,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
 
   <!-- AUTENTICAZIONE -->
   <div id="viewAuth" class="view on">
-    <h1>Murble <span>Race</span> <small class="ver">v3.38</small></h1>
+    <h1>Murble <span>Race</span> <small class="ver">v3.39</small></h1>
     <p class="sub">Pronostici a punti sulle gare di biglie</p>
     <div class="card">
       <div class="tabs">
@@ -242,7 +242,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
     <div class="topbar">
       <div class="tleft">
         <button id="btnDrawer" class="ibtn" type="button" aria-label="Menu">☰</button>
-        <div class="ttl">Murble <span>Race</span> <small class="ver">v3.38</small></div>
+        <div class="ttl">Murble <span>Race</span> <small class="ver">v3.39</small></div>
       </div>
       <button id="balPill" class="pill" type="button" aria-label="Punti totali: apri la classifica"><span id="hPts">0</span> <small>PT</small></button>
     </div>
@@ -360,26 +360,11 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
         </form>
         <details class="rsx" style="margin-top:18px">
         <summary>Reset</summary>
-        <div class="mut" style="margin-top:8px">Reset per la fase di test o di cambio stagione. Le operazioni sono definitive.</div>
+        <div class="mut" style="margin-top:8px">L'operazione è definitiva.</div>
         <div class="urow">
-          <b>Reset Stagione / Punti</b>
-          <div class="mut">Azzera i punti di tutti i giocatori e delle squadre e svuota le classifiche. Gare e pronostici restano.</div>
-          <div class="uactions"><button class="small danger" type="button" data-reset="season">Reset Stagione / Punti</button></div>
-        </div>
-        <div class="urow">
-          <b>Reset users</b>
-          <div class="mut">Elimina i profili giocatore. Gli account di accesso restano: al prossimo login il profilo viene ricreato a 0 punti e in attesa di attivazione.</div>
-          <div class="uactions"><button class="small danger" type="button" data-reset="users">Reset users</button></div>
-        </div>
-        <div class="urow">
-          <b>Reset pronostici e gare</b>
-          <div class="mut">Elimina tutti i pronostici e tutte le gare, azzera le classifiche.</div>
-          <div class="uactions"><button class="small danger" type="button" data-reset="bets">Reset pronostici</button></div>
-        </div>
-        <div class="urow">
-          <b>Reset tutto</b>
-          <div class="mut">Esegue tutti i reset sopra.</div>
-          <div class="uactions"><button class="small danger" type="button" data-reset="all">Reset tutto</button></div>
+          <b>Reset punti</b>
+          <div class="mut">Azzera tutti i punti di tutti i giocatori e delle squadre e svuota le classifiche. Profili, squadre e gare restano.</div>
+          <div class="uactions"><button class="small danger" type="button" data-reset="season">Reset punti</button></div>
         </div>
         </details>
         <div id="optMsg" class="mut" style="margin-top:10px;color:var(--ok)"></div>
@@ -2599,8 +2584,11 @@ function renderUsers(){
         </div>
         <div class="mut">Punti: ${esc(u.points || 0)} PT</div>
       </div>
-      ${adminExp[u.id] ? `<div class="uactions">
+      ${adminExp[u.id] ? `<label style="margin-top:10px">Punteggio</label>
+      <div class="row" style="gap:8px;margin:0"><input data-pts type="number" min="0" step="1" inputmode="numeric" value="${esc(u.points || 0)}" style="flex:1;margin:0"><button class="small" data-act="setpts" style="margin:0">Salva punti</button></div>
+      <div class="uactions" style="margin-top:10px">
         <button class="small sec" data-act="toggle">${u.active ? "Disattiva" : "Attiva"}</button>
+        <button class="small danger" data-act="delete">Espelli / Elimina</button>
       </div>` : ""}
     </div>`).join("");
 }
@@ -2613,10 +2601,44 @@ $("userList").addEventListener("click", async ev => {
   const row = btn.closest(".urow");
   const u = users.find(x => x.id === row.dataset.id);
   $("adminErr").textContent = "";
+  const act = btn.dataset.act;
   await busy(btn, async () => {
     try {
-      await updateDoc(doc(adminDb, "users", u.id), { active: !u.active });
-      u.active = !u.active;
+      if (act === "toggle") {
+        await updateDoc(doc(adminDb, "users", u.id), { active: !u.active });
+        u.active = !u.active;
+      } else if (act === "setpts") {
+        const v = Number(row.querySelector("[data-pts]").value);
+        if (!Number.isInteger(v) || v < 0) { $("adminErr").textContent = "Inserisci un numero intero maggiore o uguale a 0."; return; }
+        await updateDoc(doc(adminDb, "users", u.id), { points: v });
+        const lr = doc(adminDb, "leaderboard", u.id);
+        if ((await getDoc(lr)).exists()) await updateDoc(lr, { points: v });
+        u.points = v;
+      } else if (act === "delete") {
+        if (!confirm("Espellere ed eliminare definitivamente il profilo di " + u.username + "?")) return;
+        if (!confirm("Confermi? L'operazione non si può annullare.")) return;
+        try { await deleteDoc(doc(adminDb, "leaderboard", u.id)); } catch (e) {}
+        if (u.teamId) {
+          const tr = doc(adminDb, "teams", u.teamId), ts = await getDoc(tr);
+          if (ts.exists()) {
+            const t = ts.data(), members = (t.members || []).filter(x => x !== u.id), names = { ...(t.names || {}) };
+            delete names[u.id];
+            if (!members.length) {
+              let code = "";
+              try { const pi = await getDoc(doc(adminDb, "teams", u.teamId, "private", "info")); if (pi.exists()) code = pi.data().code || ""; } catch (e) {}
+              try { await deleteDoc(doc(adminDb, "teams", u.teamId, "private", "info")); } catch (e) {}
+              if (code) { try { await deleteDoc(doc(adminDb, "teamCodes", code)); } catch (e) {} }
+              await deleteDoc(tr);
+            } else {
+              const upd = { members, names };
+              if (t.captainUid === u.id) upd.captainUid = members[0];
+              await updateDoc(tr, upd);
+            }
+          }
+        }
+        await deleteDoc(doc(adminDb, "users", u.id));
+        users = users.filter(x => x.id !== u.id);
+      }
       renderUsers();
     } catch (e) { $("adminErr").textContent = msg(e); }
   });
