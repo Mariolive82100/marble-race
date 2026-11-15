@@ -14,7 +14,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Murble Race">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Murble Race v4.03</title>
+<title>Murble Race v4.05</title>
 <style>
 :root{--bg:#090b10;--card:#121622;--line:#232b40;--txt:#eef0fa;--mut:#8f96b8;--acc:#ffb300;--ok:#00e676;--err:#ff3b5c}
 *{box-sizing:border-box}
@@ -209,7 +209,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
 
   <!-- AUTENTICAZIONE -->
   <div id="viewAuth" class="view on">
-    <h1>Murble <span>Race</span> <small class="ver">v4.03</small></h1>
+    <h1>Murble <span>Race</span> <small class="ver">v4.05</small></h1>
     <p class="sub">Tornei a punti sulle gare di biglie</p>
     <div class="card">
       <div class="tabs">
@@ -243,7 +243,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
     <div class="topbar">
       <div class="tleft">
         <button id="btnDrawer" class="ibtn" type="button" aria-label="Menu">☰</button>
-        <div class="ttl">Murble <span>Race</span> <small class="ver">v4.03</small></div>
+        <div class="ttl">Murble <span>Race</span> <small class="ver">v4.05</small></div>
       </div>
       <button id="balPill" class="pill" type="button" aria-label="Punti totali: apri la classifica"><span id="hPts">0</span> <small>PT</small></button>
     </div>
@@ -479,6 +479,13 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
 </div>
 
 <!-- UNISCITI CON CODICE -->
+<div id="modalTourInfo" class="modal" role="dialog" aria-modal="true">
+  <div class="mbox" style="max-width:420px">
+    <b style="font-size:18px">ⓘ Info Torneo</b>
+    <div class="mbody" id="tiBody"></div>
+  </div>
+</div>
+
 <div id="modalJoin" class="modal" role="dialog" aria-modal="true">
   <div class="mbox" style="max-width:380px">
     <b style="font-size:18px">Unisciti a un Torneo</b>
@@ -804,7 +811,7 @@ function openInfo(tab){
 function closeInfo(){ $("modalInfo").classList.remove("on"); }
 function openDrawer(){ $("drawer").classList.add("on"); $("drawerBg").classList.add("on"); }
 function closeDrawer(){ $("drawer").classList.remove("on"); $("drawerBg").classList.remove("on"); }
-function closeOverlays(){ ["modalInfo", "modalAcc", "modalNewTour", "modalJoin"].forEach(m => $(m).classList.remove("on")); closeDrawer(); }
+function closeOverlays(){ ["modalInfo", "modalAcc", "modalNewTour", "modalJoin", "modalTourInfo"].forEach(m => $(m).classList.remove("on")); closeDrawer(); }
 $("btnDrawer").onclick = openDrawer;
 $("btnDrawerClose").onclick = closeDrawer;
 $("drawerBg").onclick = closeDrawer;
@@ -1336,10 +1343,13 @@ function raceRowHtml(t, r){
 function topHtml(t){
   const dir = isDir(t), s = TSTATUS[t.status] || [t.status, "off"], races = racesOfTour(t.id);
   let h = `<div class="row" style="margin-bottom:10px"><button class="small sec" data-t="back" type="button">← Tornei</button><button class="small sec" data-t="refresh" type="button">Aggiorna</button></div>`;
-  h += `<div class="card"><div class="row"><b style="font-size:20px">${esc(t.name)}</b><span class="badge ${s[1]}">${s[0]}</span></div>
+  if (t.status === "active") {
+    const cur = Math.min((t.settledCount || 0) + 1, t.totalRaces);
+    h += `<div class="card"><div class="row"><b style="font-size:18px">🏆 ${esc(t.name)} · Gara ${esc(cur)} / ${esc(t.totalRaces)}</b><button class="small sec" data-t="openinfo" type="button">ⓘ Info Torneo</button></div></div>`;
+  } else h += `<div class="card"><div class="row"><b style="font-size:20px">${esc(t.name)}</b><span class="badge ${s[1]}">${s[0]}</span></div>
     <div class="mut" style="margin-top:6px"><span class="tag" style="margin-left:0">${esc(t.category)}</span>${dir ? '<span class="tag blue">Direttore di Gara</span>' : ""}</div>
     <div class="mut" style="margin-top:8px">Giocatori ${esc((t.members || []).length)} / ${esc(t.maxPlayers)} · Gare concluse ${esc(t.settledCount || 0)} / ${esc(t.totalRaces)}</div></div>`;
-  if (t.status !== "registration") {
+  if (t.status === "finished") {
     const arr = computeStandings(t), tie = topTie(arr), tbOpen = races.some(r => r.isTiebreak && r.status !== "settled" && r.status !== "cancelled");
     const open = !!stdOpen[t.id];
     h += `<div class="card"><div class="row"><b>${t.status === "finished" ? "🏆 Classifica finale" : "🏁 Classifica Live"}</b><button class="small sec" data-t="togstd" type="button">${open ? "Comprimi" : "Dettaglio completo"}</button></div>${standingsHtml(t, open || t.status === "finished" ? 0 : 3)}`;
@@ -1351,13 +1361,18 @@ function topHtml(t){
   }
   return h;
 }
-function adminHtml(t){
-  const dir = isDir(t), races = racesOfTour(t.id);
-  const regular = races.filter(r => !r.isTiebreak), extracted = regular.length, left = t.totalRaces - extracted;
+function infoHtml(t){
+  const dir = isDir(t);
   let h = `<div class="card"><b>Codice invito</b><div class="row" style="margin-top:6px"><span class="code">${esc(tourCode[t.id] || "…")}</span><button class="small sec" data-t="copy" type="button">Copia</button></div></div>`;
   h += `<div class="card"><b>Iscritti</b>${(t.members || []).map(u => `<div class="urow"><div class="row"><span>${u === t.creatorUid ? "👑 " : "• "}${esc((t.names || {})[u] || "?")}${u === me.uid ? " (tu)" : ""}</span>${dir && u !== t.creatorUid && t.status !== "finished" ? `<button class="small danger" data-t="kick" data-uid="${esc(u)}" type="button">Rimuovi</button>` : ""}</div></div>`).join("")}`;
   if (t.status === "registration") h += dir ? `<button class="full" data-t="start" type="button" ${(t.members || []).length < 2 ? "disabled" : ""}>Chiudi iscrizioni e Avvia Torneo</button>${(t.members || []).length < 2 ? '<div class="mut" style="margin-top:6px">Servono almeno 2 iscritti.</div>' : ""}` : '<div class="mut" style="margin-top:10px">In attesa che il Direttore di Gara avvii il torneo.</div>';
   h += `</div>`;
+  return h;
+}
+function adminHtml(t){
+  const dir = isDir(t), races = racesOfTour(t.id);
+  const regular = races.filter(r => !r.isTiebreak), extracted = regular.length, left = t.totalRaces - extracted;
+  let h = t.status === "active" ? "" : infoHtml(t);
   if (dir && t.status === "active") {
     h += `<div class="card"><b>Estrazione gare "al buio"</b><div class="mut" style="margin-top:4px">Estratte ${esc(extracted)} su ${esc(t.totalRaces)}: titolo, video e podio restano nascosti. Le gare estratte sono subito aperte alle scelte.</div>${left > 0 ? `<div class="uactions"><select id="exCount">${Array.from({ length: left }, (_, i) => `<option value="${i + 1}">${i + 1} ${i ? "gare" : "gara"}</option>`).join("")}</select><button class="small" data-t="extract" type="button">Estrai</button><button class="small sec" data-t="extractall" type="button">Estrai tutte le rimanenti (${esc(left)})</button></div>` : '<div class="mut" style="margin-top:6px">Tutte le gare sono state estratte.</div>'}</div>`;
   }
@@ -1369,6 +1384,7 @@ function adminHtml(t){
 function renderTourScreen(t){
   $("tourDetail").innerHTML = topHtml(t);
   $("tdAdmin").innerHTML = adminHtml(t);
+  if ($("modalTourInfo").classList.contains("on")) $("tiBody").innerHTML = infoHtml(t) + '<button class="full sec" data-t="closeinfo" type="button">✕ Chiudi</button>';
   const act = t.status === "registration" ? null : activeRaceOf(t.id);
   const hist = racesOfTour(t.id).filter(r => ["settled", "cancelled", "disputed"].includes(r.status) || inEsiti(r))
     .sort((a, b) => (tsMs(b.settledAt) || Infinity) - (tsMs(a.settledAt) || Infinity));
@@ -1388,6 +1404,8 @@ const tdClick = async ev => {
   if (act === "back") { selTid = null; renderAll(); return; }
   if (!t) return;
   if (act === "copy") { try { await navigator.clipboard.writeText(tourCode[t.id] || ""); b.textContent = "Copiato ✓"; } catch (e) { $("homeErr").textContent = "Copia non riuscita: seleziona il codice a mano."; } return; }
+  if (act === "openinfo") { $("tiBody").innerHTML = infoHtml(t) + '<button class="full sec" data-t="closeinfo" type="button">✕ Chiudi</button>'; $("modalTourInfo").classList.add("on"); return; }
+  if (act === "closeinfo") { $("modalTourInfo").classList.remove("on"); return; }
   if (act === "togstd") { stdOpen[t.id] = !stdOpen[t.id]; renderAll(); return; }
   if (act === "refresh") { await busy(b, async () => { try { await pollLive(); await loadTourFull(t.id, true); } catch (e) { $("homeErr").textContent = msg(e); } }); return; }
   if (act === "refreshres") { await busy(b, async () => { try { await loadTourFull(t.id, true); } catch (e) { $("homeErr").textContent = msg(e); } }); return; }
@@ -1444,7 +1462,7 @@ const tdClick = async ev => {
     } catch (e) { $("homeErr").textContent = msg(e); }
   });
 };
-$("tourDetail").addEventListener("click", tdClick); $("tdAdmin").addEventListener("click", tdClick);
+$("tourDetail").addEventListener("click", tdClick); $("tdAdmin").addEventListener("click", tdClick); $("tiBody").addEventListener("click", tdClick);
 function flashHome(t){
   const el = $("homeErr"); el.textContent = ""; el.style.color = "var(--ok)"; el.style.borderColor = "var(--ok)"; el.textContent = t;
   setTimeout(() => { if (el.textContent === t) { el.textContent = ""; el.style.color = ""; el.style.borderColor = ""; } }, 3500);
@@ -1512,7 +1530,7 @@ function raceParts(r, mode){
   if (!open || r.status === "cancelled") return { head: r.status === "cancelled" ? head + '<div class="mut" style="margin-top:6px">Gara annullata dall\'Admin: nessun punto.</div>' : head, res, body, yt };
   const sc = secrets[r.catalogId];
   if (!sc && !secReq[r.catalogId]) { secReq[r.catalogId] = 1; ensureSecrets(r).then(renderAll).catch(e => { secReq[r.catalogId] = 0; $("homeErr").textContent = msg(e); }); }
-  if (mode !== "history" && sc && sc.url) { const y = ytInfo(sc.url); if (y) yt = { ...y, dur: r.durSec || 0 }; }
+  if ((mode !== "history" || replayOn[r.id]) && sc && sc.url) { const y = ytInfo(sc.url); if (y) yt = { ...y, dur: r.durSec || 0, replay: mode === "history" }; }
   if (!sc) body = '<div class="mut" style="margin-top:10px">Caricamento video…</div>';
   // risultato ufficiale (dopo il video)
   let team = "";
@@ -1541,6 +1559,7 @@ function raceParts(r, mode){
           res += `<div style="margin-top:10px">${sel(0)}${sel(1)}${sel(2)}</div><div style="display:flex;gap:8px;margin-top:12px"><button class="full" data-act="sendpod" type="button" style="flex:1;margin-top:0">Invia segnalazione all'Admin</button><button class="full sec" data-act="cancelform" type="button" style="flex:1;margin-top:0">Annulla</button></div>`;
         } else res += `<button class="full sec" data-act="editpod" type="button">Segnala podio non corretto</button>`;
       }
+      if (mode === "history" && sc && sc.url && !replayOn[r.id]) res += `<button class="full sec" data-act="replayopen" type="button">▶ Rivedi video</button>`;
       res += (mode === "history" ? othersHtml(r, pod, pp) : "") + "</div>";
     }
   } else if (sc && ["unlocked", "settled", "disputed"].includes(r.status)) {
@@ -1597,13 +1616,13 @@ function ytSrc(y, autoplay){
   const st = safeStartOf(y), en = safeEndOf(y);
   return "https://www.youtube.com/embed/" + y.id + "?rel=0&modestbranding=1&playsinline=1" + (st ? "&start=" + st : "") + (en ? "&end=" + en : "") + (autoplay ? "&autoplay=1" : "") + "&enablejsapi=1&origin=" + encodeURIComponent(location.origin);
 }
-const ytPl = {}, ytReady = {}, ytTick = {}, finishing = {};
+const ytPl = {}, ytReady = {}, ytTick = {}, finishing = {}, ytReplay = {}, replayOn = {};
 function attachYt(raceId, iframe){
   ytReady[raceId] = false;
   loadYtApi().then(() => {
     try {
       ytPl[raceId] = new YT.Player(iframe, { events: {
-        onReady: () => { ytReady[raceId] = true; },
+        onReady: e => { ytReady[raceId] = true; if (ytReplay[raceId] && ytCur[raceId]) { try { e.target.seekTo(safeStartOf(ytCur[raceId]), true); e.target.playVideo(); } catch (x) {} } },
         onStateChange: ev => {
           const y = ytCur[raceId], p = ytPl[raceId];
           clearInterval(ytTick[raceId]);
@@ -1618,10 +1637,21 @@ function attachYt(raceId, iframe){
     } catch (e) {}
   });
 }
-function endVideo(rid){
+function destroyYt(rid){
   clearInterval(ytTick[rid]);
   try { ytPl[rid].pauseVideo(); } catch (e) {}
-  finishRace(rid);
+  try { ytPl[rid].destroy(); } catch (e) {}
+  delete ytPl[rid]; ytReady[rid] = false;
+}
+function endVideo(rid){
+  const rp = ytReplay[rid];
+  destroyYt(rid);
+  if (rp) closeReplay(rid); else finishRace(rid);
+}
+function closeReplay(rid){
+  destroyYt(rid);
+  ytReplay[rid] = false; delete replayOn[rid];
+  renderAll();
 }
 function watchRace(rid, card){
   const y = ytCur[rid]; if (!y) return;
@@ -1670,13 +1700,20 @@ function renderCards(box, list, mode){
     if (el._res !== parts.res) { resSlot.innerHTML = parts.res; el._res = parts.res; }
     if (el._body !== parts.body) { body.innerHTML = parts.body; el._body = parts.body; }
     if (parts.yt) {
-      const key = parts.yt.id + ":" + parts.yt.start + ":" + (parts.yt.dur || 0);
+      const key = parts.yt.id + ":" + parts.yt.start + ":" + (parts.yt.dur || 0) + (parts.yt.replay ? ":r" : "");
       if (slot.dataset.id !== key) {
         const st = safeStartOf(parts.yt);
         ytCur[r.id] = parts.yt;
-        slot.innerHTML = '<div class="yt"><iframe src="' + ytSrc(parts.yt, false) + '" title="Video gara" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe><div class="yt-ov"><button class="btn-go" data-act="watch" type="button" style="font-size:20px;padding:14px 22px">▶ Guarda la gara</button><div class="mut" style="font-size:13px">Avvia dal secondo esatto della batteria</div></div></div><div class="mut" style="margin-top:6px;font-size:13px"><a href="https://www.youtube.com/watch?v=' + parts.yt.id + (st ? '&t=' + st + 's' : '') + '" target="_blank" rel="noopener noreferrer" style="color:var(--mut)">Apri su YouTube ↗</a> · <button class="small sec" type="button" data-act="replay" style="margin:0 0 0 4px">Rivedi la gara ↻</button></div>';
-        attachYt(r.id, slot.querySelector("iframe"));
-        slot.dataset.id = key;
+        ytReplay[r.id] = !!parts.yt.replay;
+        if (parts.yt.replay) {
+          slot.innerHTML = '<div class="yt"><iframe src="' + ytSrc(parts.yt, true) + '" title="Replay gara" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div><div style="margin-top:8px"><button class="small sec" type="button" data-act="closereplay">✕ Chiudi video</button></div>';
+          attachYt(r.id, slot.querySelector("iframe"));
+          slot.dataset.id = key;
+        } else {
+          slot.innerHTML = '<div class="yt"><iframe src="' + ytSrc(parts.yt, false) + '" title="Video gara" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe><div class="yt-ov"><button class="btn-go" data-act="watch" type="button" style="font-size:20px;padding:14px 22px">▶ Guarda la gara</button><div class="mut" style="font-size:13px">Avvia dal secondo esatto della batteria</div></div></div><div class="mut" style="margin-top:6px;font-size:13px"><a href="https://www.youtube.com/watch?v=' + parts.yt.id + (st ? '&t=' + st + 's' : '') + '" target="_blank" rel="noopener noreferrer" style="color:var(--mut)">Apri su YouTube ↗</a> · <button class="small sec" type="button" data-act="replay" style="margin:0 0 0 4px">Rivedi la gara ↻</button></div>';
+          attachYt(r.id, slot.querySelector("iframe"));
+          slot.dataset.id = key;
+        }
       }
     } else if (slot.dataset.id) { slot.innerHTML = ""; delete slot.dataset.id; }
     if (box.children[i] !== el) box.insertBefore(el, box.children[i] || null);
@@ -1706,6 +1743,8 @@ const raceClick = async ev => {
   const id = card.dataset.id, r = racesById[id], act = a.dataset.act;
   $("homeErr").textContent = "";
   if (act === "watch") { const ov = card.querySelector(".yt-ov"); if (ov) ov.remove(); watchRace(id, card); return; }
+  if (act === "replayopen") { replayOn[id] = true; renderAll(); return; }
+  if (act === "closereplay") { closeReplay(id); return; }
   if (act === "showres") { finishRace(id); return; }
   if (act === "replay") { const ifr = card.querySelector(".yt iframe"), cur = ytCur[id]; if (ifr && cur) { showRes[id] = false; ifr.src = ytSrc(cur, true); attachYt(id, ifr); renderAll(); } return; }
   if (act === "editpod") { editPod[id] = ["", "", ""]; renderAll(); return; }
