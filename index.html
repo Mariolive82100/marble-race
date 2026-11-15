@@ -14,7 +14,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Murble Race">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Murble Race v3.42</title>
+<title>Murble Race v3.43</title>
 <style>
 :root{--bg:#090b10;--card:#121622;--line:#232b40;--txt:#eef0fa;--mut:#8f96b8;--acc:#ffb300;--ok:#00e676;--err:#ff3b5c}
 *{box-sizing:border-box}
@@ -208,7 +208,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
 
   <!-- AUTENTICAZIONE -->
   <div id="viewAuth" class="view on">
-    <h1>Murble <span>Race</span> <small class="ver">v3.42</small></h1>
+    <h1>Murble <span>Race</span> <small class="ver">v3.43</small></h1>
     <p class="sub">Pronostici a punti sulle gare di biglie</p>
     <div class="card">
       <div class="tabs">
@@ -242,7 +242,7 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
     <div class="topbar">
       <div class="tleft">
         <button id="btnDrawer" class="ibtn" type="button" aria-label="Menu">☰</button>
-        <div class="ttl">Murble <span>Race</span> <small class="ver">v3.42</small></div>
+        <div class="ttl">Murble <span>Race</span> <small class="ver">v3.43</small></div>
       </div>
       <button id="balPill" class="pill" type="button" aria-label="Punti totali: apri la classifica"><span id="hPts">0</span> <small>PT</small></button>
     </div>
@@ -365,6 +365,11 @@ a[data-info]{color:var(--acc);text-decoration:underline;cursor:pointer}
           <b>Reset punti</b>
           <div class="mut">Azzera tutti i punti di tutti i giocatori e delle squadre e svuota le classifiche. Profili, squadre e gare restano.</div>
           <div class="uactions"><button class="small danger" type="button" data-reset="season">Reset punti</button></div>
+        </div>
+        <div class="urow">
+          <b>Svuota Scegli</b>
+          <div class="mut">Elimina dalla pagina Scegli tutte le partite in attesa di pronostici (con i pronostici già inseriti). Le gare tornano disponibili nel catalogo.</div>
+          <div class="uactions"><button class="small danger" type="button" data-reset="open">Svuota Scegli</button></div>
         </div>
         <div class="urow">
           <b>Svuota Esiti</b>
@@ -1932,6 +1937,7 @@ async function zeroPoints(){
   await wipeCollection("leaderboard");
 }
 const RESET_TEXT = {
+  open: "Eliminare tutte le partite della pagina Scegli, compresi i pronostici già inseriti? Le gare tornano disponibili nel catalogo.",
   history: "Eliminare tutte le gare concluse e annullate dallo storico Esiti? Punti e classifiche restano.",
   season: "Azzerare i punti di tutti i giocatori e delle squadre e svuotare le classifiche?",
   users: "Eliminare TUTTI i profili giocatore?",
@@ -1958,9 +1964,36 @@ $("adminOpts").addEventListener("click", async ev => {
         }
         await loadRaces();
       }
+      if (k === "open") {
+        const qs = await getDocs(query(collection(adminDb, "races"), where("status", "in", ["ready", "open"])));
+        const delRefs = [], updOps = [];
+        for (const d of qs.docs) {
+          delRefs.push(d.ref, doc(adminDb, "videos", d.id), doc(adminDb, "videos", d.id + "_w"));
+          const bs = await getDocs(query(collection(adminDb, "bets"), where("raceId", "==", d.id)));
+          bs.docs.forEach(x => delRefs.push(x.ref));
+          const cid = d.data().catalogId;
+          if (cid) {
+            const c = await getDoc(doc(adminDb, "catalog", cid));
+            if (c.exists() && c.data().activeRaceId === d.id) updOps.push({ ref: c.ref, n: Math.max(0, (c.data().playedCount || 0) - 1) });
+          }
+        }
+        for (let i = 0; i < updOps.length; i += 400) {
+          const b = writeBatch(adminDb);
+          updOps.slice(i, i + 400).forEach(o => b.update(o.ref, { playedCount: o.n, activeRaceId: deleteField() }));
+          await b.commit();
+        }
+        for (let i = 0; i < delRefs.length; i += 400) {
+          const b = writeBatch(adminDb);
+          delRefs.slice(i, i + 400).forEach(r => b.delete(r));
+          await b.commit();
+        }
+        catAt = 0;
+        await loadRaces();
+        try { await loadCatAdm(); } catch (e) {}
+      }
       if (k === "bets" || k === "all") { await wipeCollection("bets"); await wipeCollection("races"); await wipeCollection("videos"); await resetCatalogPlays(); await wipeCollection("leaderboard"); }
       if (k === "users" || k === "all") { await wipeCollection("users"); await wipeCollection("teams"); await wipeCollection("teamCodes"); await wipeCollection("leaderboard"); }
-      if (k !== "history") await loadAdmin();
+      if (k !== "history" && k !== "open") await loadAdmin();
       $("optMsg").textContent = "Reset eseguito.";
     } catch (e) { $("adminErr").textContent = msg(e); }
   });
